@@ -1,0 +1,47 @@
+# Site settings
+title: HotelByte Blog
+email: developers@hotelbyte.com
+description: "Technical articles about hotel API distribution, Go microservices, and building scalable travel tech platforms"
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://blog.hotelbyte.com" # the base hostname & protocol for your site
+
+# Social
+github_username: hotelbyte-com
+twitter_username: hotelbyte_dev
+linkedin_username: hotelbyte
+
+# Build settings
+markdown: kramdown
+theme: minima
+highlighter: rouge
+permalink: /:categories/:title/
+
+# Plugins
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Exclude
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - assets/css/_main.scss
+  - assets/css/main.scss
+  - _sass/
+  - LICENSE
+  - README.md
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "HotelByte Team"
+  - scope:
+      path: "assets/img"
+    values:
+      image: true
