@@ -15,6 +15,7 @@ markdown: kramdown
 theme: minima
 highlighter: rouge
 permalink: /:categories/:title/
+future: true  # Show future posts for testing
 
 # Plugins
 plugins:
