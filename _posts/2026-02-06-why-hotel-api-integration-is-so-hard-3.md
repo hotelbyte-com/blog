@@ -1,10 +1,12 @@
 ---
 layout: post
-title: "为什么酒店API集成这么难？（3）限流噩梦：热门酒店搜索，5分钟内被拉黑3次"
+title: "为什么酒店API集成这么难？（3）限流噩梦：上线第1天被拉黑3次"
 date: 2026-02-06 05:30:00 +0000
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, rate-limiting, hot-spot-detection]
 author: "HotelByte Team"
+description: "酒店API集成的第三个噩梦：限流。5家供应商，5种不同的限流规则——QPS限制、时间窗口、热点检测...上线第1天就被拉黑3次，搜索功能全部不可用。"
+reading_time: "15分钟"
 ---
 
 > 这是"为什么酒店API集成这么难？"系列的第3篇。

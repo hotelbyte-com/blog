@@ -5,6 +5,8 @@ date: 2026-02-09 05:30:00 +0000
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, room-mapping, giata]
 author: "HotelByte Team"
+description: "酒店API集成的第六个噩梦：房间映射。5家供应商，5种不同的房型名称——King Room、Deluxe King、Superior King、Premium King...这是同一个房间吗？用户投诉房间和图片不一样。"
+reading_time: "18分钟"
 ---
 
 > 这是"为什么酒店API集成这么难？"系列的第6篇。

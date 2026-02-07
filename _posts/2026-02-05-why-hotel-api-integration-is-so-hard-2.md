@@ -5,6 +5,8 @@ date: 2026-02-05 05:30:00 +0000
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, data-normalization, room-mapping]
 author: "HotelByte Team"
+description: "酒店API集成的第二个噩梦：数据混乱。5家供应商，5种不同的数据格式——JSON/XML、嵌套结构、房型名称、价格计算...你写过50个if/else吗？"
+reading_time: "12分钟"
 ---
 
 > 这是"为什么酒店API集成这么难？"系列的第2篇。

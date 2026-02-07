@@ -1,10 +1,12 @@
 ---
 layout: post
-title: "为什么酒店API集成这么难？（4）错误处理：同一个错误，5种不同的HTTP状态码和错误消息"
+title: "为什么酒店API集成这么难？（4）错误处理：同一个错误，5种不同的状态码"
 date: 2026-02-07 05:30:00 +0000
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, error-handling, retry-strategy]
 author: "HotelByte Team"
+description: "酒店API集成的第四个噩梦：错误处理。5家供应商，5种不同的HTTP状态码和错误消息——400、401、403、404、429...你写过100+行的错误码映射表吗？"
+reading_time: "16分钟"
 ---
 
 > 这是"为什么酒店API集成这么难？"系列的第4篇。

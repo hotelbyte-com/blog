@@ -1,10 +1,12 @@
 ---
 layout: post
-title: "为什么酒店API集成这么难？（5）时区问题：用户选了明天入住，供应商以为是昨天"
+title: "为什么酒店API集成这么难？（5）时区问题：用户订了昨天的酒店"
 date: 2026-02-08 05:30:00 +0000
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, timezone, date-handling]
 author: "HotelByte Team"
+description: "酒店API集成的第五个噩梦：时区问题。3个时区（UTC、HotelLocal、UserLocal）、夏令时/冬令时切换、跨时区预订...用户选了明天入住，供应商以为是昨天。"
+reading_time: "14分钟"
 ---
 
 > 这是"为什么酒店API集成这么难？"系列的第5篇。

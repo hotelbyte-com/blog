@@ -1,0 +1,98 @@
+---
+layout: default
+---
+
+<div class="page-wrapper">
+  <!-- 左侧边栏：系列导航 -->
+  <aside class="sidebar-left">
+    {% include series-nav.html %}
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="content-wrapper">
+    <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">{{ page.title | escape }}</h1>
+        <p class="post-meta">
+          <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+            {{ page.date | date: "%Y-%m-%d" }}
+          </time>
+          {% if page.author %}
+            • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ page.author | escape }}</span></span>
+          {% endif %}
+          • <span itemprop="timeRequired">{{ page.reading_time | default: "12分钟" }}</span>
+        </p>
+        {% if page.description %}
+          <p class="post-description">{{ page.description }}</p>
+        {% endif %}
+      </header>
+
+      <div class="post-content" itemprop="articleBody">
+        {{ content }}
+      </div>
+
+      {% if page.tags %}
+      <footer class="post-footer">
+        <div class="post-tags">
+          <span>标签：</span>
+          {% for tag in page.tags %}
+            <a href="/tags/#{{ tag | slugify }}" class="tag">{{ tag | escape }}</a>
+          {% endfor %}
+        </div>
+      </footer>
+      {% endif %}
+    </article>
+  </main>
+
+  <!-- 右侧边栏：文章目录 -->
+  <aside class="sidebar-right">
+    <div class="table-of-contents">
+      <h3>目录</h3>
+      <nav id="toc">
+        <!-- JavaScript will populate this -->
+      </nav>
+    </div>
+
+    <div class="cta-section">
+      <h3>免费试用</h3>
+      <p>30天免费试用，无需信用卡</p>
+      <a href="https://waitlist.hotelbyte.com" class="cta-button">立即开始</a>
+    </div>
+  </aside>
+</div>
+
+<script>
+  // Generate table of contents
+  document.addEventListener('DOMContentLoaded', function() {
+    const toc = document.getElementById('toc');
+    if (!toc) return;
+
+    const headings = document.querySelectorAll('.post-content h2, .post-content h3, .post-content h4');
+    if (headings.length === 0) return;
+
+    const ul = document.createElement('ul');
+
+    headings.forEach(heading => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.textContent = heading.textContent;
+      a.href = '#' + heading.id;
+      
+      // Add ID if not present
+      if (!heading.id) {
+        heading.id = heading.textContent.toLowerCase().replace(/\s+/g, '-');
+      }
+
+      li.appendChild(a);
+      ul.appendChild(li);
+
+      // Smooth scroll
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    toc.appendChild(ul);
+  });
+</script>
