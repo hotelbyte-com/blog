@@ -805,5 +805,5 @@ Claude Code 和 Cursor 的深度集成通过以下方式提升了我们的开发
 
 **系列导航：**
 
-- [← Article 1: 从 DeepSeek 复制粘贴到 Claude Code]({% link /zh/developer-experience/aicoding/ai-coding-claude-code-integration/ %})
-- [→ Article 3: 多模型与工具链集成]({% link /zh/developer-experience/aicoding/ai-coding-claude-code-integration/ %})
+- [← Article 1: 从 DeepSeek 复制粘贴到 Claude Code]()
+- [→ Article 3: 多模型与工具链集成]()
