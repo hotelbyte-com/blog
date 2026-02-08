@@ -47,21 +47,28 @@ HotelByte is a next-generation hotel distribution platform that helps travel com
 - **Join Waitlist**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
 
 <script>
-// Auto-detect browser language and redirect
+// Auto-detect browser language and redirect (only when user hasn't manually selected)
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if user has manually selected language
-  if (!sessionStorage.getItem('lang-selected')) {
-    // Get browser language
-    const browserLang = navigator.language || navigator.userLanguage;
-    const currentPath = window.location.pathname;
-    
-    // If browser language is Chinese, and currently on English homepage
-    if (browserLang.startsWith('zh') && currentPath === '/en/') {
-      // Delay redirect to avoid flicker
-      setTimeout(function() {
-        window.location.href = '/';
-      }, 100);
-    }
+  // Priority: User manual selection > Browser language > Default language
+  const userSelectedLang = sessionStorage.getItem('user-lang-preference');
+  
+  // If user has manually selected a language, no auto-redirect
+  if (userSelectedLang) {
+    return; // User's manual selection has highest priority
+  }
+  
+  // Get browser language
+  const browserLang = navigator.language || navigator.userLanguage;
+  const currentPath = window.location.pathname;
+  
+  // If browser language is Chinese, and currently on English homepage
+  if (browserLang.startsWith('zh') && currentPath === '/en/') {
+    // Delay redirect to avoid flicker
+    setTimeout(function() {
+      // Store browser language as default before redirecting (for first-time visitors)
+      sessionStorage.setItem('user-lang-preference', 'zh');
+      window.location.href = '/';
+    }, 100);
   }
 });
 </script>

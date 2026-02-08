@@ -6,12 +6,15 @@
 </div>
 
 <script>
-  // Set current language in select and setup change handler
+  // 语言切换器 - 优先用户手动选择
   document.addEventListener('DOMContentLoaded', function() {
     const select = document.getElementById('language-select');
     const currentPath = window.location.pathname;
     
-    // Determine current language
+    // 从 sessionStorage 获取用户手动选择的语言
+    const userSelectedLang = sessionStorage.getItem('user-lang-preference');
+    
+    // 确定当前语言
     let currentLang = 'zh';
     if (currentPath.startsWith('/en/')) {
       currentLang = 'en';
@@ -19,20 +22,20 @@
       currentLang = 'zh';
     }
     
-    // Set select value
+    // 设置选择框的值
     select.value = currentLang;
     
-    // Handle language change
+    // 处理语言切换
     select.addEventListener('change', function() {
       const lang = this.value;
       
-      // Store user's language preference immediately
-      sessionStorage.setItem('lang-selected', 'true');
+      // 立即存储用户选择的语言（优先级最高）
+      sessionStorage.setItem('user-lang-preference', lang);
       
-      // Build new path
+      // 构建新路径
       let newPath;
       if (lang === 'en') {
-        // Switching to English
+        // 切换到英文
         if (currentPath === '/') {
           newPath = '/en/';
         } else if (currentPath.startsWith('/zh/')) {
@@ -41,7 +44,7 @@
           newPath = '/en/' + currentPath;
         }
       } else {
-        // Switching to Chinese
+        // 切换到中文
         if (currentPath === '/en/' || currentPath === '/en') {
           newPath = '/';
         } else if (currentPath.startsWith('/en/')) {
@@ -51,7 +54,7 @@
         }
       }
       
-      // Redirect
+      // 跳转
       window.location.href = newPath;
     });
   });

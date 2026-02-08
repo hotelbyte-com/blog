@@ -47,21 +47,28 @@ HotelByte 是新一代酒店分销平台，帮助旅游公司无缝连接供应�
 - **加入候补名单**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
 
 <script>
-// 自动检测浏览器语言并跳转
+// 自动检测浏览器语言并跳转（仅当用户未手动选择时）
 document.addEventListener('DOMContentLoaded', function() {
-  // 检查用户是否已经手动选择过语言
-  if (!sessionStorage.getItem('lang-selected')) {
-    // 获取浏览器语言
-    const browserLang = navigator.language || navigator.userLanguage;
-    const currentPath = window.location.pathname;
-    
-    // 如果浏览器语言是英文，并且当前在中文首页
-    if (browserLang.startsWith('en') && currentPath === '/') {
-      // 延迟跳转，避免闪烁
-      setTimeout(function() {
-        window.location.href = '/en/';
-      }, 100);
-    }
+  // 优先级：用户手动选择 > 浏览器语言 > 默认语言
+  const userSelectedLang = sessionStorage.getItem('user-lang-preference');
+  
+  // 如果用户已经手动选择过语言，不再自动跳转
+  if (userSelectedLang) {
+    return; // 用户主动选择的优先级最高
+  }
+  
+  // 获取浏览器语言
+  const browserLang = navigator.language || navigator.userLanguage;
+  const currentPath = window.location.pathname;
+  
+  // 如果浏览器语言是英文，并且当前在中文首页
+  if (browserLang.startsWith('en') && currentPath === '/') {
+    // 延迟跳转，避免闪烁
+    setTimeout(function() {
+      // 在跳转前存储浏览器语言（作为首次访问的默认值）
+      sessionStorage.setItem('user-lang-preference', 'en');
+      window.location.href = '/en/';
+    }, 100);
   }
 });
 </script>
