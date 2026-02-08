@@ -48,48 +48,24 @@ Runtime routing table + OpenAPI documentation
 
 ### Metadata Comment System
 
-#### 1. Type Visibility Control
+The system uses lightweight comment tags to control documentation visibility and routing configuration:
 
-Control type and enum value visibility through `//apidoc:` tags:
+- **Type Visibility**: Control which types/enum values appear in public vs internal docs
+- **Method Metadata**: Extract routing, auth, permission, cache settings from comments
+- **Multi-Language Support**: Generate docs for multiple languages from single source
 
-```go
-//apidoc:public,zh:OrderStatus_Submitted,OrderStatus_Confirmed
-type OrderStatus int
+**Examples of Metadata Usage:**
 
-const (
-    OrderStatus_Submitted OrderStatus = iota // Submitted
-    OrderStatus_Confirming                  // Confirming
-    OrderStatus_Confirmed                   // Confirmed
-    OrderStatus_Cancelled                   // Cancelled
-)
-```
+Type visibility tags control documentation scope:
+- Public docs show only customer-facing APIs
+- Internal docs show all implementation details
 
-**Effects:**
-- **Public API documentation**: Only shows `Submitted`, `Confirmed`
-- **Internal API documentation**: Shows all statuses
-- **Multi-language support**: Automatically generates Chinese/English docs
-
-#### 2. Method Metadata
-
-httpdispatcher extracts metadata from method comments, automatically configuring routing and governance:
-
-```go
-// @jwt
-// @permission:order:read
-// @tags:order,booking
-// @cache:ttl=600,userLevel=true
-// @param:orderID string "Order ID"
-func (s *OrderService) GetOrder(ctx context.Context, req *GetOrderRequest) (*GetOrderResponse, error) {
-    // Business logic
-}
-```
-
-**httpdispatcher automatically uses:**
-- ✅ JWT authentication (`@jwt`)
-- ✅ Permission check (`@permission:order:read`)
-- ✅ API tags (`@tags:order,booking`)
-- ✅ Cache configuration (TTL=600s, user-level cache)
-- ✅ Parameter parsing and validation (`@param:`)
+Method metadata allows httpdispatcher to automatically:
+- Configure JWT authentication
+- Set permission checks
+- Apply caching policies
+- Generate OpenAPI specifications
+- Bind routes to handlers
 
 ### Document Generation
 
@@ -115,6 +91,31 @@ make doc-internal
 | API change sync delay | 2-3 days | Real-time | **Instant** |
 | Multi-language doc maintenance | 8-10 hours/week | 0 hours/week | **100%** |
 | SDK generation time | Manual 2-3 days | Auto 5 minutes | **99%** |
+
+### make doc vs Swagger Comparison
+
+| Dimension | Swagger | make doc |
+|-----------|---------|----------|
+| **Code location** | Separate files (swagger.yaml/swagger.json) | Within code comments |
+| **Maintenance cost** | Manual sync between code and docs | Auto-sync, no extra maintenance |
+| **Boilerplate code** | Manual API definitions for all endpoints | Auto-extracted from code |
+| **Type safety** | Manual definitions, error-prone | Directly uses Go types |
+| **Visibility control** | By file separation | By comment tags |
+| **Multi-language support** | Multiple manual versions | Auto-generated from single source |
+| **Best use case** | External API documentation | Internal APIs + Documentation |
+| **Learning curve** | Requires learning Swagger spec | Minimal (just code comments) |
+
+**Key Advantages of make doc:**
+
+1. **Code-First**: Documentation stays in sync because it's derived from code
+2. **Type Safety**: No mismatch between docs and actual types
+3. **Developer Experience**: Just write code, docs are generated automatically
+4. **Governance Integration**: httpdispatcher uses same metadata for routing
+5. **Multi-Output**: Single source generates OpenAPI, Markdown, routing configs
+
+**Note:**
+
+`make doc` is an internal tool for the HotelByte project and is still under active development. We plan to consider open-sourcing it once the implementation reaches maturity. Follow our GitHub repository for updates.
 
 ## Three-Stage Workflow
 
