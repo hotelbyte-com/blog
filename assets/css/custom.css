@@ -1,3 +1,29 @@
+/* Header样式 */
+.site-header {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 15px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.header-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.site-title img {
+  display: block;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.site-title:hover img {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
 /* 首页样式 */
 .home-content {
   max-width: 900px;
