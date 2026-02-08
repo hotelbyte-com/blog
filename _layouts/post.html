@@ -58,7 +58,7 @@ layout: null
       {% if page.tags %}
       <footer class="post-footer">
         <div class="post-tags">
-          <span>标签：</span>
+          <span>{% if page.lang == 'en' %}Tags:{% else %}标签：{% endif %}</span>
           {% for tag in page.tags %}
             <a href="/tags/#{{ tag | slugify }}" class="tag">{{ tag | escape }}</a>
           {% endfor %}
@@ -69,7 +69,7 @@ layout: null
 
     <!-- Comments -->
     <div class="comments-wrapper">
-      <h2>Comments</h2>
+      <h2>{% if page.lang == 'en' %}Comments{% else %}评论{% endif %}</h2>
       {% include giscus.html %}
     </div>
       </main>
@@ -77,16 +77,16 @@ layout: null
       <!-- 右侧边栏：文章目录 -->
       <aside class="sidebar-right">
         <div class="table-of-contents">
-          <h3>目录</h3>
+          <h3>{% if page.lang == 'en' %}Contents{% else %}目录{% endif %}</h3>
           <nav id="toc">
             <!-- JavaScript will populate this -->
           </nav>
         </div>
 
         <div class="cta-section">
-          <h3>免费试用</h3>
-          <p>30天免费试用，无需信用卡</p>
-          <a href="https://waitlist.hotelbyte.com" class="cta-button">立即开始</a>
+          <h3>{% if page.lang == 'en' %}Free Trial{% else %}免费试用{% endif %}</h3>
+          <p>{% if page.lang == 'en' %}30 days free trial, no credit card required{% else %}30天免费试用，无需信用卡{% endif %}</p>
+          <a href="https://waitlist.hotelbyte.com" class="cta-button">{% if page.lang == 'en' %}Get Started{% else %}立即开始{% endif %}</a>
         </div>
       </aside>
     </div>

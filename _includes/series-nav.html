@@ -1,33 +1,61 @@
 <div class="series-navigation">
-  <h3>系列文章</h3>
+  <h3>{% if page.lang == 'en' %}Series Articles{% else %}系列文章{% endif %}</h3>
   <ul>
-    <li{% if page.title contains '认证地狱' or page.title contains '(1）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard/">第1篇：认证地狱</a>
-      <span class="desc">10周计划，24周还没完成</span>
+    <li{% if page.title contains '认证地狱' or page.title contains '(1' or page.title contains 'Authentication' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard/">
+        {% if page.lang == 'en' %}Part 1: Authentication Nightmare{% else %}第1篇：认证地狱{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}10-Week Plan, 24 Weeks and Still Not Done{% else %}10周计划，24周还没完成{% endif %}
+      </span>
     </li>
-    <li{% if page.title contains '数据混乱' or page.title contains '(2）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-2/">第2篇：数据混乱</a>
-      <span class="desc">同一家酒店，5种不同的数据格式</span>
+    <li{% if page.title contains '数据混乱' or page.title contains '(2' or page.title contains 'Data Chaos' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard-2/">
+        {% if page.lang == 'en' %}Part 2: Data Chaos{% else %}第2篇：数据混乱{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}Same Hotel, 5 Different Data Formats{% else %}同一家酒店，5种不同的数据格式{% endif %}
+      </span>
     </li>
-    <li{% if page.title contains '限流噩梦' or page.title contains '(3）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-3/">第3篇：限流噩梦</a>
-      <span class="desc">上线第1天被拉黑3次</span>
+    <li{% if page.title contains '限流噩梦' or page.title contains '(3' or page.title contains 'Rate Limiting' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard-3/">
+        {% if page.lang == 'en' %}Part 3: Rate Limiting Nightmare{% else %}第3篇：限流噩梦{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}Blocked 3 Times on Day 1{% else %}上线第1天被拉黑3次{% endif %}
+      </span>
     </li>
-    <li{% if page.title contains '错误处理' or page.title contains '(4）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-4/">第4篇：错误处理</a>
-      <span class="desc">同一个错误，5种不同的HTTP状态码</span>
+    <li{% if page.title contains '错误处理' or page.title contains '(4' or page.title contains 'Error Handling' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard-4/">
+        {% if page.lang == 'en' %}Part 4: Error Handling{% else %}第4篇：错误处理{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}Same Error, 5 Different Status Codes{% else %}同一个错误，5种不同的HTTP状态码{% endif %}
+      </span>
     </li>
-    <li{% if page.title contains '时区问题' or page.title contains '(5）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-5/">第5篇：时区问题</a>
-      <span class="desc">用户选了明天入住，供应商以为是昨天</span>
+    <li{% if page.title contains '时区问题' or page.title contains '(5' or page.title contains 'Timezone' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard-5/">
+        {% if page.lang == 'en' %}Part 5: Timezone Issues{% else %}第5篇：时区问题{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}User Booked Yesterday's Hotel{% else %}用户选了明天入住，供应商以为是昨天{% endif %}
+      </span>
     </li>
-    <li{% if page.title contains '房间映射' or page.title contains '(6）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-6/">第6篇：房间映射</a>
-      <span class="desc">同一个房间，5种不同的名字</span>
+    <li{% if page.title contains '房间映射' or page.title contains '(6' or page.title contains 'Room Mapping' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard-6/">
+        {% if page.lang == 'en' %}Part 6: Room Mapping{% else %}第6篇：房间映射{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}Same Room, 5 Different Names{% else %}同一个房间，5种不同的名字{% endif %}
+      </span>
     </li>
-    <li{% if page.title contains '总结' or page.title contains '(终）' %} class="active"{% endif %}>
-      <a href="/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-7/">第7篇：总结</a>
-      <span class="desc">我们为什么能解决这些问题？</span>
+    <li{% if page.title contains '总结' or page.title contains '(Final' or page.title contains '(终' or page.title contains 'Summary' %} class="active"{% endif %}>
+      <a href="{% if page.lang == 'en' %}/en/{% else %}/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard-7/">
+        {% if page.lang == 'en' %}Part 7: Summary{% else %}第7篇：总结{% endif %}
+      </a>
+      <span class="desc">
+        {% if page.lang == 'en' %}Why Can We Solve These Problems?{% else %}我们为什么能解决这些问题？{% endif %}
+      </span>
     </li>
   </ul>
 </div>
