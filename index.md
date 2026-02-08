@@ -53,9 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!sessionStorage.getItem('lang-selected')) {
     // 获取浏览器语言
     const browserLang = navigator.language || navigator.userLanguage;
+    const currentPath = window.location.pathname;
     
-    // 如果浏览器语言是英文，跳转到英文版
-    if (browserLang.startsWith('en')) {
+    // 如果浏览器语言是英文，并且当前在中文首页
+    if (browserLang.startsWith('en') && currentPath === '/') {
       // 延迟跳转，避免闪烁
       setTimeout(function() {
         window.location.href = '/en/';

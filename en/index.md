@@ -53,9 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!sessionStorage.getItem('lang-selected')) {
     // Get browser language
     const browserLang = navigator.language || navigator.userLanguage;
+    const currentPath = window.location.pathname;
     
-    // If browser language is Chinese, redirect to Chinese version
-    if (browserLang.startsWith('zh')) {
+    // If browser language is Chinese, and currently on English homepage
+    if (browserLang.startsWith('zh') && currentPath === '/en/') {
       // Delay redirect to avoid flicker
       setTimeout(function() {
         window.location.href = '/';

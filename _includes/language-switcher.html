@@ -1,53 +1,58 @@
 <div class="language-switcher">
-  <select id="language-select" onchange="switchLanguage(this.value)">
+  <select id="language-select">
     <option value="zh">中文</option>
     <option value="en">English</option>
   </select>
 </div>
 
 <script>
-  function switchLanguage(lang) {
-    const currentPath = window.location.pathname;
-    
-    // Store user's language preference
-    sessionStorage.setItem('lang-selected', 'true');
-    
-    // Check current language
-    const isZh = currentPath.startsWith('/zh/') || currentPath === '/';
-    const isEn = currentPath.startsWith('/en/');
-    
-    // Get path without language prefix
-    let pathWithoutLang = currentPath;
-    if (isZh && currentPath !== '/') {
-      pathWithoutLang = currentPath.substring(3);
-    } else if (isEn) {
-      pathWithoutLang = currentPath.substring(3);
-    } else if (currentPath === '/') {
-      pathWithoutLang = '/';
-    }
-    
-    // Build new path
-    let newPath;
-    if (lang === 'en') {
-      newPath = '/en' + (pathWithoutLang === '/' ? '/' : pathWithoutLang);
-    } else {
-      newPath = (pathWithoutLang === '/' ? '/' : pathWithoutLang);
-    }
-    
-    window.location.href = newPath;
-  }
-
-  // Set current language in select
+  // Set current language in select and setup change handler
   document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('language-select');
     const currentPath = window.location.pathname;
-    let currentLang = 'zh';
     
+    // Determine current language
+    let currentLang = 'zh';
     if (currentPath.startsWith('/en/')) {
       currentLang = 'en';
     } else if (currentPath.startsWith('/zh/')) {
       currentLang = 'zh';
     }
     
-    document.getElementById('language-select').value = currentLang;
+    // Set select value
+    select.value = currentLang;
+    
+    // Handle language change
+    select.addEventListener('change', function() {
+      const lang = this.value;
+      
+      // Store user's language preference immediately
+      sessionStorage.setItem('lang-selected', 'true');
+      
+      // Build new path
+      let newPath;
+      if (lang === 'en') {
+        // Switching to English
+        if (currentPath === '/') {
+          newPath = '/en/';
+        } else if (currentPath.startsWith('/zh/')) {
+          newPath = '/en/' + currentPath.substring(3);
+        } else {
+          newPath = '/en/' + currentPath;
+        }
+      } else {
+        // Switching to Chinese
+        if (currentPath === '/en/' || currentPath === '/en') {
+          newPath = '/';
+        } else if (currentPath.startsWith('/en/')) {
+          newPath = currentPath.substring(3);
+        } else {
+          newPath = currentPath;
+        }
+      }
+      
+      // Redirect
+      window.location.href = newPath;
+    });
   });
 </script>
