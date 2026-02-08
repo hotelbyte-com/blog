@@ -12,6 +12,7 @@
 .header-wrapper {
   max-width: 1400px;
   margin: 0 auto;
+  position: relative;
 }
 
 .site-title img {
@@ -22,6 +23,42 @@
 .site-title:hover img {
   transform: scale(1.02);
   opacity: 0.9;
+}
+
+/* 科技蓝主题色变量 */
+:root {
+  --primary-color: #1890ff;
+  --primary-hover: #096dd9;
+  --primary-light: #e6f7ff;
+}
+
+/* 语言切换器 */
+.language-switcher {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+}
+
+.language-switcher select {
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.language-switcher select:hover {
+  border-color: #1890ff;
+}
+
+.language-switcher select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 /* 首页样式 */
@@ -35,7 +72,7 @@
   text-align: center;
   margin-bottom: 60px;
   padding: 60px 20px;
-  background: linear-gradient(135deg, #e44d26 0%, #ff6b3d 100%);
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
   border-radius: 16px;
   color: white;
 }
@@ -58,7 +95,7 @@
   font-weight: 600;
   margin: 40px 0 25px 0;
   color: #222;
-  border-bottom: 2px solid #e44d26;
+  border-bottom: 2px solid #1890ff;
   padding-bottom: 10px;
 }
 
@@ -95,7 +132,7 @@
 }
 
 .home-content .post h2 a:hover {
-  color: #e44d26;
+  color: #1890ff;
 }
 
 .home-content .post .meta {
@@ -143,7 +180,7 @@
 }
 
 .home-content ul.categories a:hover {
-  background: #e44d26;
+  background: #1890ff;
   color: white;
 }
 
@@ -189,7 +226,7 @@
   font-weight: 600;
   margin-bottom: 15px;
   color: #333;
-  border-bottom: 2px solid #e44d26;
+  border-bottom: 2px solid #1890ff;
   padding-bottom: 8px;
 }
 
@@ -216,12 +253,12 @@
 
 .series-navigation a:hover {
   background-color: #f5f5f5;
-  color: #e44d26;
+  color: #1890ff;
   padding-left: 16px;
 }
 
 .series-navigation li.active a {
-  background-color: #e44d26;
+  background-color: #1890ff;
   color: white;
 }
 
@@ -283,7 +320,7 @@
   color: #222;
   font-weight: 600;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e44d26;
+  border-bottom: 1px solid #1890ff;
 }
 
 .post-content h3 {
@@ -318,7 +355,7 @@
   margin: 20px 0;
   padding: 15px 20px;
   background: #f9f9f9;
-  border-left: 4px solid #e44d26;
+  border-left: 4px solid #1890ff;
   font-style: italic;
   color: #555;
 }
@@ -363,7 +400,7 @@
 }
 
 .post-content a {
-  color: #e44d26;
+  color: #1890ff;
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -398,7 +435,7 @@
 }
 
 .tag:hover {
-  background: #e44d26;
+  background: #1890ff;
   color: white;
 }
 
@@ -423,7 +460,7 @@
   font-weight: 600;
   margin: 0 0 15px 0;
   color: #333;
-  border-bottom: 2px solid #e44d26;
+  border-bottom: 2px solid #1890ff;
   padding-bottom: 8px;
 }
 
@@ -449,12 +486,12 @@
 
 .table-of-contents a:hover {
   background: #f5f5f5;
-  color: #e44d26;
+  color: #1890ff;
 }
 
 /* CTA区域 */
 .cta-section {
-  background: linear-gradient(135deg, #e44d26 0%, #ff6b3d 100%);
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
   border-radius: 12px;
   padding: 25px;
   text-align: center;
@@ -476,7 +513,7 @@
 .cta-button {
   display: inline-block;
   background: white;
-  color: #e44d26;
+  color: #1890ff;
   padding: 12px 24px;
   border-radius: 25px;
   font-weight: 600;

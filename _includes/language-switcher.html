@@ -1,0 +1,44 @@
+<div class="language-switcher">
+  <select id="language-select" onchange="switchLanguage(this.value)">
+    <option value="en" {% if site.lang == 'en' %}selected{% endif %}>English</option>
+    <option value="zh" {% if site.lang == 'zh' %}selected{% endif %}>中文</option>
+  </select>
+</div>
+
+<script>
+  function switchLanguage(lang) {
+    const currentPath = window.location.pathname;
+    
+    // Check if current path has language prefix
+    if (currentPath.startsWith('/zh/') || currentPath.startsWith('/en/')) {
+      // Already has language prefix, switch it
+      const newPath = currentPath.replace(/^\/[a-z]{2}\//, `/${lang}/`);
+      window.location.href = newPath;
+    } else {
+      // No language prefix, add it
+      window.location.href = `/${lang}${currentPath}`;
+    }
+  }
+
+  // Auto-detect browser language
+  document.addEventListener('DOMContentLoaded', function() {
+    const browserLang = navigator.language || navigator.userLanguage;
+    const preferredLang = browserLang.startsWith('zh') ? 'zh' : 'en';
+    
+    const currentPath = window.location.pathname;
+    const hasLangPrefix = currentPath.startsWith('/en/') || currentPath.startsWith('/zh/');
+    
+    // Only auto-redirect if no language prefix and user hasn't manually selected
+    if (!hasLangPrefix && !sessionStorage.getItem('lang-selected')) {
+      // Check if user prefers different language than default
+      if (preferredLang !== 'en') {
+        window.location.href = `/${preferredLang}${currentPath}`;
+      }
+    }
+  });
+
+  // Store language selection in session storage
+  document.getElementById('language-select').addEventListener('change', function() {
+    sessionStorage.setItem('lang-selected', 'true');
+  });
+</script>

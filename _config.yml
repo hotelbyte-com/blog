@@ -21,6 +21,12 @@ future: true  # Show future posts for testing
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
+  - jekyll-polyglot
+
+# I18n
+languages: ["en", "zh"]
+default_lang: "en"
+parallel_localization: true
 
 # Exclude
 exclude:
