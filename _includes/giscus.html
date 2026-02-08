@@ -1,0 +1,46 @@
+<div id="giscus" class="giscus-container"></div>
+
+<script>
+  // Giscus configuration
+  // Get these values from https://giscus.app
+  const GISCUS_REPO = 'hotelbyte-com/blog';
+  const GISCUS_REPO_ID = 'R_kgDONxxxxx';  // TODO: Replace with actual repo ID
+  const GISCUS_CATEGORY = 'Announcements';
+  const GISCUS_CATEGORY_ID = 'DIC_kwDONxxxxx4C';  // TODO: Replace with actual category ID
+  
+  // Optional settings
+  const GISCUS_MAPPING = 'pathname';
+  const GISCUS_STRICT = '0';
+  const GISCUS_REACTIONS_ENABLED = '1';
+  const GISCUS_EMIT_METADATA = '0';
+  const GISCUS_INPUT_POSITION = 'bottom';
+  const GISCUS_THEME = 'preferred_color_scheme';
+  const GISCUS_LANG = 'zh';  // Will auto-detect based on page language
+
+  // Detect current page language
+  const currentPath = window.location.pathname;
+  const isEnglishPage = currentPath.startsWith('/en/');
+  const language = isEnglishPage ? 'en' : 'zh';
+
+  // Load Giscus script
+  const script = document.createElement('script');
+  script.src = 'https://giscus.app/client.js';
+  script.setAttribute('data-repo', GISCUS_REPO);
+  script.setAttribute('data-repo-id', GISCUS_REPO_ID);
+  script.setAttribute('data-category', GISCUS_CATEGORY);
+  script.setAttribute('data-category-id', GISCUS_CATEGORY_ID);
+  script.setAttribute('data-mapping', GISCUS_MAPPING);
+  script.setAttribute('data-strict', GISCUS_STRICT);
+  script.setAttribute('data-reactions-enabled', GISCUS_REACTIONS_ENABLED);
+  script.setAttribute('data-emit-metadata', GISCUS_EMIT_METADATA);
+  script.setAttribute('data-input-position', GISCUS_INPUT_POSITION);
+  script.setAttribute('data-theme', GISCUS_THEME);
+  script.setAttribute('data-lang', language);
+  script.async = true;
+  
+  document.getElementById('giscus').appendChild(script);
+</script>
+
+<noscript>
+  Please enable JavaScript to view the <a href="https://github.com/hotelbyte-com/blog/discussions">comments</a>.
+</noscript>

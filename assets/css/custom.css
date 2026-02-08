@@ -525,3 +525,21 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(228, 77, 38, 0.3);
 }
+
+/* 评论区样式 */
+.comments-wrapper {
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.comments-wrapper h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  color: #222;
+}
+
+.giscus-container {
+  margin-top: 20px;
+}
