@@ -526,6 +526,31 @@
   box-shadow: 0 4px 12px rgba(228, 77, 38, 0.3);
 }
 
+/* 语言切换提示 */
+.language-notice {
+  background-color: #f0f9ff;
+  border-left: 4px solid #2563eb;
+  padding: 12px 20px;
+  margin: 30px 0;
+  border-radius: 4px;
+}
+
+.language-notice p {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.language-notice a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.language-notice a:hover {
+  text-decoration: underline;
+}
+
 /* 评论区样式 */
 .comments-wrapper {
   margin-top: 60px;

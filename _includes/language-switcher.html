@@ -10,32 +10,41 @@
     const currentPath = window.location.pathname;
     
     // Check current language
-    const isZh = currentPath.startsWith('/zh/');
+    const isZh = currentPath.startsWith('/zh/') || currentPath === '/';
     const isEn = currentPath.startsWith('/en/');
     
     // Get path without language prefix
     let pathWithoutLang = currentPath;
-    if (isZh) {
+    if (isZh && currentPath !== '/') {
       pathWithoutLang = currentPath.substring(3);
     } else if (isEn) {
       pathWithoutLang = currentPath.substring(3);
+    } else if (currentPath === '/') {
+      pathWithoutLang = '/';
     }
     
     // Build new path
-    const newPath = `/${lang}${pathWithoutLang}`;
+    let newPath;
+    if (lang === 'en') {
+      newPath = '/en' + (pathWithoutLang === '/' ? '/' : pathWithoutLang);
+    } else {
+      newPath = (pathWithoutLang === '/' ? '/' : pathWithoutLang);
+    }
+    
     window.location.href = newPath;
   }
 
-  // Auto-detect browser language and set current selection
+  // Set current language in select
   document.addEventListener('DOMContentLoaded', function() {
-    const browserLang = navigator.language || navigator.userLanguage;
-    const preferredLang = browserLang.startsWith('zh') ? 'zh' : 'en';
-    
     const currentPath = window.location.pathname;
-    const hasLangPrefix = currentPath.startsWith('/en/') || currentPath.startsWith('/zh/');
+    let currentLang = 'zh';
     
-    // Set current language in select
-    const currentLang = currentPath.startsWith('/en/') ? 'en' : 'zh';
+    if (currentPath.startsWith('/en/')) {
+      currentLang = 'en';
+    } else if (currentPath.startsWith('/zh/')) {
+      currentLang = 'zh';
+    }
+    
     document.getElementById('language-select').value = currentLang;
     
     // Store selection

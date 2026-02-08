@@ -63,6 +63,11 @@ defaults:
       layout: "post"
       author: "HotelByte Team"
   - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "home"
+  - scope:
       path: "_posts/zh"
       type: "posts"
     values:
@@ -74,6 +79,15 @@ defaults:
     values:
       lang: en
       permalink: /en/:categories/:title/
+  - scope:
+      path: ""
+      values:
+      lang: zh
+  - scope:
+      path: "en"
+    values:
+      lang: en
+      permalink: /en/
   - scope:
       path: "assets/img"
     values:
