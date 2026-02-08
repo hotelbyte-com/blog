@@ -24,9 +24,14 @@ plugins:
   - jekyll-polyglot
 
 # I18n
-languages: ["en", "zh"]
-default_lang: "en"
-parallel_localization: true
+languages: ["zh", "en"]
+default_lang: "zh"
+parallel_localization: false
+exclude_from_localization:
+  - assets
+  - CNAME
+  - _layouts
+  - _includes
 
 # Exclude
 exclude:
