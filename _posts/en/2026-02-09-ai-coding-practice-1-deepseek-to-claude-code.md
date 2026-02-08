@@ -347,4 +347,4 @@ In the next article, we will dive deep into Claude Code integration practices, i
 **Series Navigation:**
 
 - Introduction
-- [→ Article 2: Claude Code Deep Integration]({% post_url 2026-02-10-claude-code-deep-integration %})
+- [→ Article 2: Claude Code Deep Integration]()
