@@ -12,6 +12,9 @@ layout: null
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/minima.css">
     <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
     {% feed_meta %}
+    {% if jekyll.environment == 'production' and site.google_analytics %}
+      {% include google-analytics.html %}
+    {% endif %}
   </head>
   <body>
     <header class="site-header" role="banner">

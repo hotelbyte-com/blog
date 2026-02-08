@@ -38,6 +38,9 @@ exclude:
 sass:
   style: compressed
 
+# Google Analytics
+google_analytics: G-1ZJN193FS9
+
 # Defaults
 defaults:
   - scope:
