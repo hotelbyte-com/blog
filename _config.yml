@@ -33,6 +33,9 @@ exclude_from_localization:
   - _layouts
   - _includes
 
+# URL structure
+permalink: /:categories/:title/
+
 # Exclude
 exclude:
   - Gemfile
@@ -64,3 +67,6 @@ defaults:
       path: "assets/img"
     values:
       image: true
+
+# URL structure
+permalink: /:categories/:title/

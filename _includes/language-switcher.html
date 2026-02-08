@@ -9,15 +9,24 @@
   function switchLanguage(lang) {
     const currentPath = window.location.pathname;
     
-    // Remove language prefix from current path
-    const pathWithoutLang = currentPath.replace(/^\/[a-z]{2}\//, '/');
+    // Check current language
+    const isZh = currentPath.startsWith('/zh/');
+    const isEn = currentPath.startsWith('/en/');
     
-    // Build new path with target language
+    // Get path without language prefix
+    let pathWithoutLang = currentPath;
+    if (isZh) {
+      pathWithoutLang = currentPath.substring(3);
+    } else if (isEn) {
+      pathWithoutLang = currentPath.substring(3);
+    }
+    
+    // Build new path
     const newPath = `/${lang}${pathWithoutLang}`;
     window.location.href = newPath;
   }
 
-  // Auto-detect browser language
+  // Auto-detect browser language and set current selection
   document.addEventListener('DOMContentLoaded', function() {
     const browserLang = navigator.language || navigator.userLanguage;
     const preferredLang = browserLang.startsWith('zh') ? 'zh' : 'en';
@@ -25,21 +34,13 @@
     const currentPath = window.location.pathname;
     const hasLangPrefix = currentPath.startsWith('/en/') || currentPath.startsWith('/zh/');
     
-    // Only auto-redirect if no language prefix and user hasn't manually selected
-    if (!hasLangPrefix && !sessionStorage.getItem('lang-selected')) {
-      // Check if user prefers different language than default (zh)
-      if (preferredLang !== 'zh') {
-        window.location.href = `/en${currentPath}`;
-      }
-    } else {
-      // Update select based on current path
-      const currentLang = currentPath.startsWith('/en/') ? 'en' : 'zh';
-      document.getElementById('language-select').value = currentLang;
-    }
-  });
-
-  // Store language selection in session storage
-  document.getElementById('language-select').addEventListener('change', function() {
-    sessionStorage.setItem('lang-selected', 'true');
+    // Set current language in select
+    const currentLang = currentPath.startsWith('/en/') ? 'en' : 'zh';
+    document.getElementById('language-select').value = currentLang;
+    
+    // Store selection
+    document.getElementById('language-select').addEventListener('change', function() {
+      sessionStorage.setItem('lang-selected', 'true');
+    });
   });
 </script>
