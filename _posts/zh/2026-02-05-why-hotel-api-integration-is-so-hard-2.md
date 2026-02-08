@@ -2,6 +2,7 @@
 layout: post
 title: "为什么酒店API集成这么难？（2）数据混乱：同一家酒店，5种不同的数据格式"
 date: 2026-02-05 05:30:00 +0000
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, data-normalization, room-mapping]
 author: "HotelByte Team"

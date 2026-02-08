@@ -14,7 +14,6 @@ linkedin_username: hotelbyte
 markdown: kramdown
 theme: minima
 highlighter: rouge
-permalink: /:categories/:title/
 future: true  # Show future posts for testing
 
 # Plugins
@@ -33,8 +32,8 @@ exclude_from_localization:
   - _layouts
   - _includes
 
-# URL structure
-permalink: /:categories/:title/
+# URL structure (configured in defaults for language support)
+
 
 # Exclude
 exclude:
@@ -64,9 +63,19 @@ defaults:
       layout: "post"
       author: "HotelByte Team"
   - scope:
+      path: "_posts/zh"
+      type: "posts"
+    values:
+      lang: zh
+      permalink: /zh/:categories/:title/
+  - scope:
+      path: "_posts/en"
+      type: "posts"
+    values:
+      lang: en
+      permalink: /en/:categories/:title/
+  - scope:
       path: "assets/img"
     values:
       image: true
 
-# URL structure
-permalink: /:categories/:title/

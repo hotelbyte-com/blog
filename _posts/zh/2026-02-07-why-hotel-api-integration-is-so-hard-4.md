@@ -2,6 +2,7 @@
 layout: post
 title: "为什么酒店API集成这么难？（4）错误处理：同一个错误，5种不同的状态码"
 date: 2026-02-07 05:30:00 +0000
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, error-handling, retry-strategy]
 author: "HotelByte Team"

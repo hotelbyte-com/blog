@@ -2,6 +2,7 @@
 layout: post
 title: "为什么酒店API集成这么难？（5）时区问题：用户订了昨天的酒店"
 date: 2026-02-08 05:30:00 +0000
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, timezone, date-handling]
 author: "HotelByte Team"

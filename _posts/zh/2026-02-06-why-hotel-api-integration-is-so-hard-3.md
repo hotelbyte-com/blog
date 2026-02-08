@@ -2,6 +2,7 @@
 layout: post
 title: "为什么酒店API集成这么难？（3）限流噩梦：上线第1天被拉黑3次"
 date: 2026-02-06 05:30:00 +0000
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, rate-limiting, hot-spot-detection]
 author: "HotelByte Team"

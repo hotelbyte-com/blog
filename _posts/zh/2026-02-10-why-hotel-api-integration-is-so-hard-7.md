@@ -2,6 +2,7 @@
 layout: post
 title: "为什么酒店API集成这么难？（终）我们为什么能解决这些问题？"
 date: 2026-02-10 05:30:00 +0000
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, hotelbyte, byol]
 author: "HotelByte Team"

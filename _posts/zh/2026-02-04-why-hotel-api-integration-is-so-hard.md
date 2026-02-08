@@ -2,6 +2,8 @@
 layout: post
 title: "为什么酒店API集成这么难？（1）认证地狱：10周计划，24周还没完成"
 date: 2026-02-04 18:30:00 +0000
+lang: zh
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, authentication]
 author: "HotelByte Team"

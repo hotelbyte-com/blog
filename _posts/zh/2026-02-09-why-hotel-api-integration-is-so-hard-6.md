@@ -2,6 +2,7 @@
 layout: post
 title: "为什么酒店API集成这么难？（6）房间映射：同一个房间，5种不同的名字"
 date: 2026-02-09 05:30:00 +0000
+lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, room-mapping, giata]
 author: "HotelByte Team"

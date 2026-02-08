@@ -2,6 +2,7 @@
 layout: post
 title: "Why Hotel API Integration is So Hard? (2) Data Chaos: Same Hotel, 5 Different Data Formats"
 date: 2026-02-05 05:30:00 +0000
+lang: en
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, data-normalization, room-mapping]
 author: "HotelByte Team"

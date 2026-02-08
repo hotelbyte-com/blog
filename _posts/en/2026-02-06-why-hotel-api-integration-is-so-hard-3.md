@@ -2,6 +2,7 @@
 layout: post
 title: "Why Hotel API Integration is So Hard? (3) Rate Limiting Nightmare: Blocked 3 Times on Day 1"
 date: 2026-02-06 05:30:00 +0000
+lang: en
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, rate-limiting, hot-spot-detection]
 author: "HotelByte Team"

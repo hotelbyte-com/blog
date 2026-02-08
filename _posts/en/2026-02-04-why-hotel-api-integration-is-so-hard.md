@@ -2,6 +2,7 @@
 layout: post
 title: "Why Hotel API Integration is So Hard? (1) Authentication Nightmare: 10-Week Plan, 24 Weeks and Still Not Done"
 date: 2026-02-04 18:30:00 +0000
+lang: en
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, authentication]
 author: "HotelByte Team"
