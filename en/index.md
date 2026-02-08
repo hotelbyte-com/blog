@@ -40,8 +40,28 @@ lang: en
 
 ## About HotelByte
 
-HotelByte is a next-generation hotel distribution platform that helps travel companies connect with suppliers seamlessly. We build technology that abstracts away complexity of hotel API integration, allowing you to focus on building great products.
+HotelByte is a next-generation hotel distribution platform that helps travel companies connect with suppliers seamlessly. We build technology that abstracts away the complexity of hotel API integration, allowing you to focus on building great products.
 
 - **Official API**: [openapi.hotelbyte.com](https://openapi.hotelbyte.com)
 - **GitHub**: [github.com/hotelbyte-com](https://github.com/hotelbyte-com)
 - **Join Waitlist**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
+
+<script>
+// Auto-detect browser language and redirect
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if user has manually selected language
+  if (!sessionStorage.getItem('lang-selected')) {
+    // Get browser language
+    const browserLang = navigator.language || navigator.userLanguage;
+    
+    // If browser language is Chinese, redirect to Chinese version
+    if (browserLang.startsWith('zh')) {
+      // Delay redirect to avoid flicker
+      setTimeout(function() {
+        window.location.href = '/';
+      }, 100);
+    }
+  }
+});
+</script>
+

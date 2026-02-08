@@ -45,3 +45,22 @@ HotelByte 是新一代酒店分销平台，帮助旅游公司无缝连接供应�
 - **官方API**: [openapi.hotelbyte.com](https://openapi.hotelbyte.com)
 - **GitHub**: [github.com/hotelbyte-com](https://github.com/hotelbyte-com)
 - **加入候补名单**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
+
+<script>
+// 自动检测浏览器语言并跳转
+document.addEventListener('DOMContentLoaded', function() {
+  // 检查用户是否已经手动选择过语言
+  if (!sessionStorage.getItem('lang-selected')) {
+    // 获取浏览器语言
+    const browserLang = navigator.language || navigator.userLanguage;
+    
+    // 如果浏览器语言是英文，跳转到英文版
+    if (browserLang.startsWith('en')) {
+      // 延迟跳转，避免闪烁
+      setTimeout(function() {
+        window.location.href = '/en/';
+      }, 100);
+    }
+  }
+});
+</script>

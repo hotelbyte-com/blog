@@ -9,6 +9,9 @@
   function switchLanguage(lang) {
     const currentPath = window.location.pathname;
     
+    // Store user's language preference
+    sessionStorage.setItem('lang-selected', 'true');
+    
     // Check current language
     const isZh = currentPath.startsWith('/zh/') || currentPath === '/';
     const isEn = currentPath.startsWith('/en/');
@@ -46,10 +49,5 @@
     }
     
     document.getElementById('language-select').value = currentLang;
-    
-    // Store selection
-    document.getElementById('language-select').addEventListener('change', function() {
-      sessionStorage.setItem('lang-selected', 'true');
-    });
   });
 </script>
