@@ -1,8 +1,26 @@
 ---
-layout: default
+layout: null
 ---
 
-<div class="page-wrapper">
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% seo %}
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/minima.css">
+    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+    {% feed_meta %}
+  </head>
+  <body>
+    <header class="site-header" role="banner">
+      <div class="wrapper">
+        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+      </div>
+    </header>
+
+    <div class="page-wrapper">
   <!-- 左侧边栏：系列导航 -->
   <aside class="sidebar-left">
     {% include series-nav.html %}
@@ -61,6 +79,12 @@ layout: default
   </aside>
 </div>
 
+<footer class="site-footer">
+  <div class="wrapper">
+    <p>© {{ site.time | date: "%Y" }} {{ site.title | escape }}. All rights reserved.</p>
+  </div>
+</footer>
+
 <script>
   // Generate table of contents
   document.addEventListener('DOMContentLoaded', function() {
@@ -96,3 +120,5 @@ layout: default
     toc.appendChild(ul);
   });
 </script>
+  </body>
+</html>
