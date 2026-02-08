@@ -91,10 +91,47 @@ if err != nil {
 ```
 
 ## API Documentation
-Use `//apidoc:` comments for documentation generation:
-- `//apidoc:public` - Public API
-- `//apidoc:internal` - Internal API
-- `//apidoc:hidden` - Exclude from docs
+
+### 代码即文档（Code as Documentation）
+
+我们使用内部的 `make doc` 工具链来实现"代码即文档"的理念。这个工具可以：
+- 从代码注释自动生成 OpenAPI 规范
+- 根据注释标签控制文档可见性（公开/内部/隐藏）
+- 保持代码和文档的实时同步
+- 减少样板代码约 70%
+
+### make doc vs Swagger
+
+| 维度 | Swagger | make doc |
+|------|---------|----------|
+| **代码位置** | 独立文件（swagger.yaml/swagger.json） | 代码注释中 |
+| **维护成本** | 需要手动同步代码和文档 | 自动同步，无额外维护 |
+| **样板代码** | 需要手动编写所有 API 定义 | 从代码自动提取 |
+| **类型安全** | 手动定义，容易出错 | 直接使用 Go 类型 |
+| **可见性控制** | 通过文件拆分 | 通过注释标签 |
+| **多语言支持** | 需要维护多个版本 | 自动从同一份代码生成 |
+| **适用场景** | 外部 API 文档 | 内部 API + 文档 |
+
+### 使用示例
+
+```go
+// AddMachine adds a machine to the cluster
+//apidoc:public
+func (s *MachineService) AddMachine(ctx context.Context, req *AddMachineRequest) (*Machine, error)
+
+// CheckHealth performs health checks with retry logic
+//apidoc:internal
+func (s *MachineService) CheckHealth(ctx context.Context, machineID uuid.UUID) (HealthStatus, error)
+```
+
+运行 `make doc` 后，自动生成：
+- OpenAPI YAML 规范
+- Markdown 文档
+- API 路由绑定（httpdispatcher 使用相同元数据）
+
+### 注意
+
+`make doc` 工具链是 HotelByte 项目的内部工具，目前还在持续迭代中。我们计划等实现足够成熟后考虑开源。如果您对此工具感兴趣，可以关注我们的 GitHub 仓库获取更新。
 
 ## Context Management
 When working on specific modules, load relevant context:
