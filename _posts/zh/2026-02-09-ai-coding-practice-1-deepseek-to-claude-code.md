@@ -347,4 +347,4 @@ DeepSeek 很强大，但如果没有项目上下文，只能做"通用"的代码
 **系列导航：**
 
 - 前言
-- [→ Article 2: Claude Code 深度集成]({% post_url 2026-02-10-claude-code-deep-integration %})
+- [→ Article 2: Claude Code 深度集成]({% post_url 2026-02-10-ai-coding-claude-code-integration %})
