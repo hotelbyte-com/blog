@@ -1,0 +1,147 @@
+---
+layout: default
+lang: zh
+permalink: /404.html
+---
+
+<style>
+.error-page {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.error-page h1 {
+  font-size: 6em;
+  margin: 0;
+  color: #3498db;
+}
+
+.error-page h2 {
+  font-size: 2em;
+  margin: 20px 0;
+  color: #2c3e50;
+}
+
+.error-page p {
+  color: #666;
+  font-size: 1.1em;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.suggestions {
+  text-align: left;
+  margin-top: 40px;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.suggestions h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.suggestions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.suggestions li {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.suggestions a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.suggestions a:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 30px;
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 500;
+  margin: 5px;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-secondary {
+  background-color: #95a5a6;
+}
+
+.btn-secondary:hover {
+  background-color: #7f8c8d;
+}
+</style>
+
+<div class="error-page">
+  <h1>404</h1>
+  <h2>页面未找到</h2>
+  <p>抱歉，您访问的页面不存在或已被移除。</p>
+
+  <div>
+    <a href="/" class="btn">返回首页</a>
+    <a href="/zh/archive/" class="btn btn-secondary">浏览所有文章</a>
+    <a href="/zh/series/" class="btn btn-secondary">系列文章</a>
+  </div>
+
+  <div class="suggestions">
+    <h3>💡 您可能在找：</h3>
+    <ul>
+      <li><a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard/">为什么酒店API集成这么难？（1）认证地狱</a></li>
+      <li><a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-2/">为什么酒店API集成这么难？（2）协议丛林</a></li>
+      <li><a href="/zh/architecture/http-dispatcher-1-what-is-http-dispatcher/">HTTP Dispatcher（1）：什么是 HTTP Dispatcher</a></li>
+      <li><a href="/zh/ai-coding/ai-coding-hotelbyte-journey-from-deepseek-to-claude-code/">AI 编程实践：从 DeepSeek 到 Claude Code 的演进之旅</a></li>
+    </ul>
+    <p style="margin-top: 20px; font-size: 0.95em;">
+      <a href="/zh/archive/">查看完整文章归档 →</a>
+    </p>
+  </div>
+
+  <div class="suggestions">
+    <h3>🔍 可能的原因：</h3>
+    <ul>
+      <li>URL 地址输入错误</li>
+      <li>文章已被移动或删除</li>
+      <li>文章链接格式已更新（新的链接格式：/zh/分类/文章标题/）</li>
+    </ul>
+    <p style="margin-top: 20px; font-size: 0.95em;">
+      如果您仍然无法找到想要的内容，请<a href="/zh/archive/">查看文章归档</a>或访问我们的<a href="/">首页</a>。
+    </p>
+  </div>
+</div>
+
+<script>
+// 检测用户语言并显示对应语言提示
+document.addEventListener('DOMContentLoaded', function() {
+  const browserLang = navigator.language || navigator.userLanguage;
+  const path = window.location.pathname;
+
+  // 如果用户浏览器是英文，并且访问的不是英文页面
+  if (browserLang.startsWith('en') && !path.startsWith('/en/')) {
+    const englishLink = document.createElement('p');
+    englishLink.innerHTML = '<a href="/en/404.html" style="color: #3498db;">Switch to English</a>';
+    englishLink.style.marginTop = '20px';
+    document.querySelector('.error-page').appendChild(englishLink);
+  }
+});
+</script>

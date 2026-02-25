@@ -13,6 +13,17 @@ lang: en
   <p><a href="/">Switch to 中文</a> | Reading English</p>
 </div>
 
+<div class="quick-links">
+  <a href="/en/series/" class="link-card">
+    <h3>📚 Series</h3>
+    <p>View all article series</p>
+  </a>
+  <a href="/en/archive/" class="link-card">
+    <h3>📄 Archive</h3>
+    <p>Browse all posts</p>
+  </a>
+</div>
+
 ## Latest Posts
 
 <div class="posts">
@@ -72,4 +83,48 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+
+<style>
+.quick-links {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.link-card {
+  flex: 1;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.link-card:hover {
+  border-color: #3498db;
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.link-card h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.2em;
+}
+
+.link-card p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .quick-links {
+    flex-direction: column;
+  }
+}
+</style>
 
