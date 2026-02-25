@@ -15,49 +15,49 @@ lang: zh
       <li>
         <div class="post-info">
           <span class="part">第 1 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard/">为什么酒店API集成这么难？（1）认证地狱：10周计划，24周还没完成</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-04-why-hotel-api-integration-is-so-hard/">为什么酒店API集成这么难？（1）认证地狱：10周计划，24周还没完成</a>
         </div>
         <p class="summary">5家供应商，5种不同的认证方式——Basic Auth、HMAC-SHA256、OAuth1、JWT...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 2 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-2/">为什么酒店API集成这么难？（2）协议丛林：REST、SOAP、JSON-RPC、XML-RPC</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-05-why-hotel-api-integration-is-so-hard-2/">为什么酒店API集成这么难？（2）协议丛林：REST、SOAP、JSON-RPC、XML-RPC</a>
         </div>
         <p class="summary">除了认证方式不同，API协议也五花八门...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 3 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-3/">为什么酒店API集成这么难？（3）数据模型噩梦：100个字段，10个供应商，1000种组合</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-06-why-hotel-api-integration-is-so-hard-3/">为什么酒店API集成这么难？（3）限流噩梦：上线第1天被拉黑3次</a>
         </div>
         <p class="summary">同一个字段在不同供应商的API中可能有完全不同的含义...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 4 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-4/">为什么酒店API集成这么难？（4）错误处理：500种错误码，你该相信谁？</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-07-why-hotel-api-integration-is-so-hard-4/">为什么酒店API集成这么难？（4）错误处理：同一个错误，5种不同的状态码</a>
         </div>
         <p class="summary">供应商的错误码不统一，HTTP状态码也经常用错...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 5 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-5/">为什么酒店API集成这么难？（5）限流熔断：别让你的API被供应商封禁</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-08-why-hotel-api-integration-is-so-hard-5/">为什么酒店API集成这么难？（5）时区问题：用户订了昨天的酒店</a>
         </div>
         <p class="summary">每个供应商都有不同的限流策略，需要精心设计...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 6 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-6/">为什么酒店API集成这么难？（6）缓存策略：别让重复查询拖垮性能</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-09-why-hotel-api-integration-is-so-hard-6/">为什么酒店API集成这么难？（6）房间映射：同一个房间，5种不同的名字</a>
         </div>
         <p class="summary">酒店数据变化频率不同，需要智能的缓存策略...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 7 部分</span>
-          <a href="/zh/developer-experience/why-hotel-api-integration-is-so-hard-7/">为什么酒店API集成这么难？（7）总结与最佳实践</a>
+          <a href="/zh/developer-experience-api-integration/2026-02-10-why-hotel-api-integration-is-so-hard-7/">为什么酒店API集成这么难？（终）我们为什么能解决这些问题？</a>
         </div>
         <p class="summary">回顾整个API集成过程，总结最佳实践...</p>
       </li>
@@ -70,37 +70,37 @@ lang: zh
     <ul class="series-posts">
       <li>
         <div class="post-info">
-          <a href="/zh/ai-coding/ai-coding-hotelbyte-journey-from-deepseek-to-claude-code/">AI 编程实践：从 DeepSeek 到 Claude Code 的演进之旅</a>
+          <a href="/zh/AI%20Coding-%E9%85%92%E5%BA%97%E8%A1%8C%E4%B8%9A-%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/2026-02-09-ai-coding-hotelbyte-journey-from-deepseek-to-claude-code/">AI 编程实践：从 DeepSeek 到 Claude Code 的演进之旅</a>
         </div>
         <p class="summary">我们在 HotelByte 项目中尝试了多种 AI 编程工具...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/aicoding/ai-coding-practice-1-deepseek-to-claude-code/">AI 编程实践（1）：DeepSeek 到 Claude Code 的迁移</a>
+          <a href="/zh/engineering-aicoding/2026-02-09-ai-coding-practice-1-deepseek-to-claude-code/">AI 编程实践（1）：DeepSeek 到 Claude Code 的迁移</a>
         </div>
         <p class="summary">如何从 DeepSeek 切换到 Claude Code，保持代码质量...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/ai-coding/ai-coding-claude-code-integration/">AI 编程实践（2）：Claude Code 深度集成</a>
+          <a href="/zh/AI%20Coding-%E9%85%92%E5%BA%97%E8%A1%8C%E4%B8%9A-%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/2026-02-10-ai-coding-claude-code-integration/">AI 编程实践（2）：Claude Code 深度集成</a>
         </div>
         <p class="summary">将 Claude Code 集成到我们的开发工作流中...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/ai-coding/ai-coding-multi-model-integration/">AI 编程实践（3）：多模型集成</a>
+          <a href="/zh/AI%20Coding-%E9%85%92%E5%BA%97%E8%A1%8C%E4%B8%9A-%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/2026-02-11-ai-coding-multi-model-integration/">AI 编程实践（3）：多模型与工具链集成</a>
         </div>
         <p class="summary">同时使用多个 AI 模型，发挥各自优势...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/ai-coding/ai-coding-openspec-driven-development/">AI 编程实践（4）：OpenSpec 驱动开发</a>
+          <a href="/zh/AI%20Coding-%E9%85%92%E5%BA%97%E8%A1%8C%E4%B8%9A-%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/2026-02-12-ai-coding-openspec-driven-development/">AI 编程实践（4）：OpenSpec 规格驱动开发</a>
         </div>
         <p class="summary">使用 OpenSpec 规范来驱动 AI 辅助开发...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/ai-coding/ai-coding-best-practices/">AI 编程实践（5）：最佳实践</a>
+          <a href="/zh/AI%20Coding-%E9%85%92%E5%BA%97%E8%A1%8C%E4%B8%9A-%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5/2026-02-13-ai-coding-best-practices/">AI 编程实践（5）：AI Coding 最佳实践</a>
         </div>
         <p class="summary">总结 AI 编程的最佳实践和注意事项...</p>
       </li>
@@ -113,19 +113,19 @@ lang: zh
     <ul class="series-posts">
       <li>
         <div class="post-info">
-          <a href="/zh/architecture/http-dispatcher-1-what-is-http-dispatcher/">HTTP Dispatcher（1）：什么是 HTTP Dispatcher</a>
+          <a href="/zh/developer-experience-api-integration-architecture/2026-02-09-http-dispatcher-1-what-is-http-dispatcher/">HTTP Dispatcher（1）：什么是HTTP Dispatcher？为什么酒店API集成必须要有它</a>
         </div>
         <p class="summary">介绍 HTTP Dispatcher 的概念和作用...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/performance/http-dispatcher-2-rate-limiting-connection-pooling/">HTTP Dispatcher（2）：限流与连接池</a>
+          <a href="/zh/developer-experience-api-integration-performance/2026-02-11-http-dispatcher-2-rate-limiting-connection-pooling/">HTTP Dispatcher（2）：HTTP Dispatcher如何解决限流和连接池问题</a>
         </div>
         <p class="summary">如何实现高效的限流和连接池管理...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/api-integration/http-dispatcher-3-implementation-go/">HTTP Dispatcher（3）：Go 语言实现</a>
+          <a href="/zh/developer-experience-go-api-integration/2026-02-13-http-dispatcher-3-implementation-go/">HTTP Dispatcher（3）：在Go中实现HTTP Dispatcher</a>
         </div>
         <p class="summary">使用 Go 语言实现 HTTP Dispatcher...</p>
       </li>
@@ -138,13 +138,13 @@ lang: zh
     <ul class="series-posts">
       <li>
         <div class="post-info">
-          <a href="/zh/architecture/supplier-proxy-1-what-is-supplier-proxy/">Supplier Proxy（1）：什么是 Supplier Proxy</a>
+          <a href="/zh/developer-experience-api-integration-architecture/2026-02-10-supplier-proxy-1-what-is-supplier-proxy/">Supplier Proxy（1）：什么是Supplier Proxy？它是酒店API聚合的骨干</a>
         </div>
         <p class="summary">介绍 Supplier Proxy 的概念和作用...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/zh/security/supplier-proxy-2-authentication-error-handling/">Supplier Proxy（2）：认证与错误处理</a>
+          <a href="/zh/developer-experience-api-integration-security/2026-02-12-supplier-proxy-2-authentication-error-handling/">Supplier Proxy（2）：Supplier Proxy如何处理认证和错误处理</a>
         </div>
         <p class="summary">如何在 Supplier Proxy 中处理认证和错误...</p>
       </li>
