@@ -2,6 +2,7 @@
 layout: home
 title: HotelByte Blog
 lang: en
+permalink: /en/
 ---
 
 <div class="hero">
