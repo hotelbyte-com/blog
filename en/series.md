@@ -15,49 +15,49 @@ lang: en
       <li>
         <div class="post-info">
           <span class="part">Part 1</span>
-          <a href="/en/developer-experience-api-integration/2026-02-04-why-hotel-api-integration-is-so-hard/">Why Hotel API Integration Is So Hard (1): Authentication Hell - 10 Weeks Planned, 24 Weeks Still Not Done</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard/">Why Hotel API Integration Is So Hard (1): Authentication Hell - 10 Weeks Planned, 24 Weeks Still Not Done</a>
         </div>
         <p class="summary">5 suppliers, 5 different authentication methods—Basic Auth, HMAC-SHA256, OAuth1, JWT...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 2</span>
-          <a href="/en/developer-experience-api-integration/2026-02-05-why-hotel-api-integration-is-so-hard-2/">Why Hotel API Integration Is So Hard (2): Protocol Jungle - REST, SOAP, JSON-RPC, XML-RPC</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-2/">Why Hotel API Integration Is So Hard (2): Data Chaos - Same Hotel, 5 Different Data Formats</a>
         </div>
         <p class="summary">Besides different authentication methods, API protocols are also diverse...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 3</span>
-          <a href="/en/developer-experience-api-integration/2026-02-06-why-hotel-api-integration-is-so-hard-3/">Why Hotel API Integration Is So Hard (3): Rate Limiting Nightmare - Blocked 3 Times on Day 1</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-3/">Why Hotel API Integration Is So Hard (3): Rate Limiting Nightmare - Blocked 3 Times on Day 1</a>
         </div>
         <p class="summary">The same field may have completely different meanings across different supplier APIs...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 4</span>
-          <a href="/en/developer-experience-api-integration/2026-02-07-why-hotel-api-integration-is-so-hard-4/">Why Hotel API Integration Is So Hard (4): Error Handling - Same Error, 5 Different Status Codes</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-4/">Why Hotel API Integration Is So Hard (4): Error Handling - Same Error, 5 Different Status Codes</a>
         </div>
         <p class="summary">Supplier error codes are inconsistent, and HTTP status codes are often misused...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 5</span>
-          <a href="/en/developer-experience-api-integration/2026-02-08-why-hotel-api-integration-is-so-hard-5/">Why Hotel API Integration Is So Hard (5): Timezone Issues - User Booked Yesterday's Hotel</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-5/">Why Hotel API Integration Is So Hard (5): Timezone Issues - User Booked Yesterday's Hotel</a>
         </div>
         <p class="summary">Each supplier has different rate limiting policies, requiring careful design...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 6</span>
-          <a href="/en/developer-experience-api-integration/2026-02-09-why-hotel-api-integration-is-so-hard-6/">Why Hotel API Integration Is So Hard (6): Room Mapping - Same Room, 5 Different Names</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-6/">Why Hotel API Integration Is So Hard (6): Room Mapping - Same Room, 5 Different Names</a>
         </div>
         <p class="summary">Hotel data changes at different rates, requiring intelligent caching strategies...</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 7</span>
-          <a href="/en/developer-experience-api-integration/2026-02-10-why-hotel-api-integration-is-so-hard-7/">Why Hotel API Integration Is So Hard (Final): Why Can We Solve These Problems?</a>
+          <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-7/">Why Hotel API Integration Is So Hard (Final): Why Can We Solve These Problems?</a>
         </div>
         <p class="summary">Reviewing entire API integration process and summarizing best practices...</p>
       </li>
@@ -70,37 +70,37 @@ lang: en
     <ul class="series-posts">
       <li>
         <div class="post-info">
-          <a href="/en/AI%20Coding-Hospitality%20Industry-Development%20Practice/2026-02-09-ai-coding-hotelbyte-journey-from-deepseek-to-claude-code/">AI Coding Practice: Journey from DeepSeek to Claude Code</a>
+          <a href="/en/AI%20Coding/Hospitality%20Industry/Development%20Practice/ai-coding-hotelbyte-journey-from-deepseek-to-claude-code/">AI Coding Practice: Journey from DeepSeek to Claude Code</a>
         </div>
         <p class="summary">We experimented with various AI coding tools in HotelByte project...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/engineering-aicoding/2026-02-09-ai-coding-practice-1-deepseek-to-claude-code/">AI Coding Practice (1): Migration from DeepSeek to Claude Code</a>
+          <a href="/en/engineering/aicoding/ai-coding-practice-1-deepseek-to-claude-code/">AI Coding Practice (1): Migration from DeepSeek to Claude Code</a>
         </div>
         <p class="summary">How to switch from DeepSeek to Claude Code while maintaining code quality...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/AI%20Coding-Hospitality%20Industry-Development%20Practice/2026-02-10-ai-coding-claude-code-integration/">AI Coding Practice (2): Deep Claude Code Integration</a>
+          <a href="/en/AI%20Coding/Hospitality%20Industry/Development%20Practice/ai-coding-claude-code-integration/">AI Coding Practice (2): Deep Claude Code Integration</a>
         </div>
         <p class="summary">Integrating Claude Code into our development workflow...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/AI%20Coding-Hospitality%20Industry-Development%20Practice/2026-02-11-ai-coding-multi-model-integration/">AI Coding Practice (3): Multi-Model and Toolchain Integration</a>
+          <a href="/en/AI%20Coding/Hospitality%20Industry/Development%20Practice/ai-coding-multi-model-integration/">AI Coding Practice (3): Multi-Model and Toolchain Integration</a>
         </div>
         <p class="summary">Using multiple AI models simultaneously to leverage their strengths...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/AI%20Coding-Hospitality%20Industry-Development%20Practice/2026-02-12-ai-coding-openspec-driven-development/">AI Coding Practice (4): OpenSpec-Driven Development</a>
+          <a href="/en/AI%20Coding/Hospitality%20Industry/Development%20Practice/ai-coding-openspec-driven-development/">AI Coding Practice (4): OpenSpec-Driven Development</a>
         </div>
         <p class="summary">Using OpenSpec specifications to drive AI-assisted development...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/AI%20Coding-Hospitality%20Industry-Development%20Practice/2026-02-13-ai-coding-best-practices/">AI Coding Practice (5): AI Coding Best Practices</a>
+          <a href="/en/AI%20Coding/Hospitality%20Industry/Development%20Practice/ai-coding-best-practices/">AI Coding Practice (5): AI Coding Best Practices</a>
         </div>
         <p class="summary">Summarizing best practices and considerations for AI coding...</p>
       </li>
@@ -113,19 +113,19 @@ lang: en
     <ul class="series-posts">
       <li>
         <div class="post-info">
-          <a href="/en/developer-experience-api-integration-architecture/2026-02-09-http-dispatcher-1-what-is-http-dispatcher/">HTTP Dispatcher (1): What Is HTTP Dispatcher and Why It's Needed for Hotel API Integration</a>
+          <a href="/en/developer-experience/api-integration/architecture/http-dispatcher-1-what-is-http-dispatcher/">HTTP Dispatcher (1): What Is HTTP Dispatcher and Why It's Needed for Hotel API Integration</a>
         </div>
         <p class="summary">Introducing concept and role of HTTP Dispatcher...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/developer-experience-api-integration-performance/2026-02-11-http-dispatcher-2-rate-limiting-connection-pooling/">HTTP Dispatcher (2): How HTTP Dispatcher Solves Rate Limiting and Connection Pooling</a>
+          <a href="/en/developer-experience/api-integration/performance/http-dispatcher-2-rate-limiting-connection-pooling/">HTTP Dispatcher (2): How HTTP Dispatcher Solves Rate Limiting and Connection Pooling</a>
         </div>
         <p class="summary">How to implement efficient rate limiting and connection pool management...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/developer-experience-go-api-integration/2026-02-13-http-dispatcher-3-implementation-go/">HTTP Dispatcher (3): Implementing HTTP Dispatcher in Go</a>
+          <a href="/en/developer-experience/go/api-integration/http-dispatcher-3-implementation-go/">HTTP Dispatcher (3): Implementing HTTP Dispatcher in Go</a>
         </div>
         <p class="summary">Implementing HTTP Dispatcher using Go language...</p>
       </li>
@@ -138,13 +138,13 @@ lang: en
     <ul class="series-posts">
       <li>
         <div class="post-info">
-          <a href="/en/developer-experience-api-integration-architecture/2026-02-10-supplier-proxy-1-what-is-supplier-proxy/">Supplier Proxy (1): What Is Supplier Proxy and Its Role in Hotel API Aggregation</a>
+          <a href="/en/developer-experience/api-integration/architecture/supplier-proxy-1-what-is-supplier-proxy/">Supplier Proxy (1): What Is Supplier Proxy and Its Role in Hotel API Aggregation</a>
         </div>
         <p class="summary">Introducing concept and role of Supplier Proxy...</p>
       </li>
       <li>
         <div class="post-info">
-          <a href="/en/developer-experience-api-integration-security/2026-02-12-supplier-proxy-2-authentication-error-handling/">Supplier Proxy (2): How Supplier Proxy Handles Authentication and Error Handling</a>
+          <a href="/en/developer-experience/api-integration/security/supplier-proxy-2-authentication-error-handling/">Supplier Proxy (2): How Supplier Proxy Handles Authentication and Error Handling</a>
         </div>
         <p class="summary">How to handle authentication and errors in Supplier Proxy...</p>
       </li>
