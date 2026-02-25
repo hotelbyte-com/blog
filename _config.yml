@@ -86,11 +86,6 @@ defaults:
       values:
       lang: zh
   - scope:
-      path: "en"
-    values:
-      lang: en
-      permalink: /en/
-  - scope:
       path: "assets/img"
     values:
       image: true
