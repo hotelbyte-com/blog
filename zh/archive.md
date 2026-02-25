@@ -2,6 +2,7 @@
 layout: post
 title: 文章归档
 lang: zh
+permalink: /zh/archive/
 ---
 
 <div class="archive">

@@ -2,6 +2,7 @@
 layout: post
 title: 系列文章
 lang: zh
+permalink: /zh/series/
 ---
 
 <div class="series">
