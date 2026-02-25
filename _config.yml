@@ -31,6 +31,8 @@ exclude_from_localization:
   - CNAME
   - _layouts
   - _includes
+  - zh
+  - en
 
 # URL structure (configured in defaults for language support)
 
