@@ -25,14 +25,12 @@ plugins:
 # I18n
 languages: ["zh", "en"]
 default_lang: "zh"
-parallel_localization: false
+parallel_localization: true
 exclude_from_localization:
   - assets
   - CNAME
   - _layouts
   - _includes
-  - zh
-  - en
 
 # URL structure (configured in defaults for language support)
 
