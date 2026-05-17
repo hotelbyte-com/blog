@@ -35,6 +35,10 @@ author: "Author Name"
 3. Commit and push
 4. GitHub Actions will automatically deploy
 
+## Editorial Trackers
+
+- [Twitter Technical Promotion Tracker](docs/twitter-technical-promotion-tracker.md): issue #1076 execution tracker for weekly evidence-backed technical promotion, kept separate from long-form whitepaper planning.
+
 ## Categories
 
 - **Technical Deep Dives**: Architecture, performance optimization, Go microservices
