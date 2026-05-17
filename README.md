@@ -38,6 +38,7 @@ author: "Author Name"
 ## Editorial Trackers
 
 - [Twitter Technical Promotion Tracker](docs/twitter-technical-promotion-tracker.md): issue #1076 execution tracker for weekly evidence-backed technical promotion, kept separate from long-form whitepaper planning.
+- [Whitepaper Content Matrix](docs/whitepaper-content-matrix.md): 25-asset bilingual whitepaper, blog, and Twitter/X promotion matrix for the Growth content loop.
 
 ## Categories
 
