@@ -23,7 +23,7 @@ layout: null
           <img src="{{ '/assets/img/logo.svg' | relative_url }}" alt="HotelByte Blog" width="160" height="40">
         </a>
         <nav class="site-nav" aria-label="Primary">
-          <a href="{% if page.lang == 'en' %}/en/whitepapers/{% else %}/zh/en/whitepapers/{% endif %}">{% if page.lang == 'en' %}Whitepapers{% else %}白皮书{% endif %}</a>
+          <a href="{% if page.lang == 'en' %}/en/whitepapers/{% else %}/zh/whitepapers/{% endif %}">{% if page.lang == 'en' %}Whitepapers{% else %}白皮书{% endif %}</a>
           <a href="{% if page.lang == 'en' %}/en/series/{% else %}/zh/series/{% endif %}">{% if page.lang == 'en' %}Series{% else %}系列{% endif %}</a>
         </nav>
         {% include language-switcher.html %}
