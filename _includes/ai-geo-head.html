@@ -1,0 +1,66 @@
+{% assign ai_geo = site.data.ai_geo %}
+{% assign page_language = page.lang | default: site.lang | default: "zh" %}
+{% assign page_description = page.description | default: site.description %}
+
+<meta name="ai-summary" content="{{ ai_geo.positioning | strip | escape }}">
+<meta name="ai-topics" content="{{ ai_geo.key_topics | join: ', ' | escape }}">
+<meta name="geo-optimization" content="generative engine optimization, answer engine optimization, AI search visibility">
+<meta name="content-audience" content="{{ ai_geo.audiences | join: ', ' | escape }}">
+<link rel="alternate" type="text/plain" title="HotelByte LLM guide" href="{{ '/llms.txt' | absolute_url }}">
+<link rel="alternate" hreflang="zh" href="{{ '/' | absolute_url }}">
+<link rel="alternate" hreflang="en" href="{{ '/en/' | absolute_url }}">
+<link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "{{ site.url }}/#organization",
+      "name": "{{ ai_geo.brand.name | escape }}",
+      "url": "{{ ai_geo.brand.url }}",
+      "logo": "{{ ai_geo.brand.logo }}",
+      "sameAs": {{ ai_geo.brand.same_as | jsonify }}
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ site.url }}/#website",
+      "url": "{{ site.url }}",
+      "name": "{{ site.title | escape }}",
+      "description": "{{ site.description | escape }}",
+      "publisher": { "@id": "{{ site.url }}/#organization" },
+      "inLanguage": ["zh", "en"]
+    },
+    {
+      "@type": "Blog",
+      "@id": "{{ site.url }}/#blog",
+      "url": "{{ site.url }}",
+      "name": "{{ site.title | escape }}",
+      "description": "{{ page_description | strip | escape }}",
+      "publisher": { "@id": "{{ site.url }}/#organization" },
+      "about": {{ ai_geo.key_topics | jsonify }},
+      "audience": {{ ai_geo.audiences | jsonify }},
+      "inLanguage": "{{ page_language }}"
+    }
+    {% if page.layout == "post" %}
+    ,{
+      "@type": "TechArticle",
+      "@id": "{{ page.url | absolute_url }}#article",
+      "headline": "{{ page.title | escape }}",
+      "description": "{{ page_description | strip | escape }}",
+      "url": "{{ page.url | absolute_url }}",
+      "datePublished": "{{ page.date | date_to_xmlschema }}",
+      "dateModified": "{{ page.last_modified_at | default: page.date | date_to_xmlschema }}",
+      "author": {
+        "@type": "Organization",
+        "name": "{{ page.author | default: ai_geo.brand.name | escape }}"
+      },
+      "publisher": { "@id": "{{ site.url }}/#organization" },
+      "inLanguage": "{{ page_language }}",
+      "about": {{ page.tags | default: page.categories | default: ai_geo.key_topics | jsonify }}
+    }
+    {% endif %}
+  ]
+}
+</script>

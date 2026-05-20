@@ -10,6 +10,25 @@ permalink: /zh/series/
   <p>按主题组织可连续阅读的文章。</p>
 
   <div class="series-section">
+    <h2>行业搜索入口</h2>
+    <p class="series-desc">面向酒旅技术团队的短入口页，用于解释酒店 API 集成和 HotelByte OpenAPI 接入。</p>
+    <ul class="series-posts">
+      <li>
+        <div class="post-info">
+          <a href="/zh/topics/hotel-api-integration/">酒店 API 集成指南</a>
+        </div>
+        <p class="summary">供应商直连、酒店 API 聚合、房型映射、价格标准化、限流和预订链路可靠性。</p>
+      </li>
+      <li>
+        <div class="post-info">
+          <a href="/zh/topics/openapi-hotel-distribution/">HotelByte OpenAPI 酒店分销接入指南</a>
+        </div>
+        <p class="summary">认证、客户认证、预订链路、错误处理、内容 API 和健康检查，源内容来自 docs/api。</p>
+      </li>
+    </ul>
+  </div>
+
+  <div class="series-section">
     <h2>酒店 API 集成避坑指南</h2>
     <p class="series-desc">用真实踩坑故事拆解酒店 API 集成的认证、数据、限流、错误处理、时区和房型映射问题。</p>
     <ul class="series-posts">

@@ -38,6 +38,14 @@ lang: zh
     <h3>文章归档</h3>
     <p>浏览所有文章</p>
   </a>
+  <a href="/zh/topics/hotel-api-integration/" class="link-card">
+    <h3>酒店 API 集成</h3>
+    <p>供应商直连、聚合、房型映射</p>
+  </a>
+  <a href="/zh/topics/openapi-hotel-distribution/" class="link-card">
+    <h3>OpenAPI 接入</h3>
+    <p>客户认证、预订链路、错误处理</p>
+  </a>
 </div>
 
 ## 最新文章

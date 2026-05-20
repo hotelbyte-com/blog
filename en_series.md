@@ -10,6 +10,25 @@ permalink: /en/series/
   <p>Related articles grouped by topic.</p>
 
   <div class="series-section">
+    <h2>Industry Search Hubs</h2>
+    <p class="series-desc">Short, search-friendly entry pages for travel technology teams evaluating hotel API integration and HotelByte OpenAPI.</p>
+    <ul class="series-posts">
+      <li>
+        <div class="post-info">
+          <a href="/en/topics/hotel-api-integration/">Hotel API Integration Guide for Travel Companies</a>
+        </div>
+        <p class="summary">Supplier direct connection, hotel API aggregation, room mapping, price normalization, rate limits, and booking-flow reliability.</p>
+      </li>
+      <li>
+        <div class="post-info">
+          <a href="/en/topics/openapi-hotel-distribution/">HotelByte OpenAPI Hotel Distribution Guide</a>
+        </div>
+        <p class="summary">Authentication, Customer Certification, booking flow, Error Handling, content APIs, and health checks from the docs/api source set.</p>
+      </li>
+    </ul>
+  </div>
+
+  <div class="series-section">
     <h2>Hotel API Integration Field Notes</h2>
     <p class="series-desc">Real integration lessons across authentication, data normalization, rate limits, error handling, timezones, and room mapping.</p>
     <ul class="series-posts">

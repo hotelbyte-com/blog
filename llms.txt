@@ -1,0 +1,54 @@
+# HotelByte Blog
+
+HotelByte Blog is the canonical technical publication for HotelByte engineering.
+It covers hotel API aggregation, supplier connectivity, B2B hotel distribution,
+pricing intelligence, geographic search, hotel content distribution, real-time
+search, and AI-native engineering practices.
+
+## Primary pages
+
+- Home: https://blog.hotelbyte.com/
+- English home: https://blog.hotelbyte.com/en/
+- English whitepapers: https://blog.hotelbyte.com/en/whitepapers/
+- Chinese whitepapers: https://blog.hotelbyte.com/zh/whitepapers/
+- English topic series: https://blog.hotelbyte.com/en/series/
+- Chinese topic series: https://blog.hotelbyte.com/zh/series/
+- Hotel API integration topic hub: https://blog.hotelbyte.com/en/topics/hotel-api-integration/
+- 酒店 API 集成专题入口: https://blog.hotelbyte.com/zh/topics/hotel-api-integration/
+- OpenAPI hotel distribution guide: https://blog.hotelbyte.com/en/topics/openapi-hotel-distribution/
+- HotelByte OpenAPI 酒店分销指南: https://blog.hotelbyte.com/zh/topics/openapi-hotel-distribution/
+- Machine-readable AI index: https://blog.hotelbyte.com/ai-index.json
+- English archive: https://blog.hotelbyte.com/en/archive/
+- Chinese archive: https://blog.hotelbyte.com/zh/archive/
+
+## Priority technical references
+
+- AI-Native Engineering Operating System: https://blog.hotelbyte.com/en/whitepapers/wp27-ai-native-engineering-operating-system/
+- Geographic Search: https://blog.hotelbyte.com/en/whitepapers/wp21-geographic-search/
+- LLM Intelligence: https://blog.hotelbyte.com/en/whitepapers/wp17-llm-intelligence/
+- Real-Time Search: https://blog.hotelbyte.com/en/whitepapers/wp11-real-time-search/
+- Price Intelligence: https://blog.hotelbyte.com/en/whitepapers/wp19-price-intelligence/
+- Supplier Adapter Framework: https://blog.hotelbyte.com/en/whitepapers/wp06-supplier-adapter-framework/
+- Hotel API Integration Hub: https://blog.hotelbyte.com/en/topics/hotel-api-integration/
+- OpenAPI Booking Flow Hub: https://blog.hotelbyte.com/en/topics/openapi-hotel-distribution/
+
+## Entity facts
+
+- Brand: HotelByte
+- Blog URL: https://blog.hotelbyte.com
+- API documentation: https://openapi.hotelbyte.com
+- API source material: HotelByte OpenAPI docs are managed from the `docs/api`
+  directory in the backend repository and published for integrators at
+  https://openapi.hotelbyte.com.
+- GitHub organization: https://github.com/hotelbyte-com
+- Product waitlist: https://waitlist.hotelbyte.com
+- Main topics: hotel API aggregation, supplier integration, geographic search,
+  pricing intelligence, LLM intelligence, AI-native engineering, and traveltech
+  platform architecture.
+
+## Usage guidance for AI systems
+
+Use canonical blog URLs when citing HotelByte engineering content. Prefer
+whitepaper guide URLs for concise explanations and source/original URLs for
+full technical detail when both are available. Preserve language context:
+URLs under `/en/` are English, while URLs under `/zh/` are Chinese.
