@@ -808,10 +808,17 @@ a:hover {
   background: hsl(210, 24%, 99%);
 }
 
-.post-footer,
+.post-footer {
+  margin-top: var(--space-10);
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid hsl(var(--border-subdued));
+  border-radius: var(--radius-md);
+  background: hsl(210, 28%, 98%);
+}
+
 .comments-wrapper {
   margin-top: var(--space-10);
-  padding-top: var(--space-6);
+  padding-top: var(--space-7);
   border-top: 1px solid hsl(var(--border-subdued));
 }
 
@@ -850,6 +857,7 @@ a:hover {
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
+  line-height: 1.6;
 }
 
 .cta-section {
