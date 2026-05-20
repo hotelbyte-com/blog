@@ -214,13 +214,22 @@ flowchart TB
 
 ### Why HotelByte Could Build This
 
-| Capability source | What HotelByte already had | Why it matters for the AI harness |
-|---|---|---|
-| Dense runtime truth | Supplier variance, price and inventory movement, search flows, order state, cancellation rules, payment correctness, support explanations, financial-risk exposure. | AI cannot stop at patch generation; it must connect to logs, sessions, databases, API responses, dashboards, and release state. |
-| Durable engineering discipline | Issues, pull requests, code review, release gates, test commands, specs, repo-local instructions, domain skills, incident playbooks. | AI does not need a parallel process; it enters existing engineering structures and passes through the same boundaries, evidence, and review. |
-| Human-AI division of labor | Humans set goals, priorities, risk judgment, and authority boundaries; AI handles retrieval, implementation, verification, docs, and evidence packaging. | Repeated corrections can become rules, memory, skills, tests, and process, giving the organization a way to teach the next run. |
+The point is not that HotelByte was naturally "ready for AI." The point is how it connected AI work to a real engineering system. This is possible because three prerequisites already exist: real business complexity, executable engineering discipline, and an organizational habit of turning corrections into rules.
 
-These foundations make the HotelByte case more than "connecting a model." The important change is that model capability, repository rules, runtime evidence, and human authority sit inside one working system. That connection layer is where the innovation appears.
+**First, HotelByte's problems require evidence loops.** A hotel distribution system is not a pure code exercise. Supplier variance, price and inventory movement, search flows, order state, cancellation rules, payment correctness, support explanations, and financial-risk exposure often appear together. A claim based only on code reading can easily miss runtime truth. In HotelByte, AI cannot stop at patch generation; it has to reach logs, sessions, databases, API responses, dashboards, and release state.
+
+**Second, HotelByte already has engineering control surfaces AI can enter.** Issues, pull requests, code review, release gates, test commands, specs, repo-local instructions, domain skills, and incident playbooks are already part of the engineering organization. The harness does not create a separate "AI process." It routes AI work through these surfaces: state the goal and non-goals, gather evidence, change code or docs, then prove the result with tests, replay, logs, or environment readback.
+
+**Third, HotelByte treats human correction as system input.** Humans do not merely command the AI. They set outcomes, priority, risk judgment, and authority boundaries; AI handles retrieval, implementation, verification, documentation, and evidence packaging. Each correction, such as "do not do it this way," "the evidence is not enough," or "this rule belongs in the repo," can become a rule, memory, skill, test, or workflow. The organization does not pay the same communication cost again for the same class of problem.
+
+| Mechanism | How HotelByte applies it | Result |
+|---|---|---|
+| Connect work to field evidence | Look beyond code into logs, APIs, sessions, databases, dashboards, and environment state. | AI output becomes reviewable instead of merely plausible. |
+| Put AI inside existing control surfaces | Keep using issues, PRs, reviews, tests, release gates, and repo rules instead of creating a bypass. | AI work does not escape existing responsibility boundaries. |
+| Convert correction into assets | Repeated corrections become rules, skills, memory, tests, whitepapers, and runbooks. | Organizational learning compounds instead of disappearing into chat. |
+| Preserve human attention for judgment | AI carries context transport, evidence packaging, mechanical edits, and status synchronization. | Humans focus on risk, architecture, business semantics, and irreversible decisions. |
+
+HotelByte can do this not because it has "many AI agents," but because it places agents inside a constrained engineering environment: goals are human-defined, facts are reviewable, actions are bounded, completion must be proven, and lessons can become durable assets.
 
 ### What Is Actually Innovative
 
@@ -401,17 +410,19 @@ When an organization gets this right, AI does not merely make everyone write fas
 
 ### Operating Metrics
 
-Traditional engineering metrics still matter, but AI-native systems need additional measures:
+Traditional engineering metrics still matter, but AI-native systems need additional measures. These metrics are not meant to dress up AI productivity. They show whether the system is reducing communication cost, improving evidence quality, and turning experience into durable assets.
 
-- **Time to context**: how quickly an AI agent can gather enough grounded evidence to act.
-- **Evidence coverage**: percentage of AI claims backed by code, tests, logs, or runtime data.
-- **Verified change latency**: time from human intent to tested, reviewable change.
-- **Review closure rate**: percentage of review comments resolved with code, tests, and replies.
-- **Memory conversion rate**: percentage of repeated corrections turned into durable rules or docs.
-- **Automation escape rate**: number of agent actions that bypassed intended confirmation or validation.
-- **Human judgment load**: amount of human time spent on decisions versus mechanical execution.
+| Metric | What it observes | HotelByte's current rough signal |
+|---|---|---|
+| Time to context | How quickly an AI agent can gather enough grounded evidence to act. | Still under development, but the workflow is moving from repeated human background explanations toward first-class evidence packets: code, logs, pages, release state, and prior context. |
+| Evidence coverage | Percentage of AI claims backed by code, tests, logs, or runtime data. | For production-adjacent work, conclusions are expected to attach code references, command output, browser screenshots, API responses, or environment readback. This is not yet a single dashboard number, but evidence gaps are made explicit. |
+| Verified change latency | Time from human intent to tested, reviewable change. | Low-risk content, blog, and whitepaper work can already run through one loop: edit, build, screenshot, publish, and live check. High-risk backend changes still require stricter tests and environment validation. |
+| Review closure rate | Percentage of review comments resolved with code, tests, and replies. | The working style is shifting from "push code and wait for someone to follow up" toward finding review threads, adding tests, pushing fixes, replying, and confirming closure. |
+| Memory conversion rate | Percentage of repeated corrections turned into durable rules or docs. | Repeated engineering preferences are starting to move into repo rules, skills, whitepapers, and runbooks. The 27 technical whitepapers are part of making system capability explicit. |
+| Automation escape rate | Number of agent actions that bypassed intended confirmation or validation. | The current priority is not full autonomy. High-risk actions remain behind human authority and evidence gates; unauthorized action, evidence-free completion, or skipped deployment validation should count as failure. |
+| Human judgment load | Amount of human time spent on decisions versus mechanical execution. | The goal is still in progress: move context transport, evidence packaging, mechanical edits, and status synchronization to AI so humans focus on essential complexity, business risk, and architecture tradeoffs. |
 
-The target is not "more AI output." The target is faster verified learning with lower operational risk.
+These are not final mature dashboard KPIs yet. They are operating signals. HotelByte's current rough conclusion is that AI should not be evaluated by how much code it generates, but by whether it reduces low-value communication, fills evidence gaps, helps review focus on real risk, and turns one correction into a reusable rule for the next run.
 
 ---
 
@@ -428,11 +439,11 @@ The target is not "more AI output." The target is faster verified learning with 
 
 ---
 
-## Risk Boundaries and Anti-Patterns
+### Adoption Boundaries and Anti-Patterns
 
-An AI-native engineering operating system should not be heavy by default, and autonomy should not be treated as an end in itself. This section places the adoption boundary and the common failure modes together so governance does not become another ceremonial burden.
+After the roadmap, the organization still needs a boundary. An AI-native engineering operating system should not be heavy by default, and autonomy should not be treated as an end in itself. This section explains when the control surface is worth the cost, and which patterns turn governance into ceremony.
 
-### Trade-Offs and Limitations
+#### Trade-Offs and Limitations
 
 This operating-system model is heavier than a chat tool or a local coding assistant. It requires project rules, evidence discipline, review hygiene, memory maintenance, and clear authority boundaries. Teams should not adopt it for every script, prototype, or low-risk internal tool.
 
@@ -440,25 +451,25 @@ It becomes worthwhile when the cost of being wrong is high: production incidents
 
 ---
 
-### Anti-Patterns
+#### Anti-Patterns
 
-#### Prompt as Process
+##### Prompt as Process
 
 If the only process is "ask the model better," the organization has no operating system. Prompt quality matters, but it cannot replace tests, review gates, runtime evidence, or memory.
 
-#### Autonomous Theater
+##### Autonomous Theater
 
 An agent that appears autonomous but requires constant human cleanup is not autonomous. It is shifting work from typing to supervision.
 
-#### Memory Without Source
+##### Memory Without Source
 
 Unattributed memory creates false authority. Every durable memory should be either source-linked, scope-limited, or treated as a hypothesis.
 
-#### Review Afterthought
+##### Review Afterthought
 
 If AI increases code volume without increasing review and verification capacity, delivery risk rises.
 
-#### Human as Command Runner
+##### Human as Command Runner
 
 If the human spends most of the time telling the AI which command to run next, the harness is underdeveloped. The AI should own reversible mechanics; the human should own judgment.
 
