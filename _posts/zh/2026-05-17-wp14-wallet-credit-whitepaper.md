@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp14-wallet-credit/
 
 # 英文 canonical 原文：金融级钱包与授信系统白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp14-wallet-credit/original/](/whitepapers/wp14-wallet-credit/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
 
 # Financial-Grade Wallet & Credit System Whitepaper
 

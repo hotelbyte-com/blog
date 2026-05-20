@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp10-price-normalization/
 
 # 英文 canonical 原文：多供应商价格标准化白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp10-price-normalization/original/](/whitepapers/wp10-price-normalization/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
 
 # Multi-Supplier Price Normalization Whitepaper
 

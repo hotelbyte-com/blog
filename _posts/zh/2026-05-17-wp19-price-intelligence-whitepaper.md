@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp19-price-intelligence/
 
 # 英文 canonical 原文：价格智能与竞争基准白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp19-price-intelligence/original/](/whitepapers/wp19-price-intelligence/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
 
 # Price Intelligence & Competitive Benchmarking Whitepaper
 

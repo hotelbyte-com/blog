@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp01-http-gateway-routing/
 
 # 英文 canonical 原文：HTTP 网关与进程内 API 路由白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp01-http-gateway-routing/original/](/whitepapers/wp01-http-gateway-routing/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
 
 # HTTP Gateway & In-Process API Routing Whitepaper
 
