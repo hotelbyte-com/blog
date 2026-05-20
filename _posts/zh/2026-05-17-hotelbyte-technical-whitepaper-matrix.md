@@ -15,9 +15,10 @@ HotelByte 正在把技术白皮书整理成一套可复用的公开内容系统�
 
 ## 覆盖内容
 
-- `hotel-be/docs/whitepapers/` 下的 25 份英文 canonical whitepaper。
-- `hotel-be/docs/whitepapers/zh/` 下的 25 份中文同级公开安全资产。
-- 每个资产都有英文和中文博客 URL。
+- 25 篇中文读者导读，用业务语言解释每份白皮书解决什么问题。
+- 25 篇中文白皮书原文，适合需要架构、边界和工程细节的读者继续深读。
+- 25 篇英文读者导读和英文 canonical 白皮书原文，用于国际读者与 SEO。
+- 一个按主题顺序组织的系列页，读者可以从导读进入，也可以直接看原文。
 - 每个资产生成 1 条 Twitter/X thread、3 条短帖、1 条 follow-up 回复模板和 1 条 CTA。
 - Growth 后端跟踪 asset sync、post approval、schedule、publish、feedback collection 和 prospect conversion。
 

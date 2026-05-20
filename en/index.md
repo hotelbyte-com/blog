@@ -15,12 +15,16 @@ permalink: /en/
 </div>
 
 <div class="quick-links">
+  <a href="/en/whitepapers/" class="link-card">
+    <h3>Whitepapers</h3>
+    <p>Read guides and originals as a series</p>
+  </a>
   <a href="/en/series/" class="link-card">
-    <h3>📚 Series</h3>
+    <h3>Series</h3>
     <p>View all article series</p>
   </a>
   <a href="/en/archive/" class="link-card">
-    <h3>📄 Archive</h3>
+    <h3>Archive</h3>
     <p>Browse all posts</p>
   </a>
 </div>
@@ -128,4 +132,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 }
 </style>
-

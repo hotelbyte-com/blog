@@ -14,12 +14,16 @@ lang: zh
 </div>
 
 <div class="quick-links">
+  <a href="/zh/whitepapers/" class="link-card">
+    <h3>技术白皮书</h3>
+    <p>按系列阅读导读和原文</p>
+  </a>
   <a href="/zh/series/" class="link-card">
-    <h3>📚 系列文章</h3>
+    <h3>系列文章</h3>
     <p>查看所有主题系列</p>
   </a>
   <a href="/zh/archive/" class="link-card">
-    <h3>📄 文章归档</h3>
+    <h3>文章归档</h3>
     <p>浏览所有文章</p>
   </a>
 </div>

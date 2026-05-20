@@ -15,9 +15,10 @@ The goal is simple: every public technical claim should have a source asset, a b
 
 ## What Is Included
 
-- 25 canonical whitepapers in `hotel-be/docs/whitepapers/`.
-- 25 Chinese peer assets under `hotel-be/docs/whitepapers/zh/`.
-- English and Chinese blog URLs for every asset.
+- 25 Chinese reader guides that explain the business problem behind each paper.
+- 25 Chinese full whitepaper originals for readers who want the architecture, boundaries, and implementation detail.
+- 25 English reader guides and canonical English whitepaper originals for international readers and SEO.
+- A sequenced series hub where readers can start with the guide or jump straight to the full paper.
 - One Twitter/X thread, three short posts, one follow-up reply template, and one CTA per asset.
 - Growth backend tracking for asset sync, post approval, scheduling, publishing, feedback collection, and prospect conversion.
 

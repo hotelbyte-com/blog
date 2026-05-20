@@ -10,14 +10,14 @@ description: "HotelByte 规格驱动开发流程导读。"
 lang: zh
 permalink: /zh/whitepapers/wp22-spec-driven-development/
 source_asset: hotel-be/docs/whitepapers/22-spec-driven-development.md
+whitepaper_kind: guide
+original_url: /zh/whitepapers/wp22-spec-driven-development/original/
 ---
-
 复杂酒店平台工作失败，往往是因为需求、实现、测试和 review 标准发生漂移。
 
 这份白皮书解释 HotelByte 如何用规格驱动开发连接 PRD、API contract、测试、review 规则和发布证据。
 
 如果你的工程团队希望在供应商集成、定价、映射、财务和运营上交付更稳定，这份资产值得阅读。
 
-源资产：`hotel-be/docs/whitepapers/22-spec-driven-development.md`
-
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp22-spec-driven-development/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
 Twitter/X 角度：规格的价值在于变成可执行验证。

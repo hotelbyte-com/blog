@@ -81,10 +81,9 @@ defaults:
       permalink: /en/:categories/:title/
   - scope:
       path: ""
-      values:
+    values:
       lang: zh
   - scope:
       path: "assets/img"
     values:
       image: true
-

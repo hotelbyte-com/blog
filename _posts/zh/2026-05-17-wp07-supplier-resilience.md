@@ -10,14 +10,14 @@ description: "HotelByte 供应商韧性控制导读。"
 lang: zh
 permalink: /zh/whitepapers/wp07-supplier-resilience/
 source_asset: hotel-be/docs/whitepapers/07-supplier-resilience-engineering.md
+whitepaper_kind: guide
+original_url: /zh/whitepapers/wp07-supplier-resilience/original/
 ---
-
 酒店供应商会以很多方式失败：超时、限流、异常 payload、业务拒绝、会话过期和内容局部不匹配。
 
 这份白皮书解释为什么供应商韧性首先是错误分类。对错误类型盲目重试会放大损害，把业务拒绝隐藏成依赖失败会误导运营和买家。
 
 如果你需要证明供应商失败是有界、可观测、并且映射到正确业务结果的，这份资产可以作为检查入口。
 
-源资产：`hotel-be/docs/whitepapers/07-supplier-resilience-engineering.md`
-
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp07-supplier-resilience/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
 Twitter/X 角度：供应商韧性大多先是分类，然后才是重试。
