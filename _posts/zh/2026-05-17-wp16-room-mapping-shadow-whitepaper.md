@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp16-room-mapping-shadow/
 
 # 英文 canonical 原文：Shadow Mode 房型映射白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp16-room-mapping-shadow/original/](/en/whitepapers/wp16-room-mapping-shadow/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp16-room-mapping-shadow/original/](/whitepapers/wp16-room-mapping-shadow/original/)。
 
 # Room Mapping with Shadow Mode Whitepaper
 

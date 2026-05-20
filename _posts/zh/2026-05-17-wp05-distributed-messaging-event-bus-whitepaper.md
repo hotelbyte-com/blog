@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp05-distributed-messaging-event-bus/
 
 # 英文 canonical 原文：分布式消息与事件总线白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp05-distributed-messaging-event-bus/original/](/en/whitepapers/wp05-distributed-messaging-event-bus/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp05-distributed-messaging-event-bus/original/](/whitepapers/wp05-distributed-messaging-event-bus/original/)。
 
 # Distributed Messaging & Event Bus Whitepaper
 

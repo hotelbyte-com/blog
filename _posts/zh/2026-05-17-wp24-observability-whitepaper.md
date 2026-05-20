@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp24-observability/
 
 # 英文 canonical 原文：五维可观测性白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp24-observability/original/](/en/whitepapers/wp24-observability/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp24-observability/original/](/whitepapers/wp24-observability/original/)。
 
 # Five-Dimensional Observability Whitepaper
 

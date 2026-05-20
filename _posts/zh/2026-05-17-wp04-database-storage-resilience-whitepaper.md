@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp04-database-storage-resilience/
 
 # 英文 canonical 原文：数据库与存储韧性层白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp04-database-storage-resilience/original/](/en/whitepapers/wp04-database-storage-resilience/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp04-database-storage-resilience/original/](/whitepapers/wp04-database-storage-resilience/original/)。
 
 # Database & Storage Resilience Layer Whitepaper
 

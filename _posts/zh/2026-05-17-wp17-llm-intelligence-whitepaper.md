@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp17-llm-intelligence/
 
 # 英文 canonical 原文：LLM 增强智能引擎白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp17-llm-intelligence/original/](/en/whitepapers/wp17-llm-intelligence/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp17-llm-intelligence/original/](/whitepapers/wp17-llm-intelligence/original/)。
 
 # LLM-Augmented Intelligence Engine Whitepaper
 

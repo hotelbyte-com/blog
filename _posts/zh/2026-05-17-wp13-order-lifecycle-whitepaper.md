@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp13-order-lifecycle/
 
 # 英文 canonical 原文：订单生命周期状态机白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp13-order-lifecycle/original/](/en/whitepapers/wp13-order-lifecycle/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp13-order-lifecycle/original/](/whitepapers/wp13-order-lifecycle/original/)。
 
 # Order Lifecycle State Machine Whitepaper
 

@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp11-real-time-search/
 
 # 英文 canonical 原文：实时搜索聚合白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp11-real-time-search/original/](/en/whitepapers/wp11-real-time-search/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp11-real-time-search/original/](/whitepapers/wp11-real-time-search/original/)。
 
 # Real-Time Search Aggregation Whitepaper
 

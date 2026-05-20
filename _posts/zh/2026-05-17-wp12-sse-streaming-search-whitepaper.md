@@ -19,7 +19,7 @@ guide_url: /zh/whitepapers/wp12-sse-streaming-search/
 
 # 英文 canonical 原文：SSE 流式搜索架构白皮书
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp12-sse-streaming-search/original/](/en/whitepapers/wp12-sse-streaming-search/original/)。
+> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/whitepapers/wp12-sse-streaming-search/original/](/whitepapers/wp12-sse-streaming-search/original/)。
 
 # SSE Streaming Search Architecture Whitepaper
 
