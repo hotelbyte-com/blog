@@ -38,7 +38,24 @@ HotelByte shows what this looks like in a production-facing engineering organiza
 
 ---
 
-## Core Thesis
+## Problem Definition: AI Output Is Not Engineering Capability
+
+The first mistake organizations make after adding AI to engineering is treating more output as stronger system capability. More code, faster replies, and longer analysis do not automatically make delivery more reliable.
+
+Output-centric AI optimizes local production while leaving the delivery system unchanged. Typical failure modes include:
+
+- **Prompt-local success**: the answer looks correct but is not grounded in the current codebase or runtime.
+- **Context evaporation**: decisions made in chat do not become durable repo rules, tests, or operational memory.
+- **Review displacement**: AI produces more code than the organization can review or verify.
+- **Automation without authority**: agents perform actions without clear human or policy approval.
+- **Memory without governance**: prior experience is reused without freshness checks or source accountability.
+- **No organizational learning**: repeated human corrections do not change future AI behavior.
+
+These are not model-quality problems alone. They are engineering operating-system problems. The objective is not to make AI write slightly more work; it is to make AI work traceable, verifiable, and governable.
+
+---
+
+## Core Principle: The Verified Feedback Loop
 
 The fundamental unit of AI-native engineering is not the prompt, the model, or the agent. It is the **verified feedback loop**.
 
@@ -58,26 +75,9 @@ AI becomes reliable when this loop is explicit, observable, and governed. Withou
 
 ---
 
-## From Output Growth to System Capability
+## Operating Model: Five Governed Planes
 
-Output-centric AI breaks down because it optimizes local production while leaving the delivery system unchanged.
-
-Common failure modes:
-
-- **Prompt-local success**: the answer looks correct but is not grounded in the current codebase or runtime.
-- **Context evaporation**: decisions made in chat do not become durable repo rules, tests, or operational memory.
-- **Review displacement**: AI produces more code than the organization can review or verify.
-- **Automation without authority**: agents perform actions without clear human or policy approval.
-- **Memory without governance**: prior experience is reused without freshness checks or source accountability.
-- **No organizational learning**: repeated human corrections do not change future AI behavior.
-
-These are not model-quality problems alone. They are operating-system problems.
-
----
-
-## The Five Planes of an AI-Native Engineering OS
-
-The five planes form one work chain: set the goal, gather the facts, bound the action, prove the result, and retain the lesson.
+The operating model turns the principle into an executable structure. The five planes form one work chain: set the goal, gather the facts, bound the action, prove the result, and retain the lesson.
 
 ```mermaid
 flowchart LR
@@ -103,9 +103,9 @@ flowchart LR
 
 ---
 
-## Organizational Design and Authority Boundaries
+## Authority Model: Who May Decide Under Which Conditions
 
-Authority should be read as "who owns the decision under which conditions," not as a simple split where humans decide and AI executes. When context is sufficient, authorization is explicit, and risk is bounded, AI can participate in business-goal and priority judgment, and can even proxy low-risk decisions. High-risk, irreversible, or cross-organizational accountability decisions still belong to the human operator.
+After the operating model, the next question is authority. Authority should be read as "who owns the decision under which conditions," not as a simple split where humans decide and AI executes. When context is sufficient, authorization is explicit, and risk is bounded, AI can participate in business-goal and priority judgment, and can even proxy low-risk decisions. High-risk, irreversible, or cross-organizational accountability decisions still belong to the human operator.
 
 ```mermaid
 flowchart TB
@@ -139,7 +139,9 @@ flowchart TB
 
 ---
 
-## The Harness Stack
+## Control System: Putting AI Inside the Engineering Surface
+
+Controls are not a single switch. They are layered surfaces that run from organizational governance to runtime evidence. AI work must pass through these surfaces before it can become more than an isolated answer or patch.
 
 ```mermaid
 flowchart TB
