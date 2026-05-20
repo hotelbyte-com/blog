@@ -13,6 +13,18 @@ lang: zh
   <p>阅读中文版 | <a href="/en/">切换到英文版</a></p>
 </div>
 
+<section class="featured-whitepaper">
+  <div>
+    <p class="featured-kicker">重点推荐 · WP27</p>
+    <h2>AI 原生工程操作系统</h2>
+    <p>AI 不再只是写代码助手。真正的问题是工程组织如何安全吸收 AI 工作，并把人类意图、运行时证据、评审、发布控制和组织记忆接成一条已验证反馈闭环。</p>
+  </div>
+  <div class="featured-actions">
+    <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/">读导读</a>
+    <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/original/">看原文</a>
+  </div>
+</section>
+
 <div class="quick-links">
   <a href="/zh/whitepapers/" class="link-card">
     <h3>技术白皮书</h3>

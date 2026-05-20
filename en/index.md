@@ -14,6 +14,18 @@ permalink: /en/
   <p><a href="/">Switch to 中文</a> | Reading English</p>
 </div>
 
+<section class="featured-whitepaper">
+  <div>
+    <p class="featured-kicker">Featured · WP27</p>
+    <h2>AI-Native Engineering Operating System</h2>
+    <p>AI is no longer just a coding assistant. The hard problem is how an engineering organization safely absorbs AI work into one verified feedback loop across intent, runtime evidence, review, release control, and memory.</p>
+  </div>
+  <div class="featured-actions">
+    <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">Read guide</a>
+    <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/original/">Read source</a>
+  </div>
+</section>
+
 <div class="quick-links">
   <a href="/en/whitepapers/" class="link-card">
     <h3>Whitepapers</h3>

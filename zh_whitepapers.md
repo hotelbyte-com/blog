@@ -23,6 +23,16 @@ permalink: /zh/whitepapers/
     <a href="/docs/whitepaper-content-matrix.html">内容矩阵</a>
   </div>
 
+  <section class="whitepaper-feature">
+    <p class="featured-kicker">重点推荐 · WP27</p>
+    <h2>AI 原生工程操作系统</h2>
+    <p>这篇重量级白皮书不讨论“让 AI 多写一点代码”，而是讨论工程组织如何把 AI 工作纳入意图、证据、执行、验证、评审和记忆的治理系统。</p>
+    <div class="featured-actions">
+      <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/">读导读</a>
+      <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/original/">看原文</a>
+    </div>
+  </section>
+
   <div class="whitepaper-grid">
     {% assign zh_posts = site.posts | where: "lang", "zh" %}
     {% for post in zh_posts reversed %}

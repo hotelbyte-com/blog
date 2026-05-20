@@ -23,6 +23,16 @@ permalink: /en/whitepapers/
     <a href="/docs/whitepaper-content-matrix.html">Content matrix</a>
   </div>
 
+  <section class="whitepaper-feature">
+    <p class="featured-kicker">Featured · WP27</p>
+    <h2>AI-Native Engineering Operating System</h2>
+    <p>This heavyweight whitepaper is not about making AI write more code. It explains how an engineering organization turns AI work into a governed system of intent, evidence, execution, verification, review, and memory.</p>
+    <div class="featured-actions">
+      <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">Read guide</a>
+      <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/original/">Read source</a>
+    </div>
+  </section>
+
   <div class="whitepaper-grid">
     {% assign en_posts = site.posts | where: "lang", "en" %}
     {% for post in en_posts reversed %}
