@@ -917,12 +917,16 @@ a:hover {
   font-size: 14px;
 }
 
+.site-footer .wrapper {
+  text-align: center;
+}
+
 .site-footer p {
   margin: 0;
 }
 
 .infrastructure-credit {
-  margin-top: var(--space-2);
+  margin: var(--space-2) auto 0;
   color: hsl(var(--text-subdued));
   font-size: 11px;
   line-height: 1.5;
