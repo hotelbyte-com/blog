@@ -1,0 +1,64 @@
+brand:
+  name: HotelByte
+  url: https://blog.hotelbyte.com
+  logo: https://blog.hotelbyte.com/assets/img/logo.svg
+  same_as:
+    - https://github.com/hotelbyte-com
+    - https://openapi.hotelbyte.com
+    - https://waitlist.hotelbyte.com
+
+positioning: >
+  HotelByte publishes engineering analysis for hotel API aggregation,
+  supplier connectivity, B2B hotel distribution, pricing intelligence,
+  geographic search, and AI-native software delivery.
+
+audiences:
+  - travel technology leaders
+  - hotel distribution engineering teams
+  - supplier integration teams
+  - B2B travel platform builders
+  - AI-native engineering teams
+
+key_topics:
+  - hotel API aggregation
+  - supplier adapter frameworks
+  - geographic search
+  - price intelligence
+  - hotel content distribution
+  - real-time hotel search
+  - supplier direct connection
+  - room mapping
+  - OpenAPI hotel booking flow
+  - AI-native engineering
+  - LLM intelligence for travel platforms
+
+priority_routes:
+  - /
+  - /en/
+  - /en/whitepapers/
+  - /zh/whitepapers/
+  - /en/series/
+  - /zh/series/
+  - /en/topics/hotel-api-integration/
+  - /zh/topics/hotel-api-integration/
+  - /en/topics/openapi-hotel-distribution/
+  - /zh/topics/openapi-hotel-distribution/
+  - /en/archive/
+  - /zh/archive/
+
+featured_content:
+  - title: AI-Native Engineering Operating System
+    url: https://blog.hotelbyte.com/en/whitepapers/wp27-ai-native-engineering-operating-system/
+    topic: AI-native engineering
+  - title: Geographic Search
+    url: https://blog.hotelbyte.com/en/whitepapers/wp21-geographic-search/
+    topic: geographic search for hotel distribution
+  - title: LLM Intelligence
+    url: https://blog.hotelbyte.com/en/whitepapers/wp17-llm-intelligence/
+    topic: LLM intelligence for travel platforms
+  - title: Hotel API Integration Guide
+    url: https://blog.hotelbyte.com/en/topics/hotel-api-integration/
+    topic: hotel API integration for travel companies
+  - title: OpenAPI Hotel Distribution Guide
+    url: https://blog.hotelbyte.com/en/topics/openapi-hotel-distribution/
+    topic: HotelByte OpenAPI booking and certification

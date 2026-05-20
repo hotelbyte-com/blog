@@ -1,0 +1,33 @@
+---
+layout: null
+permalink: /ai-index.json
+---
+{% assign ai_geo = site.data.ai_geo %}{
+  "site": {
+    "name": {{ site.title | jsonify }},
+    "url": {{ site.url | jsonify }},
+    "description": {{ site.description | jsonify }},
+    "languages": ["zh", "en"]
+  },
+  "brand": {{ ai_geo.brand | jsonify }},
+  "positioning": {{ ai_geo.positioning | strip | jsonify }},
+  "audiences": {{ ai_geo.audiences | jsonify }},
+  "key_topics": {{ ai_geo.key_topics | jsonify }},
+  "priority_routes": {{ ai_geo.priority_routes | jsonify }},
+  "featured_content": {{ ai_geo.featured_content | jsonify }},
+  "external_docs": [
+    {
+      "name": "HotelByte OpenAPI",
+      "url": "https://openapi.hotelbyte.com",
+      "source_directory": "docs/api",
+      "topics": [
+        "authentication",
+        "customer certification",
+        "booking flow",
+        "error handling",
+        "content management",
+        "health checks"
+      ]
+    }
+  ]
+}

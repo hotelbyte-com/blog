@@ -39,6 +39,14 @@ permalink: /en/
     <h3>Archive</h3>
     <p>Browse all posts</p>
   </a>
+  <a href="/en/topics/hotel-api-integration/" class="link-card">
+    <h3>Hotel API Integration</h3>
+    <p>Supplier direct connection, aggregation, room mapping</p>
+  </a>
+  <a href="/en/topics/openapi-hotel-distribution/" class="link-card">
+    <h3>OpenAPI Integration</h3>
+    <p>Certification, booking flow, error handling</p>
+  </a>
 </div>
 
 ## Latest Posts
