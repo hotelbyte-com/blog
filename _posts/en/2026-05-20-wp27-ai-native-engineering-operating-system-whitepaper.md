@@ -38,7 +38,11 @@ HotelByte shows what this looks like in a production-facing engineering organiza
 
 ---
 
-## Problem Definition: AI Output Is Not Engineering Capability
+## From Output Growth to a Governed Loop
+
+This section defines the problem first, then states the operating principle. AI-native engineering is not the act of attaching a model to an editor. It is the act of placing AI output inside a traceable, verifiable, and governable feedback system.
+
+### Problem Definition: AI Output Is Not Engineering Capability
 
 The first mistake organizations make after adding AI to engineering is treating more output as stronger system capability. More code, faster replies, and longer analysis do not automatically make delivery more reliable.
 
@@ -55,7 +59,7 @@ These are not model-quality problems alone. They are engineering operating-syste
 
 ---
 
-## Core Principle: The Verified Feedback Loop
+### Core Principle: The Verified Feedback Loop
 
 The fundamental unit of AI-native engineering is not the prompt, the model, or the agent. It is the **verified feedback loop**.
 
@@ -75,7 +79,11 @@ AI becomes reliable when this loop is explicit, observable, and governed. Withou
 
 ---
 
-## Operating Model: Five Governed Planes
+## Operating Model and Authority Boundaries
+
+After the loop principle, the next task is making it executable for an organization: split the system into governed planes, define who may decide under which conditions, and route AI work through the engineering control surface.
+
+### Five Governed Planes
 
 The operating model turns the principle into an executable structure. The five planes form one work chain: set the goal, gather the facts, bound the action, prove the result, and retain the lesson.
 
@@ -103,7 +111,7 @@ flowchart LR
 
 ---
 
-## Authority Model: Who May Decide Under Which Conditions
+### Authority Model: Who May Decide Under Which Conditions
 
 After the operating model, the next question is authority. Authority should be read as "who owns the decision under which conditions," not as a simple split where humans decide and AI executes. When context is sufficient, authorization is explicit, and risk is bounded, AI can participate in business-goal and priority judgment, and can even proxy low-risk decisions. High-risk, irreversible, or cross-organizational accountability decisions still belong to the human operator.
 
@@ -139,7 +147,7 @@ flowchart TB
 
 ---
 
-## Control System: Putting AI Inside the Engineering Surface
+### Control System: Putting AI Inside the Engineering Surface
 
 Controls are not a single switch. They are layered surfaces that run from organizational governance to runtime evidence. AI work must pass through these surfaces before it can become more than an isolated answer or patch.
 
@@ -164,7 +172,7 @@ flowchart TB
 
 ---
 
-## Case Study: HotelByte
+## HotelByte Case Study: Putting AI Inside Production Delivery
 
 | Case object | Why it matters for AI-native engineering |
 |---|---|
@@ -341,7 +349,11 @@ The lesson is simple: a harness matters only when it survives real ambiguity, re
 
 ---
 
-## Maturity Model
+## From Case Study to Organizational Adoption
+
+After the case study, the question is no longer whether a team can build an agent. The question is how the organization understands its maturity, what operating metrics it watches, and in what order it should adopt the system.
+
+### Maturity Model
 
 | Level | Description | Failure mode |
 |---|---|---|
@@ -356,7 +368,7 @@ Most organizations are between Level 1 and Level 3. The strategic opportunity is
 
 ---
 
-## Operating Metrics
+### Operating Metrics
 
 Traditional engineering metrics still matter, but AI-native systems need additional measures:
 
@@ -372,39 +384,7 @@ The target is not "more AI output." The target is faster verified learning with 
 
 ---
 
-## Trade-Offs and Limitations
-
-This operating-system model is heavier than a chat tool or a local coding assistant. It requires project rules, evidence discipline, review hygiene, memory maintenance, and clear authority boundaries. Teams should not adopt it for every script, prototype, or low-risk internal tool.
-
-It becomes worthwhile when the cost of being wrong is high: production incidents, financial correctness, compliance, supplier integrations, customer-facing workflows, operational data, or review-heavy engineering organizations. In those settings, the overhead is not ceremony. It is the control surface that keeps AI speed from becoming unmanaged risk.
-
----
-
-## Anti-Patterns
-
-### Prompt as Process
-
-If the only process is "ask the model better," the organization has no operating system. Prompt quality matters, but it cannot replace tests, review gates, runtime evidence, or memory.
-
-### Autonomous Theater
-
-An agent that appears autonomous but requires constant human cleanup is not autonomous. It is shifting work from typing to supervision.
-
-### Memory Without Source
-
-Unattributed memory creates false authority. Every durable memory should be either source-linked, scope-limited, or treated as a hypothesis.
-
-### Review Afterthought
-
-If AI increases code volume without increasing review and verification capacity, delivery risk rises.
-
-### Human as Command Runner
-
-If the human spends most of the time telling the AI which command to run next, the harness is underdeveloped. The AI should own reversible mechanics; the human should own judgment.
-
----
-
-## Adoption Roadmap
+### Adoption Roadmap
 
 1. **Codify the authority contract**: write down what AI may decide, what humans own, and what requires approval.
 2. **Make evidence mandatory**: require code references, tests, logs, or runtime proof for completion claims.
@@ -417,6 +397,40 @@ If the human spends most of the time telling the AI which command to run next, t
 
 ---
 
+## Risk Boundaries and Anti-Patterns
+
+An AI-native engineering operating system should not be heavy by default, and autonomy should not be treated as an end in itself. This section places the adoption boundary and the common failure modes together so governance does not become another ceremonial burden.
+
+### Trade-Offs and Limitations
+
+This operating-system model is heavier than a chat tool or a local coding assistant. It requires project rules, evidence discipline, review hygiene, memory maintenance, and clear authority boundaries. Teams should not adopt it for every script, prototype, or low-risk internal tool.
+
+It becomes worthwhile when the cost of being wrong is high: production incidents, financial correctness, compliance, supplier integrations, customer-facing workflows, operational data, or review-heavy engineering organizations. In those settings, the overhead is not ceremony. It is the control surface that keeps AI speed from becoming unmanaged risk.
+
+---
+
+### Anti-Patterns
+
+#### Prompt as Process
+
+If the only process is "ask the model better," the organization has no operating system. Prompt quality matters, but it cannot replace tests, review gates, runtime evidence, or memory.
+
+#### Autonomous Theater
+
+An agent that appears autonomous but requires constant human cleanup is not autonomous. It is shifting work from typing to supervision.
+
+#### Memory Without Source
+
+Unattributed memory creates false authority. Every durable memory should be either source-linked, scope-limited, or treated as a hypothesis.
+
+#### Review Afterthought
+
+If AI increases code volume without increasing review and verification capacity, delivery risk rises.
+
+#### Human as Command Runner
+
+If the human spends most of the time telling the AI which command to run next, the harness is underdeveloped. The AI should own reversible mechanics; the human should own judgment.
+
 ## Conclusion
 
 The highest-leverage AI transformation in software engineering is not code generation. It is the creation of an operating system where humans and AI agents can safely share the work of understanding, changing, verifying, and evolving software.
@@ -427,7 +441,11 @@ HotelByte illustrates the larger pattern: AI becomes valuable when it is embedde
 
 ---
 
-## Industry Alignment Map
+## Appendix: Industry Alignment and Further Reading
+
+The following references show that this direction is not isolated. Foundation-model companies, code-hosting platforms, editors, and agent products are converging on the same trajectory: AI is entering engineering work systems with tools, permissions, queues, memory, audit, and enterprise control planes.
+
+### Industry Alignment Map
 
 Leading foundation-model companies and agent companies are converging on the same direction: AI is no longer only code completion or a chat window. It is entering engineering work systems with tools, authority boundaries, queues, memory, audit, and enterprise controls.
 
@@ -447,9 +465,9 @@ This map puts HotelByte's harness in context. Leading companies are competing ac
 
 ---
 
-## Further Reading
+### Further Reading
 
-### Foundation Model Labs and Model Platforms
+#### Foundation Model Labs and Model Platforms
 
 - [OpenAI: Introducing GPT-5.3-Codex](https://openai.com/index/introducing-gpt-5-3-codex/) — Codex moves from coding agent toward a general computer-work agent, covering long-running tasks, tool use, frontend building, knowledge work, and safety controls.
 - [OpenAI: Introducing workspace agents in ChatGPT](https://openai.com/index/introducing-workspace-agents-in-chatgpt/) — shared team agents with organization permissions, enterprise monitoring, tools, and memory.
@@ -464,7 +482,7 @@ This map puts HotelByte's harness in context. Leading companies are competing ac
 - [Z.ai: GLM-4.6: Advanced Agentic, Reasoning and Coding Capabilities](https://z.ai/blog/glm-4.6) — GLM-4.6 as an agentic, reasoning, and coding model available across multiple coding-agent toolchains.
 - [DeepSeek API Docs](https://api-docs.deepseek.com/) — DeepSeek API's OpenAI/Anthropic-compatible interface and integration paths for agent/coding assistant backends.
 
-### Agent Products and Engineering Platforms
+#### Agent Products and Engineering Platforms
 
 - [Cursor: BugBot, Background Agent, Memories, MCP](https://cursor.com/en/changelog/1-0) — Cursor makes code review, background agents, memory, and MCP part of editor-native agent infrastructure.
 - [Cursor: Introducing Composer 2](https://cursor.com/blog/composer-2) — Cursor continues pushing complex task capability through its own coding model and agent harness.
@@ -473,7 +491,7 @@ This map puts HotelByte's harness in context. Leading companies are competing ac
 - [Sonar: Agent Centric Development Cycle](https://www.sonarsource.com/company/press-releases/sonar-introduces-the-agent-centric-development-cycle/) — frames agentic development as a lifecycle, quality, and verification problem, not only a code-generation problem.
 - [Microsoft Engineering: Enhancing Code Quality at Scale with AI-Powered Code Reviews](https://devblogs.microsoft.com/engineering-at-microsoft/enhancing-code-quality-at-scale-with-ai-powered-code-reviews) — a production engineering account of AI-assisted pull-request review and the feedback loops needed for trust.
 
-### Empirical Research
+#### Empirical Research
 
 - [AIDev: Studying AI Coding Agents on GitHub](https://arxiv.org/abs/2602.09185) — aggregates agentic PR data from OpenAI Codex, Devin, GitHub Copilot, Cursor, Claude Code, and others.
 - [Agentic Much? Adoption of Coding Agents on GitHub](https://arxiv.org/abs/2601.18341) — studies how coding agents on GitHub moved quickly from completion tools toward full PR generation.

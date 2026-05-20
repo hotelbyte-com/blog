@@ -120,6 +120,8 @@ layout: null
     root.className = 'toc-list toc-list-root';
     const stack = [{ level: 1, list: root }];
 
+    const linksById = new Map();
+
     headings.forEach(heading => {
       if (!heading.id) {
         heading.id = heading.textContent
@@ -139,6 +141,8 @@ layout: null
       const a = document.createElement('a');
       a.textContent = heading.textContent;
       a.href = '#' + heading.id;
+      a.dataset.targetId = heading.id;
+      linksById.set(heading.id, a);
 
       li.appendChild(a);
       stack[stack.length - 1].list.appendChild(li);
@@ -155,6 +159,29 @@ layout: null
     });
 
     toc.appendChild(root);
+
+    const setActiveHeading = (id) => {
+      linksById.forEach(link => link.classList.remove('is-active'));
+      const activeLink = linksById.get(id);
+      if (!activeLink) return;
+      activeLink.classList.add('is-active');
+      activeLink.scrollIntoView({ block: 'nearest' });
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible.length > 0) {
+        setActiveHeading(visible[0].target.id);
+      }
+    }, {
+      rootMargin: '-18% 0px -68% 0px',
+      threshold: [0, 1]
+    });
+
+    headings.forEach(heading => observer.observe(heading));
+    setActiveHeading(headings[0].id);
   });
 </script>
 <script type="module">

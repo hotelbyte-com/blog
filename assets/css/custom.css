@@ -462,6 +462,32 @@ a:hover {
   overflow: auto;
 }
 
+.table-of-contents {
+  max-height: calc(100vh - 112px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.table-of-contents nav {
+  min-height: 0;
+  margin: 0 calc(var(--space-5) * -1) calc(var(--space-5) * -1);
+  padding: 0 var(--space-3) var(--space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+.table-of-contents nav::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-of-contents nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: hsl(var(--border));
+}
+
 .content-wrapper {
   min-width: 0;
   padding: 0;
@@ -483,6 +509,10 @@ a:hover {
   color: hsl(var(--text));
   font-size: 17px;
   font-weight: 800;
+}
+
+.table-of-contents h3 {
+  flex: 0 0 auto;
 }
 
 .series-navigation ul,
@@ -527,9 +557,14 @@ a:hover {
 
 .series-navigation a:hover,
 .table-of-contents a:hover,
-.series-navigation li.active a {
+.series-navigation li.active a,
+.table-of-contents a.is-active {
   background: hsl(var(--primary-subdued));
   color: hsl(var(--primary-hovered));
+}
+
+.table-of-contents a.is-active {
+  box-shadow: inset 3px 0 0 hsl(var(--primary));
 }
 
 .series-navigation .desc {
