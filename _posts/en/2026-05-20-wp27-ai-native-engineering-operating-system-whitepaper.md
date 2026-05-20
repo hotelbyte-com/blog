@@ -439,39 +439,45 @@ These are not final mature dashboard KPIs yet. They are operating signals. Hotel
 
 ---
 
-### Adoption Boundaries and Anti-Patterns
+### Adoption Boundaries: Start from Risk, Not Tools
 
-After the roadmap, the organization still needs a boundary. An AI-native engineering operating system should not be heavy by default, and autonomy should not be treated as an end in itself. This section explains when the control surface is worth the cost, and which patterns turn governance into ceremony.
+The roadmap should not be read as "put every task through a heavier process." The real boundary is not whether AI can do the work. It is whether a wrong action can enter production, financial loss, compliance, customer commitments, or organizational memory. The higher the risk, the more explicit the control surface must be. The lower the risk, the lighter the process should be.
 
-#### Trade-Offs and Limitations
+Adoption boundaries should therefore be organized by scenario, not by tool:
 
-This operating-system model is heavier than a chat tool or a local coding assistant. It requires project rules, evidence discipline, review hygiene, memory maintenance, and clear authority boundaries. Teams should not adopt it for every script, prototype, or low-risk internal tool.
+| Scenario | Suitable AI working mode | Human judgment that must remain |
+|---|---|---|
+| Low-risk content and internal explanation | AI can draft, rewrite, build, screenshot, and run pre-publish checks. | Final meaning, brand expression, and whether something should be public. |
+| Routine engineering change | AI can read code, edit, add tests, run verification, and package PR evidence. | API semantics, compatibility tradeoffs, and whether behavior changes are acceptable. |
+| Production issue or supplier path | AI can aggregate logs, traces, DB state, request samples, and code paths. | Whether the root cause is proven, whether the fix is narrow enough, and whether rollback or escalation is needed. |
+| Financial loss, payment, compliance, and permission | AI can prepare evidence packets, risk checklists, candidate patches, and test suggestions. | Whether to execute, when to execute, who approves, and how the action is audited. |
+| Organizational rule and long-term memory | AI can convert repeated corrections into rules, skills, tests, and docs. | Whether the rule should persist and whether it might suppress fresh evidence. |
 
-It becomes worthwhile when the cost of being wrong is high: production incidents, financial correctness, compliance, supplier integrations, customer-facing workflows, operational data, or review-heavy engineering organizations. In those settings, the overhead is not ceremony. It is the control surface that keeps AI speed from becoming unmanaged risk.
+HotelByte's boundary is formed this way. Blog and whitepaper publishing are low-risk content assets, so AI can close the loop: synchronize source docs, build Jekyll, check Chinese and English pages, push, publish, and re-check the live URL. But when the work touches hotel prices, order state, supplier cancellation, wallet behavior, payment, permission, or production data, AI must first build the evidence chain, clarify the action options, and leave execution authority to humans.
 
----
+#### Three Adoption Cases
 
-#### Anti-Patterns
+**Case 1: Whitepaper and blog publishing.** The main risks are readability, brand expression, and public content quality. AI can own the mechanical loop: sync source documents into the blog, build Jekyll, inspect Chinese and English pages, push, publish, and verify the live URL. Human judgment remains focused on the argument, narrative structure, and whether a conclusion should be stated publicly.
 
-##### Prompt as Process
+**Case 2: Supplier API anomaly.** The risk is not simply whether code can be changed. Supplier response, cache state, search flow, order state, and user impact can all interact. AI should first build a fact packet: trace, logs, API samples, database state, related code, recent releases, and existing runbooks. Only when the evidence proves a root cause should it move into patching, tests, and release recommendations.
 
-If the only process is "ask the model better," the organization has no operating system. Prompt quality matters, but it cannot replace tests, review gates, runtime evidence, or memory.
+**Case 3: Payment and financial-loss-related change.** AI must not be treated as an automatic executor. It can check whether amount and currency come from the same source, whether seller, buyer, supplier, and profit amounts are mixed, whether room-level rate and order-level total are conflated, and whether taxes, fees, or cancellation policies are dropped. But any real data repair, production DML, settlement-semantics change, or permission expansion requires human authority, rollback planning, and audit evidence.
 
-##### Autonomous Theater
+The common pattern across these cases is that AI is not used according to its capability boundary. It is orchestrated according to the risk boundary. Low-risk work can be highly autonomous. Medium-risk work requires evidence and tests. High-risk work requires human authority, auditability, and rollback.
 
-An agent that appears autonomous but requires constant human cleanup is not autonomous. It is shifting work from typing to supervision.
+#### Failure Modes in Practice
 
-##### Memory Without Source
+Anti-patterns should not remain abstract slogans. In real organizations they usually look like this:
 
-Unattributed memory creates false authority. Every durable memory should be either source-linked, scope-limited, or treated as a hypothesis.
+| Failure mode | What it looks like | What is wrong | Correct boundary |
+|---|---|---|---|
+| Prompt as process | Everyone writes longer prompts. | There are no tests, review gates, evidence, or memory; quality depends on individual taste. | Move repeated expectations into repo rules, tests, review checklists, and skills. |
+| Autonomous theater | The agent appears to run many steps by itself. | Humans still correct, explain, and finish the work; supervision cost has not fallen. | Let AI own reversible mechanics, and stop at evidence plus recommendation for high-risk actions. |
+| Memory without source | AI remembers "how this used to work." | Old experience overrides fresh logs, code, and production facts. | Memory needs source, scope, and expiry awareness; fresh evidence wins. |
+| Review afterthought | AI produces large diffs quickly. | Reviewers are left to clean up risk late in the process. | Move review standards into the prompt, test plan, and definition of done. |
+| Human as command runner | The human keeps telling AI which command to run next. | AI is not carrying context, verification, or state synchronization. | AI should proactively complete reversible actions; humans handle judgment, authority, and escalation. |
 
-##### Review Afterthought
-
-If AI increases code volume without increasing review and verification capacity, delivery risk rises.
-
-##### Human as Command Runner
-
-If the human spends most of the time telling the AI which command to run next, the harness is underdeveloped. The AI should own reversible mechanics; the human should own judgment.
+The purpose of adoption boundaries is not to limit AI. It is to protect organizational attention. A mature system lets AI be more autonomous in low-risk areas, more evidence-driven in medium-risk areas, and more restrained in high-risk areas. That is how speed avoids crowding out judgment, and automation avoids bypassing responsibility.
 
 ## Conclusion
 
