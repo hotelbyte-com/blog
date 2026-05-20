@@ -8,7 +8,7 @@ tags: [Geography, Search, Hotel Data]
 author: "HotelByte Team"
 description: "A guide to HotelByte's geographic search intelligence."
 lang: en
-permalink: /whitepapers/wp21-geographic-search/
+permalink: /en/whitepapers/wp21-geographic-search/
 source_asset: hotel-be/docs/en/whitepapers/21-geographic-search-intelligence.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp21-geographic-search/original/

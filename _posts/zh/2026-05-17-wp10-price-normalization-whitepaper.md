@@ -1,203 +1,192 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：多供应商价格标准化白皮书"
+title: "多供应商价格归一化白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp10-price-normalization/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp10-price-normalization/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp10-price-normalization/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：多供应商价格标准化白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Multi-Supplier Price Normalization Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte aggregates room inventory and pricing data from more than 27 independent hotel suppliers, each with distinct data models, currency conventions, cancellation policies, and rate structures. In this heterogeneous ecosystem, price inconsistency is not an edge case—it is the default operational reality. A single search query may return rates expressed as per-room prices from one supplier, total-stay prices from another, and net-exclusive rates from a third, each denominated in a different currency and subject to different refund rules.
+HotelByte 汇总了来自超过 27 家独立酒店供应商的客房库存和定价数据，每个供应商都有不同的数据模型、货币惯例、取消政策和费率结构。在这个异构生态系统中，价格不一致并不是边缘情况，而是默认的运营现实。单个搜索查询可能返回来自一个供应商的以每间客房价格表示的价格、来自另一个供应商的总住宿价格以及来自第三个供应商的净独享价格，每种价格以不同的货币计价并遵循不同的退款规则。
 
-This whitepaper describes HotelByte's unified price normalization pipeline and the booking safety controls that surround it. The pipeline enforces a strict four-stage contract—validation, derivation, conversion, and buffer application—on every rate record before it reaches a customer. Complementing the pipeline are environment-isolation controls, automated test-order marking, live-credential safety guards, and supplier-fault containment mechanisms that protect against accidental bookings and financial misrepresentation.
+本白皮书介绍了 HotelByte 的统一价格标准化管道及其周围的预订安全控制措施。该管道在到达客户之前对每个费率记录执行严格的四阶段合同：验证、推导、转换和缓冲应用。对管道的补充是环境隔离控制、自动测试订单标记、实时凭证安全防护以及防止意外预订和财务虚假陈述的供应商故障遏制机制。
 
-The intended audience for this document includes enterprise customers, security auditors, integration partners, and compliance officers who require transparency into how HotelByte ensures price accuracy, currency integrity, and booking safety across a multi-supplier network.
-
----
-
-## Scope
-
-This document covers the architectural design, operational behavior, and safety posture of HotelByte's price normalization and booking protection layers. Specifically, it addresses:
-
-- The unified price processing pipeline that governs search and availability responses
-- Currency completeness validation and mutual derivation between per-room and total-stay prices
-- Foreign-exchange conversion with buffered rate application
-- Cancellation policy standardization with tenant timezone alignment and safety buffer application
-- Credential mode matching and environment isolation for production versus non-production flows
-- Booking safety controls, including test order auto-marking, live credential guards, and supplier fault containment
-- Quality monitoring, auditability, and traceability of price-related anomalies
-
-This whitepaper does not cover supplier-specific adapter implementations, rate shopping algorithms, or revenue management optimization strategies, which are documented separately.
+本文档的目标受众包括企业客户、安全审计员、集成合作伙伴和合规官员，他们需要了解 HotelByte 如何确保多供应商网络中的价格准确性、货币完整性和预订安全性。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Price Integrity Across Suppliers** — Normalize disparate rate structures into a single, internally consistent canonical model where every monetary amount is accompanied by an explicit currency code and validated for completeness.
-2. **Accurate Currency Conversion** — Convert supplier-native currencies to customer-requested currencies using captured exchange rate snapshots, with a configurable buffer applied exactly once per conversion to protect against intraday volatility.
-3. **Safe Booking Defaults** — Prevent accidental live bookings in test environments through automatic test-order marking, refundable-mode enforcement, and explicit credential-environment matching.
-4. **Transparent Cancellation Terms** — Standardize cancellation deadlines to the tenant's business timezone and apply a configurable safety buffer so that end customers receive deadlines they can realistically act upon.
-5. **Observable and Recoverable Operations** — Capture supplier-level panics, duplicate identifiers, and calculation errors as structured quality metrics without propagating internal failure modes to the customer.
+本文档涵盖了 HotelByte 价格标准化和预订保护层的架构设计、操作行为和安全状况。具体来说，它解决了：
 
----
+- 管理搜索和可用性响应的统一价格处理管道
+- 货币完整性验证以及每间客房价格和总住宿价格之间的相互推导
+- 使用缓冲汇率进行外汇兑换
+- 取消政策标准化，包括租户时区对齐和安全缓冲区应用
+- 生产与非生产流程的凭证模式匹配和环境隔离
+- 预订安全控制，包括测试订单自动标记、实时凭证防护和供应商故障遏制
+- 价格相关异常的质量监控、可审计性和可追溯性
 
-## Design Principles
-
-### Price Integrity First
-
-No amount is ever interpreted without an explicit currency. If a supplier response contains a numeric rate with a missing currency field, the record is rejected at the pipeline boundary rather than inferred from context. This eliminates an entire class of silent data corruption bugs where a supplier's omission could be misinterpreted as a different denomination.
-
-### Safe Defaults
-
-When the platform must choose between a safer but more restrictive behavior and a convenient but riskier one, it chooses safety. In test environments with live credentials, only fully refundable products are permitted. Test orders are automatically marked with negative reference numbers. Cancellation deadlines are shifted earlier by a safety buffer rather than later.
-
-### Environment Isolation
-
-Production and non-production environments do not share credential semantics. The platform enforces distinct default credential modes per environment: production accepts online credentials, while development and staging environments accept offline credentials by default. Explicit test-mode declarations override defaults only when the caller deliberately specifies them.
-
-### Defensive Currency Handling
-
-When a customer requests a currency that a supplier does not support, the platform falls back to the supplier's default currency and performs conversion downstream. If no default currency is configured, the supplier is skipped for that query rather than issuing a request with an unsupported denomination. This prevents incorrect supplier-side filtering and phantom availability.
-
-### Transparent Audit Trail
-
-Every price transformation leaves a trace. Original rates are preserved before conversion. Cancellation policy buffers are recorded in trace metadata. Pipeline errors increment labeled quality counters by supplier and anomaly type. The result is a complete, queryable lineage from raw supplier response to customer-facing price.
+本白皮书不涵盖供应商特定的适配器实现、费率购物算法或收益管理优化策略，这些内容均单独记录。
 
 ---
 
-## Price Normalization Pipeline
+## 目标
 
-Every rate record returned by a supplier passes through a four-stage normalization pipeline before it is presented to the customer. Each stage is idempotent, deterministic, and fail-safe: errors at any stage either remove the offending record from the result set or return a normalized dependency error that does not leak internal state.
+1. **供应商之间的价格完整性** — 将不同的费率结构标准化为单一的、内部一致的规范模型，其中每个货币金额都附有明确的货币代码并验证完整性。
+2. **准确的货币转换** — 使用捕获的汇率快照将供应商本国货币转换为客户请求的货币，每次转换仅应用一次可配置的缓冲区，以防止日内波动。
+3. **安全预订默认设置** — 通过自动测试订单标记、可退款模式实施和显式凭证环境匹配，防止测试环境中意外的实时预订。
+4. **透明的取消条款** — 将取消截止日期标准化为租户的业务时区，并应用可配置的安全缓冲区，以便最终客户收到可以实际采取行动的截止日期。
+5. **可观察和可恢复的操作** — 捕获供应商级别的恐慌、重复标识符和计算错误作为结构化质量指标，而不会将内部故障模式传播给客户。
 
-### Stage 1: Validation
+---
 
-The pipeline first enforces currency completeness. For every price field—NetRate, GrossRate, CommissionableRate, and FinalRate—the platform verifies that any non-zero amount is accompanied by a non-empty currency code. If a supplier omits the currency on a populated amount, the record is rejected and a structured quality metric is emitted. This validation is strict: no inference, no fallback to a previously seen currency, and no silent defaulting.
+## 设计原则
 
-Concurrently, the pipeline checks for duplicate RatePkgId values within a single search response. Suppliers occasionally emit duplicate identifiers due to caching artifacts or pagination errors. Duplicates are deduplicated and flagged in quality metrics to preserve catalog correctness without exposing the internal identifier scheme to the customer.
+### 价格诚信第一
 
-### Stage 2: Derivation
+如果没有明确的货币，任何金额都不会被解释。如果供应商响应包含缺少货币字段的数字汇率，则该记录将在管道边界处被拒绝，而不是从上下文推断。这消除了一整类无声数据损坏错误，供应商的遗漏可能会被误解为不同的面额。
 
-Suppliers vary in whether they expose per-room prices, total-stay prices, or both. The pipeline reconciles these representations through mutual derivation:
+### 安全默认值
 
-- If the per-room Rate is empty but the TotalRate is present, the pipeline derives the per-room rate by dividing the total by the room count.
-- If the TotalRate is empty but the per-room Rate is present, the pipeline derives the total by multiplying the per-room rate by the room count.
+当平台必须在更安全但更具限制性的行为和方便但风险更大的行为之间做出选择时，它会选择安全。在具有实时凭证的测试环境中，只允许全额退款的产品。测试订单会自动标有负参考号。取消截止日期被安全缓冲提前而不是推迟。
 
-This derivation uses precise decimal arithmetic to avoid floating-point drift. The derived values are then treated as first-class inputs for the remainder of the pipeline.
+### 环境隔离
 
-### Stage 3: Conversion
+生产和非生产环境不共享凭证语义。该平台对每个环境强制执行不同的默认凭据模式：生产环境接受在线凭据，而开发和登台环境默认接受离线凭据。仅当调用者有意指定时，显式测试模式声明才会覆盖默认值。
 
-When the supplier's currency differs from the customer's requested currency, the pipeline performs foreign-exchange conversion. The platform uses an exchange rate snapshot captured at search time, which is then carried forward through booking and cancellation workflows to ensure rate stability across the transaction lifecycle.
+### 防御性货币处理
 
-A configurable FX buffer is applied exactly once during the supplier-to-customer conversion:
+当客户请求供应商不支持的货币时，平台会回退到供应商的默认货币并在下游执行转换。如果未配置默认货币，则该查询将跳过供应商，而不是发出具有不受支持面额的请求。这可以防止不正确的供应商侧过滤和虚假可用性。
+
+### 透明的审计追踪
+
+每一次价格转变都会留下痕迹。转换前保留原始汇率。取消策略缓冲区记录在跟踪元数据中。管道错误会按供应商和异常类型增加标记的质量计数器。结果是从原始供应商响应到面向客户的价格的完整的、可查询的谱系。
+
+---
+
+## 价格标准化管道
+
+供应商返回的每条费率记录在呈现给客户之前都会经过四阶段标准化管道。每个阶段都是幂等的、确定性的和故障安全的：任何阶段的错误要么从结果集中删除有问题的记录，要么返回不会泄漏内部状态的规范化依赖错误。
+
+### 第 1 阶段：验证
+
+该管道首先强制货币完整性。对于每个价格字段（NetRate、GrossRate、CommissionableRate 和 FinalRate），平台都会验证任何非零金额是否附有非空货币代码。如果供应商在填充金额上省略了货币，则记录将被拒​​绝，并发出结构化质量指标。这种验证是严格的：没有推论，没有回退到以前见过的货币，也没有静默违约。
+
+同时，管道会检查单个搜索响应中是否存在重复的 RatePkgId 值。由于缓存工件或分页错误，供应商有时会发出重复的标识符。重复项将被删除并在质量指标中标记，以保持目录的正确性，而不会将内部标识符方案暴露给客户。
+
+### 第二阶段：推导
+
+供应商在是否公开每间客房的价格、总住宿价格或两者方面都有所不同。管道通过相互推导来协调这些表示：
+
+- 如果每个房间的房价为空但存在 TotalRate，则管道通过将总数除以房间数来得出每个房间的房价。
+- 如果 TotalRate 为空，但存在每个房间的房价，则管道通过将每个房间的房价乘以房间数得出总数。
+
+该推导使用精确的十进制算术来避免浮点漂移。然后，派生值将被视为管道其余部分的一级输入。
+
+### 第三阶段：转换
+
+当供应商的货币与客户请求的货币不同时，管道将执行外汇转换。该平台使用在搜索时捕获的汇率快照，然后通过预订和取消工作流程进行转发，以确保整个交易生命周期中的汇率稳定性。
+
+在供应商到客户的转换期间，可配置的 FX 缓冲区仅应用一次：
 
 ```
 Converted Amount = Supplier Amount × FX Rate × (1 + FX Buffer Percentage)
 ```
 
-If the snapshot exchange fails for any reason, the pipeline falls back to a real-time rate. If conversion still fails, the original currency and amount are preserved, and a warning is logged. The platform never drops a rate silently due to conversion failure.
+如果快照交换由于任何原因失败，管道将回落到实时速率。如果转换仍然失败，则保留原始货币和金额，并记录警告。平台绝不会因为转换失败而默默降价。
 
-Cancellation fees undergo the same conversion logic, ensuring that penalty amounts are denominated in the customer's currency and are directly comparable to the displayed room rate.
+取消费用采用相同的转换逻辑，确保罚款金额以客户的货币计价，并可直接与显示的房价进行比较。
 
-### Stage 4: Buffer Application
+### 第 4 阶段：缓冲区应用
 
-Cancellation policies are standardized to the tenant's business timezone and adjusted by a configurable safety buffer. The default buffer is 36 hours, though individual tenants may configure alternative durations.
+取消政策根据租户的业务时区进行标准化，并通过可配置的安全缓冲区进行调整。默认缓冲时间为 36 小时，但各个租户可以配置其他持续时间。
 
-The buffer shifts each cancellation deadline earlier by the specified duration. For example, a supplier-indicated deadline of midnight on January 21st becomes noon on January 19th after a 36-hour buffer. This accounts for processing delays, timezone differences, and end-user reaction time.
+缓冲区将每个取消截止时间提前指定的持续时间。例如，供应商指定的截止日期为 1 月 21 日午夜，经过 36 小时缓冲后，将变为 1 月 19 日中午。这考虑了处理延迟、时区差异和最终用户反应时间。
 
-After buffer application, the pipeline refreshes the refundable mode against the current time. A policy that was originally marked as fully refundable may be reclassified if the buffered deadline has already passed, ensuring that the customer sees an accurate, actionable refundability status rather than a stale supplier assertion.
-
----
-
-## Booking Safety Lifecycle
-
-Price normalization operates within a broader booking safety lifecycle that protects against accidental transactions, environment misconfiguration, and supplier runtime faults.
-
-### Test Order Isolation
-
-The platform automatically identifies test-bound bookings and marks them with negative platform reference numbers. Test order classification applies when the credential is offline, or when the environment is development or staging and the credential is online or universal. This automatic marking prevents test transactions from entering live supplier order books and simplifies reconciliation.
-
-### Live Credential Protection
-
-When test code or staging environments are configured with live (online) credentials, the platform enforces an additional safety gate: only fully refundable products may be booked. If a non-refundable or partially refundable rate is selected, the booking is blocked with a clear error message. This control prevents staging test suites from generating real cancellation penalties.
-
-### Supplier Fault Containment
-
-Supplier Book implementations execute inside a panic-recovery boundary. If a supplier adapter panics due to an unexpected response shape or internal bug, the panic is captured, logged with a full stack trace, and converted into a normalized dependency error. The customer receives a stable error category; the internal failure details are captured in observability systems for engineering follow-up.
-
-### Ambiguous-State Recovery
-
-Network timeouts during booking create a dangerous ambiguity: the request may or may not have succeeded on the supplier side. HotelByte resolves this through a two-phase confirmation protocol. Phase one retries order queries for up to three minutes; if the order is found, it is treated as successful. Phase two extends the retry window and, if an order is found but the client has already timed out, attempts a free cancellation. This protocol minimizes the risk of orphaned reservations and unbilled inventory.
+缓冲区申请后，管道将根据当前时间刷新可退款模式。如果缓冲期限已经过去，最初标记为全额退款的保单可能会被重新分类，以确保客户看到准确的、可操作的退款状态，而不是陈旧的供应商声明。
 
 ---
 
-## Implemented Control Summary
+## 预订安全生命周期
 
-| Control | Customer Value |
+价格标准化在更广泛的预订安全生命周期内运行，可防止意外交易、环境配置错误和供应商运行时故障。
+
+### 测试订单隔离
+
+平台自动识别测试绑定预订，并用负平台参考号标记它们。当凭证离线时，或者当环境处于开发或登台且凭证在线或通用时，测试顺序分类适用。这种自动标记可以防止测试交易进入实时供应商订单簿并简化对账。
+
+### 实时凭证保护
+
+当测试代码或临时环境配置有实时（在线）凭证时，平台会强制实施额外的安全门：只能预订可全额退款的产品。如果选择不可退款或部分退款的房价，预订将被阻止，并显示明确的错误消息。这种控制可以防止分段测试套件产生真正的取消惩罚。
+
+### 供应商故障遏制
+
+供应商手册实现在恐慌恢复边界内执行。如果供应商适配器由于意外的响应形状或内部错误而发生恐慌，则会捕获该恐慌，使用完整的堆栈跟踪进行记录，并将其转换为规范化的依赖关系错误。客户收到稳定的错误类别；内部故障细节被可观测系统捕获，用于工程后续工作。
+
+### 模糊状态恢复
+
+预订期间的网络超时会产生危险的歧义：供应商方面的请求可能会成功，也可能不会成功。 HotelByte 通过两阶段确认协议解决了这个问题。第一阶段重试订单查询最多三分钟；如果找到订单，则视为成功。第二阶段延长重试窗口，如果找到订单但客户端已经超时，则尝试免费取消。该协议最大限度地降低了孤立预订和未开票库存的风险。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| Currency Completeness Validation | Every price amount is required to carry an explicit currency code; incomplete records are rejected before reaching the customer, preventing silent misdenomination. |
-| Rate ↔ TotalRate Mutual Derivation | Per-room and total-stay prices are always reconciled through precise decimal arithmetic, ensuring consistency regardless of which representation a supplier provides. |
-| Snapshot-Based FX Conversion with Buffer | Exchange rates are captured at search time and buffered once, protecting customers from intraday volatility while guaranteeing rate consistency from search through cancellation. |
-| Cancellation Policy Buffer & Timezone Alignment | Deadlines are shifted earlier by a configurable safety buffer and expressed in the tenant's business timezone, giving customers actionable and realistic cancellation windows. |
-| Duplicate RatePkgId Detection | Duplicate supplier identifiers are removed and flagged in quality metrics, preventing catalog corruption without exposing internal ID schemes. |
-| Credential-Environment Mode Matching | Production and non-production environments enforce distinct default credential modes, reducing the risk of staging traffic hitting live supplier endpoints. |
-| Automatic Test Order Marking | Test-bound bookings are automatically tagged with negative reference numbers, isolating them from live reconciliation and supplier order books. |
-| Live Credential Refundable-Only Gate | In test environments with live credentials, only fully refundable products are bookable, preventing accidental cancellation penalties during QA activities. |
-| Supplier Panic Containment | Runtime panics in supplier adapters are captured and converted to normalized dependency errors, preventing a single supplier fault from crashing the platform or leaking internal state. |
-| Two-Phase Booking Timeout Recovery | Ambiguous booking timeouts are resolved through structured order confirmation and conditional cancellation, minimizing orphaned reservations. |
-| Quality Incorrect Rate Metrics | Price anomalies are counted by supplier and reason type, enabling continuous monitoring and supplier data quality improvement. |
-| Currency Isolation Fallback | When a customer currency is unsupported by a supplier, the platform falls back to the supplier default currency with downstream conversion, or skips the supplier entirely if no default is configured. |
+|货币完整性验证 |每个价格金额都需要带有明确的货币代码；不完整的记录在到达客户之前会被拒绝，从而防止无声的错误命名。 |
+| Rate ↔ TotalRate 互推 |每间客房的价格和总入住价格始终通过精确的十进制算术进行核对，无论供应商提供哪种表示形式，都能确保一致性。 |
+|带缓冲区的基于快照的外汇转换汇率在搜索时捕获并缓冲一次，保护客户免受日内波动的影响，同时保证从搜索到取消的汇率一致性。 |
+|取消政策缓冲区和时区对齐 |通过可配置的安全缓冲区提前推迟最后期限，并以租户的业务时区表示，为客户提供可操作且现实的取消窗口。 |
+|重复率 PkgId 检测 |重复的供应商标识符将被删除并在质量指标中进行标记，从而防止目录损坏，而不会暴露内部 ID 方案。 |
+|凭证-环境模式匹配 |生产和非生产环境强制执行不同的默认凭证模式，从而降低暂存流量击中实时供应商端点的风险。 |
+|自动测试订单标记 |测试绑定预订会自动标记为负参考号，将其与实时对账和供应商订单簿隔离。 |
+|实时凭证仅可退款 门 |在具有实时凭证的测试环境中，只有可全额退款的产品才可预订，从而防止在 QA 活动期间意外取消罚款。 |
+|供应商恐慌遏制|捕获供应商适配器中的运行时恐慌并将其转换为规范化的依赖性错误，从而防止单个供应商故障导致平台崩溃或泄漏内部状态。 |
+|两阶段预订超时恢复 |通过结构化订单确认和有条件取消来解决不明确的预订超时问题，从而最大限度地减少孤立预订。 |
+|质量错误率指标|价格异常按供应商和原因类型进行计数，从而实现持续监控和供应商数据质量改进。 |
+|货币隔离回退|当供应商不支持客户货币时，平台会通过下游转换回退到供应商默认货币，或者如果未配置默认值，则完全跳过供应商。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte price normalization controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证 HotelByte 价格标准化控制：
 
-1. **Structured Price Trace Metadata** — Every normalized rate record carries a trace object that preserves the original rate amounts, original cancellation policy, applied buffer hours, and conversion metadata before any transformation. Reviewers with API access can inspect these traces in search and availability responses.
+1. **结构化价格跟踪元数据** — 每个标准化费率记录都带有一个跟踪对象，该对象在任何转换之前保留原始费率金额、原始取消政策、应用的缓冲时间和转换元数据。具有 API 访问权限的审阅者可以检查搜索和可用性响应中的这些跟踪。
 
-2. **Quality Incorrect Rate Metrics** — The `go_quality_incorrect_rate_total` counter is tagged by supplier, customer, tenant, and anomaly reason (duplicate identifier, rate price error, total rate price error). These metrics are exportable and can be used to independently verify supplier data quality trends.
+2. **质量不正确费率指标** — `go_quality_incorrect_rate_total` 计数器按供应商、客户、租户和异常原因（重复标识符、费率价格错误、总费率价格错误）进行标记。这些指标是可导出的，可用于独立验证供应商数据质量趋势。
 
-3. **HBLog Structured Logging** — Every booking request emits a structured log record containing credential mode, environment, test order classification, refundable mode, and any safety blocks triggered. These logs support audit export and compliance review.
+3. **HBLog 结构化日志记录** — 每个预订请求都会发出结构化日志记录，其中包含凭证模式、环境、测试订单分类、可退款模式以及触发的任何安全块。这些日志支持审计导出和合规性审查。
 
-4. **Source Code Verification** — The normalization pipeline and booking safety controls are implemented in the supplier proxy layer, which is subject to the same code review, static analysis, and integration test coverage as the rest of the platform.
+4. **源代码验证** - 规范化管道和预订安全控制在供应商代理层中实施，该代理层与平台的其他部分一样接受相同的代码审查、静态分析和集成测试覆盖范围。
 
-5. **Integration Tests** — The proxy layer includes comprehensive tests covering currency validation, rate derivation, exchange rate conversion with buffer application, cancellation policy buffer math, credential mode matching, and test order marking. Reviewers can execute these tests to reproduce control behavior locally.
+5. **集成测试** — 代理层包括全面的测试，涵盖货币验证、汇率推导、缓冲应用的汇率转换、取消策略缓冲数学、凭证模式匹配和测试订单标记。审阅者可以执行这些测试以在本地重现控制行为。
 
-6. **Cancellation Policy Text Generation** — The platform generates human-readable cancellation policy text from the buffered policy data, including the buffer duration applied. This text can be cross-checked against raw supplier terms to confirm that buffers and timezone adjustments are active.
+6. **取消政策文本生成** — 平台根据缓冲的政策数据生成人类可读的取消政策文本，包括所应用的缓冲持续时间。可以将此文本与原始供应商条款进行交叉检查，以确认缓冲区和时区调整处于活动状态。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **ISO 4217 Currency Codes** — International Standard for Currency Representation | "Each currency is represented by a three-letter alphabetic code and a three-digit numeric code." | All monetary fields in the price normalization pipeline require an explicit ISO 4217 currency code. Records with missing currencies are rejected at the validation stage. |
-| **PCI DSS v4.0 Requirement 3.4.2** — Display of Cardholder Data | "Mask PAN when displayed, and ensure that only authorized individuals with a legitimate business need can see more than the masked value." | While not directly processing payment card data, HotelByte applies the same masking and isolation principles to live credential usage in non-production environments, restricting test bookings to fully refundable products and auto-marking test orders. |
-| **NIST SP 800-53 Rev. 5 SI-10 — Information Input Validation** | "The information system checks the validity of information inputs." | Currency completeness validation, duplicate RatePkgId detection, and zero-amount rejection enforce strict input validation on every supplier price record before downstream processing. |
-| **ISO 8601 Date and Time Representation** — Timezone-Aware Timestamps | "Representations of date and time shall include timezone information to avoid ambiguity." | Cancellation deadlines are converted to the tenant's business timezone before buffer application, ensuring that displayed deadlines are unambiguous and locally actionable. |
-| **OWASP Error Handling Cheat Sheet** — Safe Error Handling | "Do not leak sensitive information in error messages. Do not reveal details of the underlying architecture." | Supplier panics are captured and converted to normalized dependency errors. Internal stack traces and supplier-specific failures are logged internally but never exposed in customer-facing responses. |
-| **Financial Data Quality Standards (EDM Council)** — Data Integrity Principles | "Data must be complete, valid, consistent, and traceable across its lifecycle." | The four-stage normalization pipeline (validation, derivation, conversion, buffer application) enforces completeness, consistency, and traceability through preserved original values, decimal arithmetic, and structured quality metrics. |
+| **ISO 4217 货币代码** — 货币表示的国际标准 | “每种货币都由三个字母的字母代码和一个三位数字的数字代码表示。” |价格标准化管道中的所有货币字段都需要明确的 ISO 4217 货币代码。缺少货币的记录将在验证阶段被拒绝。 |
+| **PCI DSS v4.0 要求 3.4.2** — 持卡人数据显示 | “在显示时屏蔽 PAN，并确保只有具有合法业务需求的授权个人才能看到超出屏蔽值的内容。” |虽然不直接处理支付卡数据，但 HotelByte 对非生产环境中的实时凭证使用采用相同的屏蔽和隔离原则，将测试预订限制为可全额退款的产品和自动标记测试订单。 |
+| **NIST SP 800-53 Rev. 5 SI-10 — 信息输入验证** | “信息系统检查信息输入的有效性。” |货币完整性验证、重复的 RatePkgId 检测和零金额拒绝在下游处理之前对每个供应商价格记录强制执行严格的输入验证。 |
+| **ISO 8601 日期和时间表示** — 时区感知时间戳 | “日期和时间的表示应包括时区信息以避免歧义。” |在缓冲应用之前，取消截止日期将转换为租户的业务时区，确保显示的截止日期明确且可在本地操作。 |
+| **OWASP 错误处理备忘单** — 安全错误处理 | “不要在错误消息中泄露敏感信息。不要泄露底层架构的细节。” |供应商恐慌被捕获并转换为标准化的依赖性错误。内部堆栈跟踪和供应商特定的故障会在内部记录，但不会在面向客户的响应中暴露。 |
+| **财务数据质量标准（EDM 委员会）** — 数据完整性原则 | “数据在其整个生命周期中必须完整、有效、一致且可追溯。” |四阶段标准化管道（验证、推导、转换、缓冲区应用）通过保留原始值、十进制算术和结构化质量指标来增强完整性、一致性和可追溯性。 |
 
 ---

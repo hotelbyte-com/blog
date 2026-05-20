@@ -8,7 +8,7 @@ tags: [BI, Observability, Time Series]
 author: "HotelByte Team"
 description: "A guide to HotelByte's time-series BI analytics for operations."
 lang: en
-permalink: /whitepapers/wp18-time-series-bi/
+permalink: /en/whitepapers/wp18-time-series-bi/
 source_asset: hotel-be/docs/en/whitepapers/18-time-series-bi-analytics.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp18-time-series-bi/original/

@@ -8,7 +8,7 @@ tags: [Booking, Supplier Session, Hotel API]
 author: "HotelByte Team"
 description: "A guide to HotelByte's stateful supplier booking model."
 lang: en
-permalink: /whitepapers/wp08-supplier-session-booking/
+permalink: /en/whitepapers/wp08-supplier-session-booking/
 source_asset: hotel-be/docs/en/whitepapers/08-supplier-session-and-stateful-booking.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp08-supplier-session-booking/original/

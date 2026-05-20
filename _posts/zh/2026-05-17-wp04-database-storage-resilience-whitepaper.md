@@ -1,199 +1,188 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：数据库与存储韧性层白皮书"
+title: "数据库与存储韧性层白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp04-database-storage-resilience/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp04-database-storage-resilience/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp04-database-storage-resilience/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：数据库与存储韧性层白皮书
+HotelByte 每天通过全球供应商网络处理数百万笔酒店搜索、供应情况和预订交易。平台的弹性取决于它在不同的负载条件、网络分区和基础设施故障下保存、检索和分发数据的可靠性。本白皮书介绍了数据库与存储韧性层，这是 HotelByte `common/` 基础设施层中的一个生产强化子系统，可通过透明容错、智能路由和非阻塞操作增强 MySQL、Redis 和对象存储交互。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+韧性层引入了三个独立但架构一致的增强模块：
 
-# Database & Storage Resilience Layer Whitepaper
+- **MySQL Resilience Client** — 连接池重复数据删除、针对读取繁重工作负载的自动读取副本路由、瞬时错误重试以及标准化未找到错误处理。
+- **Redis Resilience Client** — 基于挂钩的归零 Redis 客户端透明增强、开发环境的自动内存回退以及每主机重试和延迟监控。
+- **对象存储弹性客户端** — 跨 MinIO 节点的一致哈希分片、异步后台上传以防止关键路径上的 I/O 阻塞，以及针对高吞吐量对象操作的连接池优化。
 
-## Executive Summary
+这些模块有一个共同的设计理念：弹性必须对应用程序代码透明。开发人员编写标准SQL、Redis命令和存储操作；韧性层处理路由、重试、回退和可观测性，而不需要调用方进行更改。本白皮书解释了验证该层在生产中有效性的架构原理、实施的控制和可审核机制。
 
-HotelByte processes millions of hotel search, availability, and booking transactions daily across a global supplier network. The platform's resilience depends on how reliably it persists, retrieves, and distributes data under varying load conditions, network partitions, and infrastructure failures. This whitepaper documents the Database & Storage Resilience Layer—a production-hardened subsystem in HotelByte's `common/` infrastructure layer that enhances MySQL, Redis, and object storage interactions with transparent fault tolerance, intelligent routing, and non-blocking operations.
+## 范围
 
-The resilience layer introduces three independent but architecturally aligned enhancement modules:
+本文档涵盖了 HotelByte 共享基础设施层中实施的生产数据库和存储弹性控制。它涉及：
 
-- **MySQL Resilience Client** — connection pool deduplication, automatic read-replica routing for read-heavy workloads, transient error retry, and standardized not-found error handling.
-- **Redis Resilience Client** — hook-based transparent enhancement of the go-zero Redis client, automatic in-memory fallback for development environments, and per-host retry and latency monitoring.
-- **Object Storage Resilience Client** — consistent-hash sharding across MinIO nodes, asynchronous background uploads to prevent I/O blocking on critical paths, and connection pool optimization for high-throughput object operations.
+- 关系数据库连接和查询路由（MySQL）
+- 缓存和会话存储弹性（Redis）
+- 对象存储持久性和吞吐量（兼容 MinIO 的对象存储）
+- 操作监控、重试策略和故障恢复模式
+- 证明控制有效性的验证和审计机制
 
-These modules share a common design philosophy: resilience must be transparent to application code. Developers write standard SQL, Redis commands, and storage operations; the resilience layer handles routing, retry, fallback, and observability without requiring caller-side changes. This whitepaper explains the architectural rationale, implemented controls, and auditability mechanisms that validate the layer's effectiveness in production.
+该文档不涵盖应用程序级业务逻辑、架构设计、基础设施团队管理的备份策略或网络级 DDoS 保护，这些内容将在单独的白皮书中讨论。
 
-## Scope
+## 目标
 
-This document covers the production database and storage resilience controls implemented in HotelByte's shared infrastructure layer. It addresses:
+数据库与存储韧性层旨在满足四个运营目标：
 
-- Relational database connectivity and query routing (MySQL)
-- Cache and session store resilience (Redis)
-- Object storage durability and throughput (MinIO-compatible object storage)
-- Operational monitoring, retry policies, and failure recovery patterns
-- Verification and audit mechanisms that demonstrate control effectiveness
+1. **消除单点故障** - 每个数据路径都支持优雅降级。当主缓存在非生产环境中无法访问时，Redis 会回退到内存代理。 MySQL 读取流量自动转移到副本。对象存储通过一致的散列将写入分布在多个节点上。
 
-The document does not cover application-level business logic, schema design, backup strategies managed by infrastructure teams, or network-level DDoS protections, which are addressed in separate whitepapers.
+2. **保护负载下的吞吐量** — 连接池消除了冗余的 TCP 握手和身份验证开销。异步上传从同步请求路径中删除存储 I/O。只读副本路由减轻了主实例的 SELECT 和 SHOW 查询负担。
 
-## Objectives
+3. **维护调用者透明度** - 所有弹性行为（重试、回退、路由、监控）都通过包装器和钩子机制注入。应用程序代码无需修改即可从弹性改进中受益。
 
-The Database & Storage Resilience Layer was designed to meet four operational objectives:
+4. **提供可观察的保证** - 每层都会发出指标：成功率、错误率、延迟分布、重试计数和未找到的统计数据。这些指标可以主动检测性能退化并进行事后取证分析。
 
-1. **Eliminate Single Points of Failure** — Every data path supports graceful degradation. Redis falls back to an in-memory surrogate when the primary cache is unreachable in non-production environments. MySQL read traffic automatically shifts to replicas. Object storage distributes writes across multiple nodes via consistent hashing.
+## 设计原则
 
-2. **Protect Throughput Under Load** — Connection pooling eliminates redundant TCP handshakes and authentication overhead. Asynchronous uploads remove storage I/O from synchronous request paths. Read-replica routing offloads SELECT and SHOW queries from primary instances.
+韧性层受五个设计原则的约束，这些原则影响着每个实施决策：
 
-3. **Maintain Caller Transparency** — All resilience behaviors (retry, fallback, routing, monitoring) are injected through wrapper and hook mechanisms. Application code requires no modification to benefit from resilience improvements.
+**透明的弹性**
+弹性不得渗透到业务逻辑中。 `autoReadReplicaWrapper` 自动检测 SELECT 和 SHOW 查询（不包括 `FOR UPDATE`）并在调用者不知情的情况下注入只读副本上下文。 `RedisRetryHook` 在客户端级别拦截 Redis 命令，透明地应用重试策略。调用者编写标准代码；基础设施提供安全网。
 
-4. **Provide Observable Guarantees** — Every layer emits metrics: success rates, error rates, latency distributions, retry counts, and not-found statistics. These metrics enable proactive detection of degradation and post-incident forensic analysis.
+**读/写分离**
+关系数据库是酒店分销平台中最常见的瓶颈，其中搜索查询数量远远超过预订数量。 MySQL 层强制执行只读操作的自动读副本路由，为事务写入保留主实例容量。 DSN 标准化可确保连接池由逻辑目标（驱动程序、主数据库、副本数据库、策略）作为键控，防止池碎片，同时保持清晰的路由语义。
 
-## Design Principles
+**自动防故障降级**
+当依赖项暂时不可用时，系统会安全降级，而不是严重失败。当开发环境中无法访问真实的 Redis 服务器时，`RedisProxy` 会自动回退到 miniredis（内存中的 Redis 实现），从而实现持续的工程速度。在生产中，重试层将暂时性网络错误与业务错误隔离开来，防止级联故障。
 
-The resilience layer is governed by five design principles that shape every implementation decision:
+**幂等重试**
+仅当操作是幂等的或在副作用提交之前发生故障时，重试才是安全的。 MySQL 事务重试逻辑仅在修改任何数据之前重试事务启动期间发生的网络错误。 `SqlConnRetryWrapper` 对各个查询应用相同的规则，区分瞬时连接问题和约束违规或业务逻辑错误。
 
-**Transparent Resilience**
-Resilience must not leak into business logic. The `autoReadReplicaWrapper` automatically detects SELECT and SHOW queries (excluding `FOR UPDATE`) and injects read-replica context without the caller's awareness. The `RedisRetryHook` intercepts Redis commands at the client level, applying retry policies transparently. Callers write standard code; the infrastructure provides the safety net.
+**默认可观测性**
+每个弹性机制都会产生遥测数据。 `MySQLMonitor` 记录成功率、错误率、延迟百分位数和 `NotFound` 统计数据。 `RedisMonitorHook` 捕获每个主机的延迟和错误计数。这些指标为 HotelByte 的运营仪表板和警报管道提供数据，确保弹性行为本身可见且可验证。
 
-**Read/Write Separation**
-Relational databases are the most common bottleneck in hotel distribution platforms, where search queries vastly outnumber bookings. The MySQL layer enforces automatic read-replica routing for read-only operations, preserving primary instance capacity for transactional writes. DSN standardization ensures that connection pools are keyed by the logical target (driver, primary, replicas, policy), preventing pool fragmentation while maintaining clear routing semantics.
+## 分层架构
 
-**Fail-Safe Degradation**
-When a dependency is temporarily unavailable, the system degrades safely rather than failing hard. The `RedisProxy` automatically falls back to miniredis (an in-memory Redis implementation) when the real Redis server is unreachable in development environments, allowing continuous engineering velocity. In production, the retry layer isolates transient network errors from business errors, preventing cascading failures.
+### MySQL 韧性层
 
-**Idempotent Retry**
-Retry is safe only when operations are idempotent or when failures occur before side effects commit. The MySQL transaction retry logic retries only network errors that occur during transaction startup—before any data is modified. The `SqlConnRetryWrapper` applies the same discipline to individual queries, distinguishing transient connectivity issues from constraint violations or business logic errors.
+MySQL 模块位于应用程序业务逻辑和物理数据库层之间。它分为四个功能区域：
 
-**Observability by Default**
-Every resilience mechanism produces telemetry. `MySQLMonitor` records success rate, error rate, latency percentiles, and `NotFound` statistics. `RedisMonitorHook` captures per-host latency and error counts. These metrics feed HotelByte's operational dashboards and alerting pipelines, ensuring that resilience behaviors themselves are visible and verifiable.
+**连接池管理**
+全局连接池重复数据删除可防止到同一物理目标的冗余 TCP 连接。池由规范化的 DSN 签名加密，该签名捕获驱动程序、主要主机、副本主机和路由策略。受双重检查锁定保护的映射可确保线程安全的初始化，而不会在热路径上发生争用。这种设计减少了内存占用和连接开销，特别是在多个服务实例针对同一数据库集群的微服务部署中。
 
-## Layered Architecture
+**自动读取副本路由**
+`autoReadReplicaWrapper` 在执行之前检查 SQL 语句。标识为 `SELECT` 或 `SHOW`（显式排除 `FOR UPDATE` 子句）的查询将自动使用 `sqlx.WithReadReplica(ctx)` 包装，将它们定向到已配置的副本实例。这是完全透明的——调用者执行标准查询，包装器处理上下文注入。结果是减少了主实例负载并提高了搜索高峰期间的读取吞吐量。
 
-### MySQL Resilience Layer
+**暂时错误重试**
+`SqlConnRetryWrapper` 为暂时性网络错误（连接超时、DNS 解析失败和临时不可用）提供自动重试功能，但不为业务错误（例如约束违规或语义 SQL 错误）提供自动重试。专用的事务重试机制在事务启动期间应用相同的策略，确保失败的 `BEGIN` 语句不会消耗应用程序级重试预算。
 
-The MySQL module sits between application business logic and the physical database tier. It is organized into four functional areas:
+**错误标准化**
+数据库级“未找到”错误会自动映射到 `bizerr.NotFoundErr`（一种平台范围的错误类型）。此标准化可确保一致的 HTTP 响应语义（404 Not Found）并简化所有 HotelByte 服务的客户端错误处理。
 
-**Connection Pool Management**
-Global connection pool deduplication prevents redundant TCP connections to the same physical target. Pools are keyed by a normalized DSN signature that captures driver, primary host, replica hosts, and routing policy. A map protected by double-checked locking ensures thread-safe initialization without contention on the hot path. This design reduces memory footprint and connection overhead, particularly in microservice deployments where multiple service instances target the same database cluster.
+**生产监控**
+`MySQLMonitor` 连续记录四个指标类别：成功率、错误率（瞬时与持久分类）、延迟分布和 `NotFound` 统计数据。这些指标支持容量规划、异常检测和基于证据的查询模式优化。
 
-**Automatic Read-Replica Routing**
-The `autoReadReplicaWrapper` inspects SQL statements before execution. Queries identified as `SELECT` or `SHOW` (with explicit exclusion of `FOR UPDATE` clauses) are automatically wrapped with `sqlx.WithReadReplica(ctx)`, directing them to configured replica instances. This is fully transparent—callers execute standard queries, and the wrapper handles context injection. The result is reduced primary instance load and improved read throughput during peak search periods.
+### Redis 韧性层
 
-**Transient Error Retry**
-The `SqlConnRetryWrapper` provides automatic retry for transient network errors—connection timeouts, DNS resolution failures, and temporary unavailability—not for business errors such as constraint violations or semantic SQL errors. A dedicated transaction retry mechanism applies the same policy during transaction startup, ensuring that failed `BEGIN` statements do not consume application-level retry budgets.
+Redis 模块通过基于钩子的拦截模型增强了归零 Redis 客户端：
 
-**Error Standardization**
-Database-level "not found" errors are automatically mapped to `bizerr.NotFoundErr`, a platform-wide error type. This standardization ensures consistent HTTP response semantics (404 Not Found) and simplifies client-side error handling across all HotelByte services.
+**钩子架构**
+钩子是横切拦截器，可以在 Redis 命令执行之前和之后注入逻辑，而无需修改调用者代码。 HotelByte 实现了两个生产钩子：
 
-**Production Monitoring**
-`MySQLMonitor` continuously records four metric categories: success rate, error rate (with transient vs. persistent classification), latency distributions, and `NotFound` statistics. These metrics enable capacity planning, anomaly detection, and evidence-based optimization of query patterns.
+- `RedisRetryHook` — 将平台的标准重试包应用于 Redis 命令，处理瞬时连接错误和超时情况。
+- `RedisMonitorHook` — 记录每个主机的延迟和错误指标，从而实现对 Redis 集群运行状况的细粒度可见性。
 
-### Redis Resilience Layer
+**自动回退**
+当开发环境中真正的 Redis 服务器不可用时，`RedisProxy` 会自动回退到 miniredis（一种内存中的 Redis 实现）。这确保了本地开发和集成测试可以继续进行，而无需实时 Redis 实例，同时生产部署可以连接到真实的基础设施。
 
-The Redis module enhances the go-zero Redis client through a hook-based interception model:
+**全局钩子注册表**
+全局 `_hooks` 注册表维护由 Redis 主机索引的挂钩，从而可以对重试统计数据进行运行时检查和每个实例的行为调整。该注册表支持运行调试和动态配置，无需重新启动服务。
 
-**Hook Architecture**
-Hooks are cross-cutting interceptors that inject logic before and after Redis command execution without modifying caller code. HotelByte implements two production hooks:
+### 对象存储韧性层
 
-- `RedisRetryHook` — applies the platform's standard retry package to Redis commands, handling transient connection errors and timeout conditions.
-- `RedisMonitorHook` — records per-host latency and error metrics, enabling fine-grained visibility into Redis cluster health.
+存储模块通过 MinIO 兼容的基础设施提供弹性对象存储操作：
 
-**Automatic Fallback**
-The `RedisProxy` provides automatic fallback to miniredis—an in-memory Redis implementation—when the real Redis server is unavailable in development environments. This ensures that local development and integration testing continue without requiring a live Redis instance, while production deployments connect to real infrastructure.
+**一致性哈希分片**
+对象存储节点是通过对象名称的一致性哈希 (`fnv.New32a`) 选择的。这保证了相同的对象名称始终路由到相同的存储节点，从而确保写入后读取的一致性并消除陈旧的读取竞争。分片可以均匀分配负载，同时保留数据局部性。
 
-**Global Hook Registry**
-A global `_hooks` registry maintains hooks indexed by Redis host, enabling runtime inspection of retry statistics and per-instance behavior tuning. This registry supports operational debugging and dynamic configuration without service restarts.
+**异步上传**
+`UploadFileAsync` 使用扇出工作池在后台执行上传。调用请求路径保持非阻塞：函数在上传入队后立即返回，而后台 goroutine 完成存储操作。这可以防止存储延迟影响预订确认等延迟敏感操作的 API 响应时间。
 
-### Object Storage Resilience Layer
+**连接池优化**
+自定义 `http.Transport` 配置可调整 `MaxIdleConns` 和 `IdleConnTimeout` 以匹配 HotelByte 的对象存储流量模式。这减少了批量操作期间的连接建立开销，并防止持续负载下的端口耗尽。
 
-The storage module provides resilient object storage operations over MinIO-compatible infrastructure:
+**基于日期的组织**
+对象存储在可预测的目录层次结构中：`basePath/YYYY/MM/DD/sessionID.json`。这种基于日期的分区简化了生命周期管理、归档策略和取证检索。
 
-**Consistent-Hash Sharding**
-Object storage nodes are selected via consistent hashing (`fnv.New32a`) on the object name. This guarantees that the same object name always routes to the same storage node, ensuring read-after-write consistency and eliminating stale-read races. Sharding distributes load evenly while preserving data locality.
+## 数据生命周期/操作流程
 
-**Asynchronous Upload**
-`UploadFileAsync` performs uploads in the background using a fan-out worker pool. The calling request path remains non-blocking: the function returns immediately after enqueueing the upload, while a background goroutine completes the storage operation. This prevents storage latency from affecting API response times for latency-sensitive operations like booking confirmations.
+典型的 HotelByte 请求按如下方式遍历韧性层：
 
-**Connection Pool Optimization**
-A custom `http.Transport` configuration tunes `MaxIdleConns` and `IdleConnTimeout` to match HotelByte's object storage traffic patterns. This reduces connection establishment overhead during bulk operations and prevents port exhaustion under sustained load.
+1. **请求输入** — API 请求到达（例如，酒店搜索或预订）。该请求可以访问缓存的会话数据、持久关系数据或证据/审计文件的对象存储。
 
-**Date-Based Organization**
-Objects are stored in a predictable directory hierarchy: `basePath/YYYY/MM/DD/sessionID.json`. This date-based partitioning simplifies lifecycle management, archival policies, and forensic retrieval.
+2. **缓存查找**——Redis客户端执行缓存查询。 `RedisMonitorHook` 记录延迟。如果在开发环境中Redis服务器暂时无法访问，`RedisProxy`会透明地回退到miniredis。暂时性错误会使用平台的重试策略触发 `RedisRetryHook`。
 
-## Data Lifecycle / Operational Flow
+3. **数据库查询** — 对于缓存未命中或事务操作，MySQL 客户端评估 SQL 语句。 `autoReadReplicaWrapper` 将 SELECT/SHOW 查询路由到只读副本。 `SqlConnRetryWrapper` 重试暂时性网络错误。 `MySQLMonitor`记录成功率、错误率、延迟和未找到的统计数据。未找到的数据库错误已标准化为 `bizerr.NotFoundErr`。
 
-A typical HotelByte request traverses the resilience layer as follows:
+4. **交易执行** — 对于预订或突变操作，交易开始。如果 `BEGIN` 语句遇到暂时性网络错误，则会安全地重试事务启动（在修改任何数据之前）。一旦建立，事务将在主实例上继续进行。
 
-1. **Request Entry** — An API request arrives (e.g., hotel search or booking). The request may access cached session data, persistent relational data, or object storage for evidence/audit files.
+5. **对象存储（如果适用）** — 证据文件、会话导出或审计负载通过 `UploadFileAsync` 上传。对对象名称进行哈希处理，通过一致性哈希来选择存储节点。上传被排队到后台工作者； API 响应不会被阻止。自定义 HTTP 传输为存储操作维护优化的连接池。
 
-2. **Cache Lookup** — The Redis client executes the cache query. The `RedisMonitorHook` records latency. If the Redis server is temporarily unreachable in a development environment, `RedisProxy` transparently falls back to miniredis. Transient errors trigger `RedisRetryHook` with the platform's retry policy.
+6. **遥测导出** — 所有三层的指标都会发送到 HotelByte 的监控基础设施，提供数据路径运行状况的端到端可见性。
 
-3. **Database Query** — For cache misses or transactional operations, the MySQL client evaluates the SQL statement. `autoReadReplicaWrapper` routes SELECT/SHOW queries to read replicas. `SqlConnRetryWrapper` retries transient network errors. `MySQLMonitor` records success rate, error rate, latency, and not-found statistics. Not-found database errors are normalized to `bizerr.NotFoundErr`.
+## 实施的控制摘要
 
-4. **Transaction Execution** — For booking or mutation operations, a transaction begins. If the `BEGIN` statement encounters a transient network error, the transaction startup is retried safely (before any data is modified). Once established, the transaction proceeds on the primary instance.
-
-5. **Object Storage (when applicable)** — Evidence files, session exports, or audit payloads are uploaded via `UploadFileAsync`. The object name is hashed to select a storage node via consistent hashing. The upload is enqueued to a background worker; the API response is not blocked. The custom HTTP transport maintains an optimized connection pool for storage operations.
-
-6. **Telemetry Export** — Metrics from all three layers are emitted to HotelByte's monitoring infrastructure, providing end-to-end visibility into data path health.
-
-## Implemented Control Summary
-
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **MySQL Connection Pool Deduplication** | Reduces connection overhead and memory footprint, ensuring stable database performance under concurrent load from multiple services. |
-| **Automatic Read-Replica Routing** | Offloads read traffic to replica instances, preserving primary database capacity for transactional writes and reducing query latency during peak periods. |
-| **Transient Error Retry (MySQL)** | Automatically recovers from temporary network disruptions without surfacing transient failures to API consumers, improving perceived availability. |
-| **Transaction Startup Retry** | Ensures that booking and mutation operations are not aborted by momentary connectivity issues at transaction boundaries, reducing false-negative failures. |
-| **NotFound Error Standardization** | Provides consistent, predictable API responses when records do not exist, simplifying client error handling and integration logic. |
-| **MySQL Production Monitoring** | Enables proactive detection of database degradation through success-rate, error-rate, latency, and not-found metrics, supporting SLA compliance. |
-| **Redis Hook-Based Enhancement** | Injects retry and monitoring transparently into Redis operations, eliminating the need for caller-side defensive code and reducing integration complexity. |
-| **Redis Automatic Fallback** | Maintains development and testing velocity by providing in-memory cache behavior when Redis is unavailable in non-production environments. |
-| **Redis Per-Host Monitoring** | Delivers fine-grained visibility into individual Redis node health, enabling targeted remediation before cluster-wide failures occur. |
-| **Object Storage Consistent-Hash Sharding** | Guarantees read-after-write consistency for uploaded objects while distributing load evenly across storage nodes. |
-| **Asynchronous Object Upload** | Prevents storage I/O latency from affecting API response times, ensuring consistent performance for latency-critical operations like bookings. |
-| **Storage Connection Pool Optimization** | Reduces connection establishment overhead and prevents resource exhaustion during high-volume object operations. |
-| **Date-Based Object Directory Structure** | Simplifies audit retrieval, lifecycle policies, and forensic investigation by organizing objects in a predictable temporal hierarchy. |
+| **MySQL 连接池重复数据删除** |减少连接开销和内存占用，确保多个服务并发负载下数据库性能稳定。 |
+| **自动只读副本路由** |将读取流量卸载到副本实例，保留主数据库用于事务写入的容量，并减少高峰期间的查询延迟。 |
+| **暂时错误重试 (MySQL)** |自动从临时网络中断中恢复，而不会向 API 使用者呈现暂时性故障，从而提高感知可用性。 |
+| **事务启动重试** |确保预订和变异操作不会因事务边界处的瞬时连接问题而中止，从而减少误报失败。 |
+| **NotFound 错误标准化** |当记录不存在时提供一致、可预测的 API 响应，从而简化客户端错误处理和集成逻辑。 |
+| **MySQL 生产监控** |通过成功率、错误率、延迟和未找到的指标来主动检测数据库降级，支持 SLA 合规性。 |
+| **基于 Redis Hook 的增强** |将重试和监控透明地注入到 Redis 操作中，无需调用方防御代码并降低集成复杂性。 |
+| **Redis 自动回退** |当 Redis 在非生产环境中不可用时，通过提供内存缓存行为来保持开发和测试速度。 |
+| **Redis 每主机监控** |提供对各个 Redis 节点运行状况的细粒度可见性，从而在发生集群范围的故障之前实现有针对性的修复。 |
+| **对象存储一致性哈希分片** |保证上传对象的写后读一致性，同时在存储节点之间均匀分配负载。 |
+| **异步对象上传** |防止存储 I/O 延迟影响 API 响应时间，确保预订等延迟关键操作的性能一致。 |
+| **存储连接池优化** |减少连接建立开销并防止大容量对象操作期间资源耗尽。 |
+| **基于日期的对象目录结构** |通过以可预测的时间层次结构组织对象，简化审计检索、生命周期策略和取证调查。 |
 
-## Auditability
+## 可审计性
 
-The Database & Storage Resilience Layer provides multiple independent verification mechanisms that demonstrate control effectiveness:
+数据库与存储韧性层提供多种独立的验证机制来证明控制有效性：
 
-**Metrics-Based Verification**
-All three modules emit continuous telemetry to HotelByte's monitoring infrastructure. Operational dashboards display MySQL success/error rates, Redis per-host latency distributions, and storage upload queue depths. Anomaly detection rules trigger alerts when metrics deviate from established baselines. These metrics serve as objective evidence that resilience mechanisms are active and effective.
+**基于指标的验证**
+所有三个模块都会向 HotelByte 的监控基础设施发送连续遥测数据。操作仪表板显示 MySQL 成功/错误率、Redis 每主机延迟分布以及存储上传队列深度。当指标偏离既定基线时，异常检测规则会触发警报。这些指标可以作为弹性机制积极有效的客观证据。
 
-**Log Correlation**
-Every retry event, fallback activation, and read-replica routing decision is logged with contextual identifiers (trace IDs, session IDs). During incident investigation, logs can be correlated across the MySQL, Redis, and storage layers to reconstruct the complete data path for any request.
+**对数相关性**
+每个重试事件、回退激活和读取副本路由决策都会使用上下文标识符（跟踪 ID、会话 ID）进行记录。在事件调查期间，可以跨 MySQL、Redis 和存储层关联日志，以重建任何请求的完整数据路径。
 
-**Hook Registry Inspection**
-The global Redis hook registry (`_hooks`) provides runtime introspection of active hooks, retry counts, and host-specific statistics. This supports both operational debugging and periodic compliance verification that retry policies are correctly applied.
+**挂钩登记检查**
+全局 Redis 挂钩注册表 (`_hooks`) 提供活动挂钩、重试计数和特定于主机的统计信息的运行时自省。这支持操作调试和定期合规性验证，以确保正确应用重试策略。
 
-**DSN Standardization Audit**
-MySQL connection pool keys are derived from normalized DSN signatures. This standardization enables systematic auditing of pool configuration: any connection targeting the same logical database cluster will share a pool, preventing both over-provisioning and cross-contamination.
+**DSN 标准化审核**
+MySQL 连接池密钥源自规范化的 DSN 签名。这种标准化支持对池配置进行系统审核：针对同一逻辑数据库集群的任何连接都将共享一个池，从而防止过度配置和交叉污染。
 
-**Consistent-Hash Verification**
-Object storage routing uses deterministic hashing. Verification scripts can pre-compute expected node assignments for any object name, confirming that routing logic is consistent across deployments and that read-after-write guarantees hold.
+**一致性哈希验证**
+对象存储路由使用确定性哈希。验证脚本可以预先计算任何对象名称的预期节点分配，确认路由逻辑在部署之间是一致的，并且写入后读取保证成立。
 
-**Automated Testing**
-The resilience layer includes tests that simulate transient failures (network errors, timeouts) and verify that retry logic, fallback behavior, and error standardization respond correctly. These tests run in CI pipelines, providing regression protection for resilience guarantees.
+**自动化测试**
+韧性层包括模拟瞬态故障（网络错误、超时）并验证重试逻辑、回退行为和错误标准化响应是否正确的测试。这些测试在 CI 管道中运行，为弹性保证提供回归保护。
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **NIST SP 800-53 Rev. 5 — SC-6 (Resource Availability)** | "The information system protects the availability of resources by allocating [resources] by [organization-defined priority]." | MySQL connection pool deduplication and read-replica routing allocate database resources according to query type priority (read vs. write), protecting primary instance availability for transactional operations. |
-| **NIST SP 800-53 Rev. 5 — SC-7 (Boundary Protection)** | "The information system monitors and controls communications at the external boundary... and at key internal boundaries." | Redis `RedisMonitorHook` and `MySQLMonitor` establish per-host and per-query monitoring at internal data boundaries, enabling detection and control of anomalous communication patterns. |
-| **OWASP Cheat Sheet Series — Database Security** | "Use read-only accounts for SELECT operations where possible to limit the impact of injection attacks and reduce load on primary databases." | `autoReadReplicaWrapper` automatically routes SELECT and SHOW queries to read-replica connections, enforcing read-only routing for read operations and reducing primary database load. |
-| **OWASP Top 10:2021 — A09 (Security Logging and Monitoring Failures)** | "Insufficient logging and monitoring... allow attackers to further attack systems, maintain persistence, pivot to more systems, and tamper with or extract data." | `MySQLMonitor`, `RedisMonitorHook`, and storage telemetry provide comprehensive logging and monitoring across all data access paths, satisfying the requirement for detectable data access anomalies. |
-| **RFC 7231 (HTTP/1.1: Semantics and Content) — Section 6.5.4 (404 Not Found)** | "The 404 (Not Found) status code indicates that the origin server did not find a current representation for the target resource." | MySQL `NotFound` auto-conversion maps database not-found conditions to platform-standard `bizerr.NotFoundErr`, ensuring consistent 404 HTTP responses across all HotelByte APIs. |
-| **RFC 8305 (Happy Eyeballs Version 2)** | "Reducing the user-visible delay... by attempting connections to multiple addresses in parallel." | While HotelByte operates at the application layer, the principle of reducing user-visible delay through intelligent connection management is applied via MySQL pool deduplication, Redis retry hooks, and storage connection pool optimization. |
+| **NIST SP 800-53 Rev. 5 — SC-6（资源可用性）** | “信息系统通过按[组织定义的优先级]分配[资源]来保护资源的可用性。” | MySQL 连接池重复数据删除和读副本路由根据查询类型优先级（读与写）分配数据库资源，保护事务操作的主实例可用性。 |
+| **NIST SP 800-53 Rev. 5 — SC-7（边界保护）** | “信息系统监视和控制外部边界......以及关键内部边界的通信。” | Redis `RedisMonitorHook` 和 `MySQLMonitor` 在内部数据边界建立每主机和每查询监控，从而能够检测和控制异常通信模式。 |
+| **OWASP 备忘单系列 — 数据库安全** | “尽可能使用只读帐户进行 SELECT 操作，以限制注入攻击的影响并减少主数据库的负载。” | `autoReadReplicaWrapper` 自动将 SELECT 和 SHOW 查询路由到只读副本连接，对读取操作强制执行只读路由并减少主数据库负载。 |
+| **OWASP Top 10:2021 — A09（安全日志记录和监控故障）** | “日志记录和监控不足......允许攻击者进一步攻击系统，保持持久性，转向更多系统，并篡改或提取数据。” | `MySQLMonitor`、`RedisMonitorHook` 和存储遥测提供跨所有数据访问路径的全面日志记录和监控，满足可检测数据访问异常的要求。 |
+| **RFC 7231（HTTP/1.1：语义和内容）— 第 6.5.4 节（404 未找到）** | “404（未找到）状态代码表示源服务器未找到目标资源的当前表示。” | MySQL `NotFound` 自动转换将数据库未找到条件映射到平台标准 `bizerr.NotFoundErr`，确保所有 HotelByte API 的 404 HTTP 响应一致。 |
+| **RFC 8305（快乐眼球版本 2）** | “通过尝试并行连接到多个地址来减少用户可见的延迟。” |虽然 HotelByte 在应用层运行，但通过 MySQL 池重复数据删除、Redis 重试挂钩和存储连接池优化，应用了通过智能连接管理减少用户可见延迟的原则。 |

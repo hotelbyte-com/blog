@@ -4,7 +4,7 @@
   {% assign whitepaper_guides = site.posts | where: "lang", current_lang | where: "whitepaper_kind", "guide" | sort: "permalink" %}
   <div class="series-navigation">
     <p class="rail-kicker">{% if current_lang == "en" %}Whitepaper Series{% else %}白皮书系列{% endif %}</p>
-    <h3>{% if current_lang == "en" %}Guide + Original{% else %}中文导读 + 英文原文{% endif %}</h3>
+    <h3>{% if current_lang == "en" %}Guide + Source{% else %}导读 + 原文{% endif %}</h3>
     <ul>
       {% for item in whitepaper_guides %}
         {% assign is_active = false %}
@@ -14,7 +14,7 @@
         <li{% if is_active %} class="active"{% endif %}>
           <a href="{{ item.url }}">{{ item.title | remove: "白皮书导读：" | remove: "Whitepaper Guide: " }}</a>
           <span class="desc">
-            {% if current_lang == "en" %}Reader guide and canonical text{% else %}读者视角导读和英文 canonical 原文{% endif %}
+            {% if current_lang == "en" %}Reader guide and source text{% else %}读者视角导读和白皮书原文{% endif %}
           </span>
         </li>
       {% endfor %}

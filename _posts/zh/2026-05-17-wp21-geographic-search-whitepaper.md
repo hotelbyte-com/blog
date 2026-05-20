@@ -1,209 +1,198 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：地理搜索智能白皮书"
+title: "地理搜索智能白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp21-geographic-search/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp21-geographic-search/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp21-geographic-search/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：地理搜索智能白皮书
+HotelByte 的地理搜索智能系统为整个平台的目的地发现提供支持，使旅行者和合作伙伴能够通过多种语言的自然语言查询来定位酒店、城市、地区和地标。该系统建立在具有多重召回架构的全文搜索基础上，能够以高精度和亚秒级响应时间处理精确名称、部分输入、印刷错误、后缀片段和汉字查询。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+搜索层是预订流程的关键依赖项：每个酒店搜索和可用性检查都从地理分辨率开始。该系统对来自多个供应商的数十万个地理实体进行索引，将它们规范化并删除重复数据到统一目录中，并公开针对自动完成和深度搜索而优化的查询界面。自适应内存管理和增量索引更新可确保一致的性能而不会中断服务。
 
-# Geographic Search Intelligence Whitepaper
+本白皮书描述了管理 HotelByte 地理搜索功能的架构原理、搜索机制和操作控制。
 
-## Executive Summary
+## 范围
 
-HotelByte's Geographic Search Intelligence system powers destination discovery across the platform, enabling travelers and partners to locate hotels, cities, regions, and landmarks through natural language queries in multiple languages. Built on a full-text search foundation with multi-recall architecture, the system handles exact names, partial inputs, typographical errors, suffix fragments, and Chinese character queries with high precision and sub-second response times.
+本文档涵盖了 HotelByte 地理搜索系统的以下组件和功能：
 
-The search layer is a critical dependency for the booking flow: every hotel search and availability check begins with geographic resolution. The system indexes hundreds of thousands of geographic entities from multiple suppliers, normalizes and deduplicates them into a unified catalog, and exposes a query interface optimized for autocomplete and deep search. Adaptive memory management and incremental index updates ensure consistent performance without service interruption.
+- **搜索运行时**：查询解析、多路径调用执行、结果排名和缓存
+- **索引层**：文档映射、字段分析器、N-gram 标记化和索引生命周期管理
+- **数据来源**：多供应商区域摄取、标准化和身份合并
+- **语言支持**：英语、中文和混合语言查询处理
+- **操作控制**：健康验证、性能监控和缓存治理
 
-This whitepaper describes the architectural principles, search mechanisms, and operational controls that govern HotelByte's geographic search capability.
+上游供应商 API、下游酒店可用性系统和基于地图的地理空间搜索不在范围内，这些内容由单独的服务处理。
 
-## Scope
+## 目标
 
-This document covers the following components and capabilities of the HotelByte geographic search system:
+地理搜索系统旨在满足四个主要目标：
 
-- **Search runtime**: query parsing, multi-path recall execution, result ranking, and caching
-- **Index layer**: document mapping, field analyzers, N-gram tokenization, and index lifecycle management
-- **Data sourcing**: multi-supplier region ingestion, normalization, and identity merging
-- **Language support**: English, Chinese, and mixed-language query handling
-- **Operational controls**: health verification, performance monitoring, and cache governance
+1. **具有有限精度损失的高召回率**：在各种用户输入模式（确切名称、部分前缀、后缀、拼写错误和音译）中捕获相关目的地，同时将结果质量保持在可配置的相关性阈值之上。
 
-Out of scope are upstream supplier APIs, the downstream hotel availability system, and map-based geospatial search, which are handled by separate services.
+2. **多语言流畅性**：为罗马字母和中日韩文字提供同等的搜索质量，包括字符级前缀匹配和基于分段的索引。
 
-## Objectives
+3. **操作弹性**：通过结果缓存和自适应资源管理在负载下维持目标延迟百分位数，并在内存压力超过配置的水位线时平稳降级。
 
-The geographic search system is designed to satisfy four primary objectives:
+4. **源融合**：从异构供应商数据集中生成单个、重复数据删除的目标目录，保留供应商身份链接以实现下游可追溯性。
 
-1. **High Recall with Bounded Precision Loss**: Capture relevant destinations across a wide spectrum of user input patterns—exact names, partial prefixes, suffixes, misspellings, and transliterations—while maintaining result quality above a configurable relevance threshold.
+## 设计原则
 
-2. **Multi-Language Fluency**: Provide equivalent search quality for Roman-alphabet and CJK scripts, including character-level prefix matching and segmentation-based indexing.
+地理搜索系统的架构遵循以下设计原则：
 
-3. **Operational Resilience**: Sustain target latency percentiles under load through result caching and adaptive resource management, with graceful degradation when memory pressure exceeds configured watermarks.
+**多重调用冗余**
 
-4. **Source Convergence**: Produce a single, deduplicated destination catalog from heterogeneous supplier datasets, preserving supplier identity links for downstream traceability.
+该系统采用多个独立的召回路径——精确匹配、前缀N-gram、字符N-gram、模糊匹配、后缀反转匹配和中文特定分段——按优先级级联执行。每个路径都针对特定类别的用户输入进行调整。如果早期路径产生足够的高质量结果，则跳过后面的路径以节省计算并减少噪声。
 
-## Design Principles
+**语言感知索引**
 
-The architecture of the geographic search system is guided by the following design principles:
+罗马字母和中文文本表现出根本不同的结构特性。英语受益于单词级标记化、前缀/后缀边缘 N 元语法和全单词匹配。中文需要字符级 N-gram 索引和基于字典的分段（Jieba）来支持前缀和中缀匹配。索引模式维护并行字段族 - `name` 用于英语和罗马化文本，`nameZh` 用于中文。
 
-**Multi-Recall Redundancy**
+**增量精度**
 
-The system employs multiple independent recall paths—exact match, prefix N-gram, character N-gram, fuzzy match, suffix reversal match, and Chinese-specific segmentation—that execute in a prioritized cascade. Each path is tuned for a specific class of user input. If an early path produces sufficient high-quality results, later paths are skipped to conserve compute and reduce noise.
+精确匹配和前缀匹配被视为高置信度信号，并在排名中积极提升。模糊匹配和后缀匹配是仅当较高置信度层产生不足结果时才会调用的较低置信度发现机制。排名评分器将文本匹配信号与流行度、区域类型和查询长度启发法相结合，产生综合相关性得分。
 
-**Language-Aware Indexing**
+**自适应资源治理**
 
-Roman-alphabet and Chinese text exhibit fundamentally different structural properties. English benefits from word-level tokenization, prefix/suffix edge N-grams, and whole-word matching. Chinese requires character-level N-gram indexing and dictionary-based segmentation (Jieba) to support prefix and infix matching. The index schema maintains parallel field families—`name` for English and romanized text, `nameZh` for Chinese.
+搜索结果缓存在双重约束下运行：有界条目计数和运行时可调整的字节级内存上限。自适应控制器定期监控进程堆的利用率。当内存超过可配置的高水位线时，缓存会减少其字节限制并逐出最近最少使用的条目。当内存恢复到低水位线以下时，将恢复原始限制。这可以保护搜索延迟免受流量高峰期间垃圾收集压力的影响。
 
-**Incremental Precision**
+**供应商身份保存**
 
-Exact and prefix matches are treated as high-confidence signals and promoted aggressively in ranking. Fuzzy and suffix matches are lower-confidence discovery mechanisms invoked only when higher-confidence tiers yield insufficient results. Ranking scorers combine text-match signals with popularity, region type, and query-length heuristics to produce a composite relevance score.
+目的地数据来自多个供应商，具有不同的命名约定和类型分类。合并层使用名称匹配、国家/地区分区和类型规范化来跨源映射等效实体。合并的记录保留供应商特定的标识符，使下游系统能够将请求路由到适当的供应商 API，同时向搜索客户端呈现单个规范目的地。
 
-**Adaptive Resource Governance**
+## 搜索架构
 
-The search result cache operates under dual constraints: a bounded entry count and a runtime-adjustable byte-level memory ceiling. An adaptive controller monitors process heap utilization at regular intervals. When memory exceeds a configurable high watermark, the cache reduces its byte limit and evicts least-recently-used entries. When memory returns below a low watermark, the original limit is restored. This protects search latency from garbage collection pressure during traffic spikes.
+地理搜索系统分为三层：索引层、查询生成层和结果排名层。
 
-**Supplier Identity Preservation**
+### 索引层
 
-Destination data originates from multiple suppliers with distinct naming conventions and type classifications. The merge layer maps equivalent entities across sources using name matching, country partitioning, and type normalization. Merged records retain supplier-specific identifiers, enabling downstream systems to route requests to the appropriate supplier API while presenting a single canonical destination to the search client.
+该索引建立在 Bleve 全文搜索库之上，并将地理文档存储为具有多个分析字段的结构化记录。每个文档代表一个目的地实体（国家、省、城市、社区、机场或多城市附近）并包含：
 
-## Search Architecture
+- 用于不区分大小写的精确匹配的关键字字段
+- 前缀N-gram字段支持长度为1到5 的子串前缀查询
+- 后缀 N-gram 字段填充反向文本，以实现高效的后缀匹配
+- 用于发现中缀子串的字符 N 元语法字段（3 到 15 元语法范围）
+- 用于全字边界匹配的标准标记字段
+- 对于中文文本：关键字字段、字符级前缀N-gram字段、字符级N-gram字段和Jieba分段字段
 
-The geographic search system is organized into three layers: the Index Layer, the Query Generation Layer, and the Result Ranking Layer.
+文档使用流行度分数和存储为文档值的区域类型元数据进行索引，以进行高效排序。该索引支持增量更新：以可配置的批量大小添加新目标，并删除过时的文档，而无需完全重建。
 
-### Index Layer
+### 查询生成层
 
-The index is built on the Bleve full-text search library and stores geographic documents as structured records with multiple analyzed fields. Each document represents a destination entity (country, province, city, neighborhood, airport, or multi-city vicinity) and contains:
+查询生成器检查输入字符串以确定语言组成、长度和分隔符使用情况，然后生成针对特定索引字段的布尔查询子图，并调整提升值：
 
-- A keyword field for case-insensitive exact matching
-- A prefix N-gram field supporting substring prefix queries from length 1 to 5
-- A suffix N-gram field populated with reversed text to enable efficient suffix matching
-- A character N-gram field for infix substring discovery (3- to 15-gram ranges)
-- A standard token field for whole-word boundary matching
-- For Chinese text: a keyword field, a character-level prefix N-gram field, a character-level N-gram field, and a Jieba-segmented field
+- **精确查询**：定位具有最高提升的关键字字段。变体生成处理额外的空格、分隔符和 CamelCase 复合词（例如，“NewYork”→“New York”）。
 
-Documents are indexed with popularity scores and region type metadata stored as doc values for efficient sorting. The index supports incremental updates: new destinations are added in configurable batch sizes, and obsolete documents are removed without requiring a full rebuild.
+- **前缀查询**：针对前缀 N 元语法字段。短查询（1-2 个字符）会获得更高的提升，并且标准标记字段上的全字匹配可确保“New”比“Newport”更匹配“New York”。
 
-### Query Generation Layer
+- **N-gram 查询**：以字符 N-gram 字段为目标进行中缀匹配，并具有分隔符标准化变体。
 
-The query generator inspects the input string to determine language composition, length, and separator usage, then produces Boolean query subgraphs targeting specific indexed fields with tuned boost values:
+- **模糊查询**：使用基于编辑距离的模糊匹配，并根据查询长度缩放动态模糊性：短期术语（≤6 个字符）最多 2 次编辑，较长术语 1 次编辑。
 
-- **Exact Query**: Targets the keyword field with the highest boost. Variant generation handles extra spaces, separator characters, and CamelCase compound words (e.g., "NewYork" → "New York").
+- **后缀查询**：反转查询字符串并与后缀 N 元语法字段进行匹配，从而能够通过终端片段进行发现（例如，“cago”匹配“Chicago”）。
 
-- **Prefix Query**: Targets the prefix N-gram field. Short queries (1-2 characters) receive elevated boosts, and a whole-word match on the standard token field ensures "New" matches "New York" more strongly than "Newport."
+- **中文查询**：针对中文字段系列组成四个子查询 - 关键字精确匹配、字符前缀 N-gram、字符 N-gram 和 Jieba 分段 - 具有分层提升和通配符回退。
 
-- **N-gram Query**: Targets the character N-gram field for infix matching, with separator-normalized variants.
+### 结果排名层
 
-- **Fuzzy Query**: Uses Levenshtein-distance-based fuzzy matching with dynamic fuzziness scaled by query length: up to 2 edits for short terms (≤6 characters), 1 edit for longer terms.
+调用后，结果将通过评估多个正交信号的复合管道进行重复数据删除和评分：
 
-- **Suffix Query**: Reverses the query string and matches against the suffix N-gram field, enabling discovery by terminal fragments (e.g., "cago" matching "Chicago").
+- **文本匹配信号**：精确匹配（100 分）、前缀匹配（150 分）、单词边界前缀匹配（90 分）和子字符串包含（50 分）。没有文本关系的目的地会受到处罚（-80 分）。
 
-- **Chinese Query**: Composes four subqueries against the Chinese field family—keyword exact match, character prefix N-gram, character N-gram, and Jieba segmentation—with tiered boosts and a wildcard fallback.
+- **查询长度启发式**：对于短查询（≤3 个字符），过长的目的地名称会受到惩罚，以避免在查询“re”时在“Rennes”之前显示“Reykjavik”。
 
-### Result Ranking Layer
+- **流行度信号**：可配置的流行度覆盖最多贡献 40 点，上限是为了防止流行度压倒性的文本相关性。由于文本信号较弱，短查询的受欢迎程度更高。
 
-After recall, results are deduplicated and scored by a composite pipeline evaluating multiple orthogonal signals:
+- **区域类型信号**：一个决胜局级别，相对于社区和机场，稍微有利于国家、省份和城市。
 
-- **Text Match Signals**: Exact match (100 points), prefix match (150 points), word-boundary prefix match (90 points), and substring containment (50 points). Destinations with no textual relationship receive a penalty (-80 points).
+- **长度相似性**：长度接近查询长度的名称会获得适度的奖励。
 
-- **Query Length Heuristics**: For short queries (≤3 characters), overly long destination names receive a penalty to avoid surfacing "Reykjavik" ahead of "Rennes" for the query "re."
+结果按综合分数降序排序，名称长度和实体 ID 作为辅助排序键。保留前 50 个结果用于缓存和分页。
 
-- **Popularity Signal**: Configurable popularity overrides contribute up to 40 points, capped to prevent popularity from overwhelming textual relevance. Short queries receive elevated popularity weight because textual signals are weaker.
+## 查询生命周期/索引流程
 
-- **Region Type Signal**: A tiebreaker tier that mildly favors countries, provinces, and cities over neighborhoods and airports.
+地理搜索查询经历以下生命周期：
 
-- **Length Similarity**: Names with lengths close to the query length receive a modest bonus.
+1. **缓存探测**：系统根据规范化的查询、页面和大小参数计算确定性缓存键。如果存在有效的缓存条目，则立即返回该条目，并且不会发生索引访问。
 
-Results are sorted by composite score descending, with name length and entity ID as secondary sort keys. The top 50 results are retained for caching and pagination.
+2. **关键字标准化**：原始输入被修剪掉前导和尾随空格以及分隔符噪音。生成关键字变体——原始、边缘修剪、空间折叠、无空间和复合词分割——以最大限度地提高召回率。
 
-## Query Lifecycle / Index Flow
+3. **多重调用执行**：系统按优先级顺序执行调用路径：
+- 精确匹配（最高优先级；如果找到足够精确的结果，管道会提前返回）
+- 前缀匹配与全字增强
+- N-gram 中缀匹配
+- 对于中文输入：中文特定的复合查询
+- 对于短输入（1-2 个字符）：热门城市 Trie 查找，用于针对热门目的地进行快速前缀匹配
+- 后缀匹配（仅当前缀结果不足时）
+- 模糊匹配（仅当前缀结果不足时）
 
-A geographic search query proceeds through the following lifecycle:
+4. **国家/地区过滤**：如果搜索请求指定了所需的国家/地区代码，则在每个召回阶段都会过滤掉其他国家/地区的结果。
 
-1. **Cache Probe**: The system computes a deterministic cache key from the normalized query, page, and size parameters. If a valid cached entry exists, it is returned immediately, and no index access occurs.
+5. **结果优化**：所有召回结果均经过去重、综合排名管道评分、排序并截断至前 50 名。
 
-2. **Keyword Normalization**: The raw input is trimmed of leading and trailing whitespace and separator noise. Keyword variants are generated—original, edge-trimmed, space-collapsed, no-space, and compound-word split—to maximize recall coverage.
+6. **缓存写入**：优化结果集以可配置的生存时间写入搜索结果缓存。
 
-3. **Multi-Recall Execution**: The system executes recall paths in priority order:
-   - Exact match (highest priority; if sufficient exact results are found, the pipeline returns early)
-   - Prefix match with whole-word boost
-   - N-gram infix match
-   - For Chinese inputs: Chinese-specific composite query
-   - For short inputs (1-2 characters): hot-city Trie lookup for fast prefix matching against popular destinations
-   - Suffix match (only if prefix results are insufficient)
-   - Fuzzy match (only if prefix results are insufficient)
+7. **响应**：分页切片返回给调用者。
 
-4. **Country Filtering**: If the search request specifies a required country code, results from other countries are filtered out at each recall stage.
+在索引方面，数据流程如下：
 
-5. **Result Optimization**: All recalled results are deduplicated, scored by the composite ranking pipeline, sorted, and truncated to the top 50.
+1. **供应商摄取**：区域数据从多个供应商（携程、Dida、Yalago、Oryx）加载。
 
-6. **Cache Write**: The optimized result set is written to the search result cache with a configurable time-to-live.
+2. **标准化**：供应商特定的层次结构被扁平化，名称被标准化，类型代码被映射到规范分类法。
 
-7. **Response**: The paginated slice is returned to the caller.
+3. **跨源合并**：优化的匹配器按国家/地区对区域进行分组，并使用名称相似性和地理重叠来识别供应商之间的等效实体。不匹配的区域将作为新条目附加。供应商标识符保留在合并记录中。
 
-On the indexing side, the data flow operates as follows:
+4. **索引构建**：统一目录与现有索引进行比较。删除过时的文档，对新文档进行批处理和索引，并跳过现有文档以避免不必要的写入放大。
 
-1. **Supplier Ingestion**: Region data is loaded from multiple suppliers (Ctrip, Dida, Yalago, Oryx).
+5. **运行状况验证**：索引构建后，运行状况探测会针对实时索引执行一系列代表性查询（精确查询、前缀查询、后缀查询、中文查询和特定字段查询），以在接受流量之前确认准备情况。
 
-2. **Normalization**: Supplier-specific hierarchies are flattened, names are normalized, and type codes are mapped to a canonical taxonomy.
+## 实施的控制摘要
 
-3. **Cross-Source Merge**: An optimized matcher groups regions by country and identifies equivalent entities across suppliers using name similarity and geographic overlap. Unmatched regions are appended as new entries. Supplier identifiers are preserved on merged records.
-
-4. **Index Build**: The unified catalog is compared against the existing index. Obsolete documents are deleted, new documents are batched and indexed, and existing documents are skipped to avoid unnecessary write amplification.
-
-5. **Health Verification**: After index construction, a health probe executes a suite of representative queries (exact, prefix, suffix, Chinese, and field-specific) against the live index to confirm readiness before traffic is accepted.
-
-## Implemented Control Summary
-
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| Multi-Recall Search with Early Termination | Users find destinations even with partial, misspelled, or fragmented queries; the system avoids wasted computation by stopping when high-confidence results are sufficient. |
-| Dynamic Fuzziness Scaling | Typographical errors are tolerated without degrading precision for longer, more distinctive query terms. |
-| Keyword Variant Generation | Input artifacts such as extra spaces, separators, and concatenated words are transparently handled, reducing failed searches due to formatting differences. |
-| Chinese Character-Level N-gram + Jieba Segmentation | Chinese-speaking users experience equivalent search quality to English-speaking users, with support for single-character prefix queries and segmented phrase matching. |
-| Hot-City Trie Fast Path | Short queries for popular destinations (e.g., "NY" for New York) return instantly via a precomputed prefix structure. |
-| Adaptive Memory-Bounded Result Cache | Search latency remains stable during traffic spikes because frequently requested results are served from memory; the cache self-regulates to prevent out-of-memory degradation. |
-| Composite Relevance Scoring | Results are ranked by textual relevance rather than arbitrary ordering, ensuring that the most likely intended destination appears first. |
-| Incremental Index Updates | New destinations and supplier data changes are reflected in the search index without service downtime or full rebuild windows. |
-| Multi-Supplier Identity Merge | Travelers see a consistent, deduplicated destination catalog regardless of which supplier's inventory is queried behind the scenes. |
-| Country-Scoped Filtering | Partners and frontend applications can restrict search to a specific country, improving relevance for localized user experiences. |
-| Health Probe with Representative Query Suite | The system validates search readiness after every index change, preventing deployment of a degraded index to production traffic. |
+|提前终止的多重召回搜索 |即使查询不完整、拼写错误或碎片化，用户也能找到目的地；当高置信度结果足够时，系统会通过停止来避免计算浪费。 |
+|动态模糊缩放|对于更长、更独特的查询术语，可以容忍印刷错误，而不会降低精度。 |
+|关键词变体生成 |输入工件（例如多余的空格、分隔符和连接的单词）得到透明处理，减少了由于格式差异而导致的失败搜索。 |
+|汉字级N-gram + jieba切分|中文用户体验与英语用户同等的搜索质量，支持单字符前缀查询和分段短语匹配。 |
+|热门城市 Trie 快速路径 |对热门目的地的简短查询（例如，“NY”代表纽约）通过预先计算的前缀结构立即返回。 |
+|自适应内存限制结果缓存 |在流量高峰期间，搜索延迟保持稳定，因为频繁请求的结果是从内存中提供的；缓存会自我调节以防止内存不足而降级。 |
+|综合相关性评分 |结果按文本相关性而不是任意顺序进行排名，确保最有可能的预期目的地首先出现。 |
+|增量索引更新 |新的目的地和供应商数据更改会反映在搜索索引中，无需服务停机或完全重建窗口。 |
+|多供应商身份合并 |无论幕后查询哪个供应商的库存，旅客都会看到一致的、消除重复的目的地目录。 |
+|国家范围过滤 |合作伙伴和前端应用程序可以将搜索限制在特定国家/地区，从而提高本地化用户体验的相关性。 |
+|具有代表查询套件的运行状况探针 |系统会在每次索引更改后验证搜索准备情况，从而防止将降级索引部署到生产流量中。 |
 
-## Auditability
+## 可审计性
 
-The geographic search system provides multiple mechanisms for operational verification:
+地理搜索系统提供了多种操作验证机制：
 
-- **Search Performance Monitoring**: Every search execution is instrumented with duration, success/failure status, and cache hit/miss indicators. Metrics are aggregated to identify latency regressions or recall gaps.
+- **搜索性能监控**：每次搜索执行都会包含持续时间、成功/失败状态和缓存命中/未命中指示器。聚合指标以识别延迟回归或召回差距。
 
-- **Cache Statistics**: The result cache exposes hit rate, eviction count, entry count, and byte utilization, enabling operators to validate cache effectiveness and memory footprint.
+- **缓存统计**：结果缓存公开命中率、逐出计数、条目计数和字节利用率，使操作员能够验证缓存有效性和内存占用量。
 
-- **Index Build Logging**: Each index construction cycle logs documents indexed, deleted, and skipped, along with elapsed time. This supports auditing of index freshness and incremental update correctness.
+- **索引构建日志**：每个索引构建周期都会记录索引、删除和跳过的文档以及经过的时间。这支持对索引新鲜度和增量更新正确性的审核。
 
-- **Merge Audit Trail**: The supplier merge process logs regions added and merged per supplier and per country, with representative examples. This enables traceability of how supplier data converges into the unified catalog.
+- **合并审计跟踪**：供应商合并流程记录每个供应商和每个国家/地区添加和合并的区域，并提供代表性示例。这使得供应商数据如何融合到统一目录中成为可能。
 
-- **Health Endpoint**: A health check exercises exact, prefix, suffix, and Chinese queries against the live index. Failure prevents the service from reporting healthy, acting as a gate for load balancer inclusion.
+- **健康端点**：健康检查针对实时索引执行精确、前缀、后缀和中文查询。故障会阻止服务报告健康状况，从而充当负载均衡器包含的大门。
 
-- **Explain-Ready Query Structure**: While production queries disable detailed explanation for performance, the underlying Boolean query structure supports `Explain` mode in diagnostic contexts, allowing engineers to inspect document scoring.
+- **解释就绪查询结构**：虽然生产查询禁用性能的详细解释，但底层布尔查询结构支持诊断上下文中的 `Explain` 模式，允许工程师检查文档评分。
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| Manning, *Taming Text* (2013), Chapter 6: "Fuzzy String Matching" | "Fuzzy matching techniques like the Levenshtein distance algorithm allow search applications to match user input against index terms even when the input contains typographical errors or spelling variations." | The fuzzy query path uses Levenshtein-distance-based matching with dynamic fuzziness scaled to query length, providing typo tolerance while constraining edit distance for longer terms. |
-| Bleve Documentation, "Custom Analyzers" | "Custom analyzers in Bleve allow you to combine a tokenizer with one or more token filters to produce tokens tailored to your domain and language." | The index defines custom analyzers for prefix N-gram, suffix N-gram, character N-gram, Chinese character N-gram, and standard tokenization, each composed of a unicode or Chinese-character tokenizer with lowercase and trim filters. |
-| Elasticsearch Guide, "N-gram Tokenizer" | "The ngram tokenizer first breaks text down into words whenever it encounters one of a list of specified characters, then emits N-grams of each word of the specified length." | The character N-gram field uses a 3-to-15 character range to enable infix matching, while the prefix N-gram field uses a 1-to-5 range to support autocomplete-style prefix queries. |
-| *Information Retrieval: Implementing and Evaluating Search Engines* (Buttcher, Clarke, Cormack, 2016), Section 4.3: "Query Expansion and Reformulation" | "Multiple retrieval strategies can be combined through query expansion, where the original query is augmented with additional terms or alternative formulations to improve recall." | The multi-recall architecture implements query expansion through six independent query formulations (exact, prefix, N-gram, fuzzy, suffix, Chinese), executed as a prioritized cascade with early termination. |
-| Chinese Academy of Sciences, "Jieba Chinese Text Segmentation" (open-source project documentation) | "Jieba supports three segmentation modes: precise mode, full mode, and search engine mode. The search engine mode is suitable for search engines by segmenting the sentence into as many words as possible." | The Chinese query path includes a Jieba-segmented field (`nameZh.jieba`) with search-engine mode segmentation, enabling phrase-level matching for multi-character Chinese destination names. |
-| ACM Computing Surveys, "A Survey of Result Ranking Techniques in Web Search Engines" (2017) | "Effective ranking in search engines typically combines multiple signals—textual relevance, popularity, freshness, and user behavior—into a single composite score." | The composite scoring pipeline integrates exact/prefix/substring text signals, static popularity, region type, query-length heuristics, and a no-match penalty into a unified relevance score. |
+|曼宁，*驯服文本* (2013)，第 6 章：“模糊字符串匹配”| “编辑距离算法等模糊匹配技术允许搜索应用程序将用户输入与索引词进行匹配，即使输入包含印刷错误或拼写变化。” |模糊查询路径使用基于编辑距离的匹配，并根据查询长度缩放动态模糊性，提供拼写错误容忍度，同时限制较长术语的编辑距离。 |
+| Bleve 文档，“自定义分析器”| “Bleve 中的自定义分析器允许您将分词器与一个或多个分词过滤器结合起来，生成适合您的领域和语言的分词。” |该索引定义了前缀 N-gram、后缀 N-gram、字符 N-gram、汉字 N-gram 和标准标记化的自定义分析器，每个分析器都由带有小写和修剪过滤器的 unicode 或汉字标记生成器组成。 |
+| Elasticsearch 指南，“N-gram 分词器”| “每当遇到指定字符列表之一时，ngram 分词器首先将文本分解为单词，然后发出指定长度的每个单词的 N 元语法。” |字符 N-gram 字段使用 3 到 15 个字符范围来启用中缀匹配，而前缀 N-gram 字段使用 1 到 5 个范围来支持自动完成式前缀查询。 |
+| *信息检索：实施和评估搜索引擎*（Buttcher、Clarke、Cormack，2016 年），第 4.3 节：“查询扩展和重构”| “可以通过查询扩展来组合多种检索策略，其中使用附加术语或替代公式来增强原始查询，以提高召回率。” |多重召回架构通过六种独立的查询公式（精确、前缀、N-gram、模糊、后缀、中文）实现查询扩展，并作为提前终止的优先级联执行。 |
+|中科院《Jieba中文文本分割》（开源项目文档）| “结巴支持三种分词模式：精确模式、全量模式、搜索引擎模式。搜索引擎模式适合搜索引擎，将句子切分成尽可能多的单词。” |中文查询路径包括具有搜索引擎模式分段的 Jieba 分段字段 (`nameZh.jieba`)，可实现多字符中文目的地名称的短语级匹配。 |
+| ACM 计算调查，“网络搜索引擎结果排名技术调查”（2017 年）| “搜索引擎中的有效排名通常将多个信号（文本相关性、受欢迎程度、新鲜度和用户行为）组合成一个综合分数。” |复合评分管道将精确/前缀/子字符串文本信号、静态流行度、区域类型、查询长度启发法和不匹配惩罚集成到统一的相关性评分中。 |

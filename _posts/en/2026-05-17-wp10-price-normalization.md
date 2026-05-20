@@ -8,7 +8,7 @@ tags: [Pricing, Supplier Integration, Finance]
 author: "HotelByte Team"
 description: "A guide to HotelByte's price normalization controls."
 lang: en
-permalink: /whitepapers/wp10-price-normalization/
+permalink: /en/whitepapers/wp10-price-normalization/
 source_asset: hotel-be/docs/en/whitepapers/10-multi-supplier-price-normalization.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp10-price-normalization/original/

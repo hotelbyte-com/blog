@@ -1,219 +1,208 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：订单生命周期状态机白皮书"
+title: "订单生命周期状态机白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp13-order-lifecycle/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp13-order-lifecycle/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp13-order-lifecycle/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：订单生命周期状态机白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Order Lifecycle State Machine Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte processes thousands of hotel booking transactions daily across a global supplier network. Each reservation traverses a complex lifecycle—from initial creation through payment, supplier confirmation, and eventual completion or cancellation—often spanning multiple external systems with independent failure modes. To manage this complexity with financial-grade reliability, HotelByte implements a deterministic order state machine that governs every legal transition, enforces terminal-state immutability, and produces a complete, timestamped audit trail for every order.
+HotelByte 每天通过全球供应商网络处理数千笔酒店预订交易。每个预订都会经历一个复杂的生命周期——从最初的创建到付款、供应商确认，再到最终的完成或取消——通常跨越多个具有独立故障模式的外部系统。为了以金融级可靠性管理这种复杂性，HotelByte 实施了确定性订单状态机，该状态机管理每个合法转换，强制终端状态不变性，并为每个订单生成完整的、带时间戳的审计跟踪。
 
-This whitepaper describes the architecture, design principles, and operational controls of the HotelByte order lifecycle state machine. It is intended for enterprise customers, integration partners, security auditors, and compliance reviewers who require transparency into how booking states are managed, how refunds are gated, and how the platform converges to known-good outcomes even when upstream suppliers exhibit ambiguous or delayed behavior.
-
----
-
-## Scope
-
-This document covers the HotelByte order state management layer:
-
-- Internal order state definitions and transition rules (`trade/domain/`)
-- State machine mechanics: validation, atomic transition, and history recording
-- Customer-facing status projection and alert semantics
-- Booking flow state progression (`trade/service/book.go`)
-- Cancellation flow state progression, including multi-actor support and refund gating (`trade/service/cancel.go`)
-- Background order scanner reconciliation (`trade/service/order_scanner.go`)
-- Audit trail structure and verification methods
-
-It does not cover supplier adapter internals, payment processor integrations, or search engine mechanics, which are addressed in separate whitepapers.
+本白皮书描述了 HotelByte 订单生命周期状态机的架构、设计原理和操作控制。它面向企业客户、集成合作伙伴、安全审计员和合规审查员，他们需要透明地了解如何管理预订状态、如何控制退款以及平台如何收敛到已知良好的结果，即使上游供应商表现出不明确或延迟的行为。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Deterministic Lifecycle Progression** — Every order follows an explicit, verifiable path through legally defined states; illegal transitions are rejected at the domain layer before any side effects occur.
-2. **Terminal-State Immutability** — Once an order reaches Completed, Cancelled, or Failed, no further state mutation is possible, guaranteeing stable financial reconciliation endpoints.
-3. **Complete Auditability** — Every transition records From/To states, timestamps, and business reasons, producing an immutable history suitable for financial audit and dispute resolution.
-4. **Customer-Transparent Projection** — Internal states are mapped to customer-visible statuses through a controlled projection layer that abstracts supplier-specific ambiguities.
-5. **Automated Reconciliation** — Background scanning tasks detect and resolve stuck or divergent orders by synchronizing against supplier-side terminal states without manual intervention.
+本文档涵盖了 HotelByte 订单状态管理层：
 
----
+- 内部订单状态定义和转换规则（`trade/domain/`）
+- 状态机机制：验证、原子转换和历史记录
+- 面向客户的状态投影和警报语义
+- 预订流程状态进展 (`trade/service/book.go`)
+- 取消流程状态进展，包括多参与者支持和退款门控 (`trade/service/cancel.go`)
+- 后台订单扫描仪核对（`trade/service/order_scanner.go`）
+- 审计跟踪结构和验证方法
 
-## Design Principles
-
-### Atomic State Transitions
-
-State transitions are atomic, validated, and logged as a single indivisible operation. The state machine validates the target state against a statically defined transition matrix before any mutation occurs. If validation fails, the operation returns a detailed error enumerating the allowed target states from the current state, and no partial update is persisted. This prevents orders from entering ambiguous or inconsistent intermediate conditions.
-
-### Terminal State Immutability
-
-Completed, Cancelled, and Failed are designated terminal states. The state machine rejects any transition attempt originating from a terminal state. This invariant is the foundation of financial reconciliation: once an order is terminal, its associated ledger entries, refund eligibility, and commission calculations are fixed and will not be altered by subsequent background processes or retry logic.
-
-### Audit Every Change
-
-Every state transition produces a `StateTransitionRecord` containing the previous state, the new state, an RFC-3339 timestamp, and a human-readable business reason. These records are persisted to the order's business metadata and emitted as structured logs. The audit trail is append-only and travels with the order through its entire lifecycle, enabling post-hoc analysis of booking failures, cancellation disputes, and SLA investigations.
-
-### Project, Don't Expose
-
-Internal states reflect supplier-specific nuances that would confuse downstream consumers. HotelByte maps internal states to a normalized customer-visible status through a projection layer. Additionally, a `StatusAlert` mechanism handles edge cases—such as a supplier aborting a booking after partial processing—by projecting the internal state to a customer-meaningful outcome (e.g., `Failed` or `Confirmed`) without mutating the underlying state machine record.
-
-### Fail Safe, Converge Eventually
-
-When supplier responses are delayed, ambiguous, or indicate transient errors, the platform does not guess. Instead, it places the order into an explicit intermediate state (e.g., `NeedSupplierConfirm`, `NeedCancel`) and delegates resolution to background scanner tasks with bounded retry limits and timeouts. This ensures that human operators or automated reconcilers always have a clear, actionable target state to evaluate.
+它不涵盖供应商适配器内部结构、支付处理器集成或搜索引擎机制，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## State Machine Architecture
+## 目标
 
-### State Definitions
-
-The HotelByte order state machine defines ten discrete internal states organized into three categories:
-
-**Active States** — `Created`, `Paid`, `NeedSupplierConfirm`, `Confirmed`, `NeedCancel`, `NeedRefund`, `CancelFailed`
-
-**Terminal States** — `Completed`, `Cancelled`, `Failed`
-
-Active states permit forward or backward movement according to business events. Terminal states are absorbing: once entered, no exit is permitted.
-
-### Transition Rules
-
-Legal transitions are encoded in a static transition matrix validated at runtime. Key rules include:
-
-- `Created` may transition to `Paid`, `Cancelled`, or `NeedCancel`
-- `Paid` may transition to `Confirmed`, `NeedSupplierConfirm`, `NeedRefund`, `NeedCancel`, or `Failed`
-- `NeedSupplierConfirm` may transition to `Confirmed`, `NeedRefund`, `NeedCancel`, `Cancelled`, or `Failed`
-- `Confirmed` may transition to `NeedCancel`, `NeedRefund`, `Cancelled`, or `Failed`
-- `NeedCancel` may transition to `Cancelled`, `NeedRefund`, `CancelFailed`, or `Failed`
-- `CancelFailed` may transition back to `NeedCancel`, to `Cancelled`, or to `Failed`
-- `NeedRefund` converges to `Cancelled`
-
-This matrix encodes business policy directly into the domain layer. Any transition not explicitly listed is rejected with an error that enumerates the permitted targets.
-
-### State Projection Layer
-
-The `ProjectCustomerOrderStatus` function maps internal states to a normalized external status understood by customer systems. In addition, a `StatusAlert` overlay handles supplier-specific edge cases:
-
-- `BookingAborted` → projects internal state to `Failed`
-- `CancellationAborted` → projects internal state to `Confirmed`
-
-Projection occurs after state transitions complete, ensuring that the internal state machine remains the single source of truth while customers receive semantically appropriate status values.
+1. **确定性生命周期进程** - 每个订单都遵循一条明确的、可验证的路径通过合法定义的状态；在发生任何副作用之前，非法转换会在域层被拒绝。
+2. **终端状态不变性** - 一旦订单达到“已完成”、“已取消”或“失败”，就不可能再发生进一步的状态变化，从而保证稳定的财务对账端点。
+3. **完整的可审计性** - 每次转换都会记录从/到状态、时间戳和业务原因，生成适合财务审计和争议解决的不可变历史记录。
+4. **客户透明投影** - 通过抽象供应商特定模糊性的受控投影层将内部状态映射到客户可见状态。
+5. **自动对账** — 后台扫描任务通过与供应商端终端状态同步来检测并解决卡住或发散的订单，无需人工干预。
 
 ---
 
-## Order Lifecycle
+## 设计原则
 
-### Booking Flow
+### 原子状态跃迁
 
-The standard booking flow progresses through four major phases:
+状态转换是原子的、经过验证的，并记录为单个不可分割的操作。在发生任何突变之前，状态机会根据静态定义的转换矩阵验证目标状态。如果验证失败，该操作将返回详细错误，枚举当前状态中允许的目标状态，并且不会保留部分更新。这可以防止订单输入不明确或不一致的中间条件。
 
-**1. Order Creation**
+### 终端状态不变性
 
-The booking request is preprocessed: session context is validated, availability data is parsed, and a `BookCtx` is assembled. An idempotency check keyed by `customerReferenceNo` prevents duplicate reservations. If an unconfirmed order with the same reference already exists, it is returned instead of creating a new record. A final concurrency guard after order insertion detects and cancels any duplicate orders created by race conditions.
+已完成、已取消和失败是指定的最终状态。状态机拒绝任何源自最终状态的转换尝试。这一不变性是财务对账的基础：一旦订单终止，其相关的账本条目、退款资格和佣金计算都是固定的，不会被后续后台流程或重试逻辑更改。
 
-**2. Safety and Compliance Checks**
+### 审核每一个变更
 
-Before financial commitment, the platform enforces a sequence of safety checks: environment mixing detection prevents test traffic from reaching production suppliers; booking prohibition checks respect tenant-level administrative blocks; non-refundable booking interception applies policy-based gates; and subscription quota checks enforce tenant booking entitlement limits.
+每个状态转换都会生成一个 `StateTransitionRecord`，其中包含先前状态、新状态、RFC-3339 时间戳和人类可读的业务原因。这些记录将保存到订单的业务元数据中，并作为结构化日志发出。审计跟踪仅是附加的，并随订单贯穿其整个生命周期，从而能够对预订失败、取消争议和 SLA 调查进行事后分析。
 
-**3. Payment and Supplier Booking**
+### 项目，请勿暴露
 
-After transactional order creation (main order plus sub-orders split by room and night), a credit check verifies wallet balance or credit limit. Upon successful debit, the order state transitions atomically to `Paid`. The platform then dispatches the booking to the supplier. If the supplier reports a failure, Smart Booking resale logic attempts to fulfill the reservation through alternate inventory. When no `HotelConfirmNo` is returned, a background `TaskTypeFetchHCN` scan task is scheduled to poll for the confirmation number.
+内部状态反映了供应商特定的细微差别，这会让下游消费者感到困惑。 HotelByte 通过投影层将内部状态映射到标准化的客户可见状态。此外，`StatusAlert` 机制通过将内部状态投影为对客户有意义的结果（例如 `Failed` 或 `Confirmed`）来处理边缘情况，例如供应商在部分处理后中止预订，而不改变底层状态机记录。
 
-**4. Confirmation or Failure**
+### 故障安全，最终收敛
 
-On supplier success, the order transitions to `Confirmed` (or `NeedSupplierConfirm` when asynchronous confirmation is required). On terminal failure, it transitions to `Failed`. Each transition is recorded with the supplier response context as the business reason.
-
-### Cancellation Flow
-
-Cancellation is a multi-actor, state-gated process:
-
-**1. Actor Identification and Order Resolution**
-
-Cancellation requests may originate from the System, API clients, or the Portal. The actor type is determined from request context and recorded in the audit trail. Orders are located through multiple identifier types—`CustomerReferenceNo`, `PlatformReferenceNo`, or `SupplierReferenceNo`—supporting flexible integration patterns.
-
-**2. State Validation and Refund Order Preparation**
-
-The current order state is loaded into a state machine instance. If the order is not already in `NeedCancel` or `Cancelled`, it transitions to `NeedCancel` with an audit reason capturing the actor and justification. A refund order record is initialized (or an existing pending refund order is reused) to track financial reversal.
-
-**3. Supplier Cancellation and Terminal Convergence**
-
-The platform calls the supplier cancel API. On success, the order transitions to `Cancelled`; on definitive supplier rejection, it may transition to `CancelFailed` or `Failed` depending on the response semantics. A critical business rule governs refund eligibility: wallet credit is refunded **only** when the order reaches `Cancelled`. The `CancelFailed` state explicitly does **not** trigger refund, preserving financial integrity when cancellation is incomplete.
-
-**4. Background Reconciliation**
-
-Orders in `NeedCancel` or `CancelFailed` that do not converge promptly are picked up by the order scanner. The scanner queries supplier-side order status directly. If all supplier orders report a terminal state, the local order is synchronized to match without re-invoking the supplier cancel API, resolving stuck cancellations automatically.
+当供应商响应延迟、模糊或指示暂时性错误时，平台不会猜测。相反，它将订单置于显式中间状态（例如 `NeedSupplierConfirm`、`NeedCancel`），并将解析委托给具有有限重试限制和超时的后台扫描器任务。这确保了人工操作员或自动调节器始终有一个清晰的、可操作的目标状态来评估。
 
 ---
 
-## Implemented Control Summary
+## 状态机架构
 
-| Control | Customer Value |
+### 状态定义
+
+HotelByte 顺序状态机定义了十个离散的内部状态，分为三类：
+
+**活动状态** — `Created`、`Paid`、`NeedSupplierConfirm`、`Confirmed`、`NeedCancel`、`NeedRefund`、`CancelFailed`
+
+**终端状态** — `Completed`、`Cancelled`、`Failed`
+
+活动状态允许根据业务事件向前或向后移动。终端状态很吸引人：一旦进入，就不允许退出。
+
+### 转换规则
+
+合法转换被编码在运行时验证的静态转换矩阵中。主要规则包括：
+
+- `Created` 可能会转换为 `Paid`、`Cancelled` 或 `NeedCancel`
+- `Paid` 可能会转换为 `Confirmed`、`NeedSupplierConfirm`、`NeedRefund`、`NeedCancel` 或 `Failed`
+- `NeedSupplierConfirm` 可能会转换为 `Confirmed`、`NeedRefund`、`NeedCancel`、`Cancelled` 或 `Failed`
+- `Confirmed` 可能会转换为 `NeedCancel`、`NeedRefund`、`Cancelled` 或 `Failed`
+- `NeedCancel` 可能会转换为 `Cancelled`、`NeedRefund`、`CancelFailed` 或 `Failed`
+- `CancelFailed` 可能会转换回 `NeedCancel`、`Cancelled` 或 `Failed`
+- `NeedRefund` 收敛到 `Cancelled`
+
+该矩阵将业务策略直接编码到域层中。任何未明确列出的转换都会被拒绝，并出现错误，枚举允许的目标。
+
+### 状态投影层
+
+`ProjectCustomerOrderStatus` 函数将内部状态映射到客户系统可以理解的标准化外部状态。此外，`StatusAlert` 覆盖可处理供应商特定的边缘情况：
+
+- `BookingAborted` → 将内部状态投影到 `Failed`
+- `CancellationAborted` → 将内部状态投影到 `Confirmed`
+
+状态转换完成后进行投影，确保内部状态机仍然是单一事实来源，同时客户收到语义上适当的状态值。
+
+---
+
+## 订单生命周期
+
+### 预订流程
+
+标准预订流程分为四个主要阶段：
+
+**1.订单创建**
+
+预订请求经过预处理：验证会话上下文、解析可用性数据并组装 `BookCtx`。由 `customerReferenceNo` 键入的幂等性检查可防止重复预留。如果已存在具有相同引用的未确认订单，则返回该订单而不是创建新记录。订单插入后的最终并发防护会检测并取消由竞争条件创建的任何重复订单。
+
+**2.安全与合规性检查**
+
+在做出财务承诺之前，平台会执行一系列安全检查：环境混合检测可防止测试流量到达生产供应商；禁止预订检查尊重租户级别的行政区；不可退款预订拦截适用基于政策的登机口；订阅配额检查强制执行租户预订权利限制。
+
+**3.付款和供应商预订**
+
+创建交易订单（主订单加上按房间和夜晚划分的子订单）后，信用检查将验证钱包余额或信用额度。成功借记后，订单状态自动转换为 `Paid`。然后平台将预订发送给供应商。如果供应商报告失败，智能预订转售逻辑会尝试通过备用库存履行预订。当没有返回 `HotelConfirmNo` 时，将调度后台 `TaskTypeFetchHCN` 扫描任务来轮询确认号。
+
+**4.确认或失败**
+
+供应商成功后，订单将转换为 `Confirmed`（或在需要异步确认时转换为 `NeedSupplierConfirm`）。当终端出现故障时，它会转换为 `Failed`。每次转换都会以供应商响应上下文作为业务原因进行记录。
+
+### 取消流程
+
+取消是一个多参与者、状态门控的过程：
+
+**1.参与者识别和命令解析**
+
+取消请求可能来自系统、API 客户端或门户。参与者类型根据请求上下文确定并记录在审计跟踪中。订单通过多种标识符类型（`CustomerReferenceNo`、`PlatformReferenceNo` 或 `SupplierReferenceNo`）定位，支持灵活的集成模式。
+
+**2.状态验证和退款单准备**
+
+当前订单状态被加载到状态机实例中。如果订单尚未位于 `NeedCancel` 或 `Cancelled` 中，则会转换到 `NeedCancel`，并带有捕获参与者和理由的审核原因。初始化退款订单记录（或重新使用现有的待处理退款订单）以跟踪财务冲销。
+
+**3.供应商取消和终端融合**
+
+平台调用供应商取消API。成功后，订单将转换为 `Cancelled`；在供应商明确拒绝后，它可能会根据响应语义转换为 `CancelFailed` 或 `Failed`。退款资格由一项关键业务规则决定：**仅**当订单到达 `Cancelled` 时才会退款。 `CancelFailed` 状态明确**不**触发退款，从而在取消不完整时保持财务完整性。
+
+**4.背景协调**
+
+`NeedCancel` 或 `CancelFailed` 中未及时收敛的订单将由订单扫描仪拾取。扫描器直接查询供应商端订单状态。如果所有供应商订单都报告最终状态，则本地订单将同步进行匹配，而无需重新调用供应商取消 API，从而自动解决卡住的取消问题。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| Atomic State Transitions | Every state change is validated against a static rules matrix before persistence; illegal transitions are rejected with no side effects, preventing orders from entering invalid or inconsistent states. |
-| Terminal State Immutability | Orders reaching Completed, Cancelled, or Failed are permanently locked; financial reconciliation, commission calculations, and refund eligibility remain stable and auditable. |
-| Transition Audit Records | Each state change appends a timestamped record (From/To/Reason) to the order history, producing an immutable chain suitable for dispute resolution and compliance review. |
-| Idempotent Booking by Reference | Duplicate `customerReferenceNo` values on unconfirmed orders return the existing record instead of creating a new booking, eliminating accidental double reservations. |
-| Concurrency-Guard Deduplication | A post-creation race-condition check detects duplicate orders and cancels the younger instance, ensuring exactly one active booking per customer reference. |
-| Multi-Actor Cancellation Audit | System, API, and Portal cancellations are tagged with actor identity and reason, creating a complete accountability trail for every cancellation event. |
-| Refund Gating by Terminal State | Wallet credit is refunded only upon reaching `Cancelled`; `CancelFailed` explicitly blocks refund, protecting against partial or failed cancellation financial leakage. |
-| Smart Booking Resale | On supplier book failure, the platform automatically attempts alternate inventory fulfillment, increasing booking success rates without customer intervention. |
-| Background HCN Fetch Task | When suppliers do not immediately return a hotel confirmation number, a scheduled retry task polls for up to three months post-checkout, ensuring confirmation data is eventually captured. |
-| Supplier Terminal State Sync | The order scanner independently queries supplier status and converges local state when the supplier side is terminal, resolving stuck or timeout-affected orders without manual operations. |
-| Status Projection Layer | Internal supplier-specific states are mapped to normalized customer-visible statuses with alert overlays, presenting clear semantics while preserving internal state integrity. |
-| Safety Check Pipeline | Environment mixing, booking prohibition, non-refundable interception, and quota checks execute before financial commitment, preventing policy violations and administrative errors. |
+|原子态跃迁|每个状态更改在持久化之前都会根据静态规则矩阵进行验证；非法转换被拒绝，没有副作用，防止订单进入无效或不一致的状态。 |
+|终端状态不变性 |达到已完成、已取消或失败的订单将被永久锁定；财务对账、佣金计算和退款资格保持稳定且可审计。 |
+|过渡审计记录|每个状态更改都会将带时间戳的记录（从/到/原因）附加到订单历史记录中，从而生成适合争议解决和合规性审查的不可变链。 |
+|通过参考幂等预订 |未确认订单上的重复 `customerReferenceNo` 值将返回现有记录，而不是创建新预订，从而消除意外的重复预订。 |
+|并发防护重复数据删除 |创建后竞争条件检查会检测重复订单并取消较新的实例，确保每个客户参考只有一个有效预订。 |
+|多方取消审核 |系统、API 和门户取消都标有参与者身份和原因，为每个取消事件创建完整的责任跟踪。 |
+|按终端状态划分的退款门控 |钱包积分仅在达到 `Cancelled` 后才会退还； `CancelFailed` 明确阻止退款，防止部分或取消失败的财务泄漏。 |
+|智能预订转售|当供应商预订失败时，平台会自动尝试替代库存履行，从而在无需客户干预的情况下提高预订成功率。 |
+|后台 HCN 获取任务 |当供应商没有立即返回酒店确认号码时，计划的重试任务会在结帐后长达三个月的时间进行轮询，以确保最终捕获确认数据。 |
+|供应商终端状态同步|订单扫描器独立查询供应商状态，并在供应商端终端时聚合本地状态，无需人工操作即可解决卡顿或超时影响的订单。 |
+|状态投影层|内部供应商特定状态映射到带有警报覆盖的标准化客户可见状态，呈现清晰的语义，同时保持内部状态完整性。 |
+|管道安全检查|环境混合、预订禁止、不可退款拦截和配额检查在财务承诺之前执行，防止政策违规和管理错误。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte order state controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证 HotelByte 订单状态控制：
 
-1. **State Transition Logs** — Every transition emits a structured log record containing order identifier, previous state, new state, timestamp, business reason, and actor information. These logs are retained and available for audit export.
+1. **状态转换日志** — 每个转换都会发出结构化日志记录，其中包含订单标识符、先前状态、新状态、时间戳、业务原因和参与者信息。这些日志将被保留并可供审计导出。
 
-2. **Order History Records** — The `StateTransitionRecord` array stored within each order's business metadata provides an append-only, per-order audit trail that can be retrieved through standard order query APIs.
+2. **订单历史记录** — 存储在每个订单的业务元数据中的 `StateTransitionRecord` 数组提供了仅附加的、每个订单的审计跟踪，可以通过标准订单查询 API 进行检索。
 
-3. **Callback Events** — Customers subscribing to webhook callbacks receive deterministic events (`OrderCreated`, `OrderPaid`, `OrderCancelled`, `OrderFailed`) that correspond to validated state machine transitions, enabling independent reconciliation against the customer's own ledger.
+3. **回调事件** — 订阅 Webhook 回调的客户会收到与经过验证的状态机转换相对应的确定性事件（`OrderCreated`、`OrderPaid`、`OrderCancelled`、`OrderFailed`），从而实现与客户自己的账本的独立协调。
 
-4. **CQRS Event Publishing** — State transition events are published to an internal event bus with at-least-once delivery semantics, supporting downstream audit pipelines, BI analytics, and anomaly detection.
+4. **CQRS 事件发布** — 状态转换事件发布到具有至少一次传递语义的内部事件总线，支持下游审计管道、BI 分析和异常检测。
 
-5. **Background Scanner Metrics** — Order scanner execution produces metrics for task queue depth, retry success rates, timeout resolutions, and supplier-not-found finalizations. Reviewers with metric access can independently verify reconciliation effectiveness.
+5. **后台扫描器指标** — 订单扫描器执行生成任务队列深度、重试成功率、超时解决方案和未找到供应商的最终确定等指标。具有指标访问权限的审阅者可以独立验证对账有效性。
 
-6. **Integration Tests** — The trade domain includes comprehensive tests covering state transition validation, terminal-state rejection, projection semantics, and cancellation refund gating. Reviewers can execute these tests to reproduce control behavior in a local environment.
+6. **集成测试** - 交易领域包括涵盖状态转换验证、最终状态拒绝、投影语义和取消退款门控的综合测试。审阅者可以执行这些测试以在本地环境中重现控制行为。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **AWS Builder's Library — State Machine Pattern** | "Use a state machine to ensure that an entity can only be in one of a finite number of states and that transitions between states are well-defined and atomic." | The `OrderStateMachine` enforces a finite set of internal states with a statically defined transition matrix; every transition is validated atomically before persistence. |
-| **NIST SP 800-53 Rev. 5 AU-3 Content of Audit Records** | "The information system generates audit records containing information that establishes what type of event occurred, when it occurred, where it was directed, and the outcome of the event." | Every state transition appends a `StateTransitionRecord` with From/To states, timestamp, and reason, establishing a complete event history for each order. |
-| **ISO 20022 — Transaction State Management** | "A transaction shall have a clearly defined lifecycle with explicit states, and once a transaction reaches a final state it shall not be possible to alter that state." | Terminal states (`Completed`, `Cancelled`, `Failed`) are immutable; the state machine rejects any transition originating from a terminal state. |
-| **Martin Fowler — Accounting Patterns (Audit Log)** | "An audit log keeps a chronological record of changes to an object, providing a history that can be inspected to determine what happened and why." | The order business metadata persists an append-only list of state transitions, enabling post-hoc inspection of booking and cancellation history. |
-| **OWASP Cheat Sheet — Financial Grade APIs** | "Financial operations must ensure that compensating transactions are only executed when the primary transaction has reached a confirmed terminal state." | Wallet refunds are gated exclusively on the `Cancelled` terminal state; `CancelFailed` does not trigger refund, ensuring compensating transactions align with confirmed outcomes. |
-| **Gregor Hohpe — Enterprise Integration Patterns (Idempotent Receiver)** | "An idempotent receiver ensures that duplicate messages do not cause unintended side effects, typically by correlating incoming messages with existing state." | Booking requests keyed by `customerReferenceNo` deduplicate against unconfirmed orders, and a post-creation concurrency guard cancels duplicate race-condition orders. |
+| **AWS Builder 库 — 状态机模式** | “使用状态机来确保实体只能处于有限数量的状态之一，并且状态之间的转换是明确定义的和原子的。” | `OrderStateMachine` 使用静态定义的转换矩阵强制执行一组有限的内部状态；每个转换在持久化之前都经过原子验证。 |
+| **NIST SP 800-53 Rev. 5 AU-3 审核记录内容** | “信息系统生成审计记录，其中包含确定事件类型、事件发生时间、事件指向以及事件结果的信息。” |每个状态转换都会附加一个包含 From/To 状态、时间戳和原因的 `StateTransitionRecord`，为每个订单建立完整的事件历史记录。 |
+| **ISO 20022 — 事务状态管理** | “交易应具有明确定义的生命周期和明确的状态，一旦交易达到最终状态，就不可能改变该状态。” |终端状态（`Completed`、`Cancelled`、`Failed`）是不可变的；状态机拒绝源自最终状态的任何转换。 |
+| **Martin Fowler — 会计模式（审计日志）** | “审核日志保留对象更改的时间顺序记录，提供可以检查的历史记录以确定发生了什么以及原因。” |订单业务元数据保留了状态转换的仅附加列表，从而可以对预订和取消历史记录进行事后检查。 |
+| **OWASP 备忘单 — 金融级 API** | “金融运营必须确保补偿交易仅在主交易达到确认的最终状态时才执行。” |钱包退款仅在 `Cancelled` 终端状态上进行； `CancelFailed` 不会触发退款，确保补偿交易与已确认的结果保持一致。 |
+| **Gregor Hohpe — 企业集成模式（幂等接收器）** | “幂等接收器通常通过将传入消息与现有状态相关联来确保重复消息不会导致意外的副作用。” |由 `customerReferenceNo` 键入的预订请求会针对未确认的订单进行重复删除，并且创建后并发防护会取消重复的竞态条件订单。 |
 
 ---
 
-*For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+*如对本白皮书有疑问或审核请求，请通过您指定的合作伙伴渠道联系 HotelByte Engineering。*

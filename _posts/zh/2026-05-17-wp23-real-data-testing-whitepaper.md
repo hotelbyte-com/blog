@@ -1,196 +1,185 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：真实数据测试文化白皮书"
+title: "真实数据测试文化白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp23-real-data-testing/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp23-real-data-testing/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp23-real-data-testing/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：真实数据测试文化白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Real-Data Testing Culture Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte operates a global hotel API distribution platform where a single search request may traverse dozens of supplier integrations, pricing engines, and booking state machines before returning a result to the customer. In such an environment, test fidelity is not a preference — it is a safety requirement. Mocks that simulate ideal supplier behavior, synthetic data that never exercises boundary conditions, and tests that never leave the local workstation create blind spots that only surface in production.
+HotelByte 运营着一个全球酒店 API 分销平台，在该平台上，单个搜索请求可能会遍历数十个供应商集成、定价引擎和预订状态机，然后再将结果返回给客户。在这样的环境中，测试保真度不是一种偏好，而是一种安全要求。模拟理想供应商行为的模拟、从不执行边界条件的合成数据以及从不离开本地工作站的测试都会产生仅在生产中出现的盲点。
 
-To address this, HotelByte has built a comprehensive, real-data testing culture that spans the full software lifecycle. The platform maintains an independent end-to-end (E2E) testing application that exercises live APIs across development, staging, and production environments using real hotel inventory, real pricing, and real booking flows. Unit and integration layers enforce strict coverage thresholds — 100% for domain logic, 80%+ for data access layers — while an explicit zero-tolerance policy prohibits hardcoded test data in any form.
+为了解决这个问题，HotelByte 建立了涵盖整个软件生命周期的全面、真实数据测试文化。该平台维护一个独立的端到端 (E2E) 测试应用程序，该应用程序使用真实的酒店库存、真实定价和真实预订流程跨开发、登台和生产环境运行实时 API。单元和集成层强制执行严格的覆盖阈值——域逻辑为 100%，数据访问层为 80% 以上——而明确的零容忍策略禁止以任何形式硬编码测试数据。
 
-This whitepaper describes the design principles, layered testing architecture, and operational controls that make HotelByte's real-data testing culture verifiable, auditable, and reproducible. It is intended for security auditors, enterprise customers, and integration partners who require transparency into how the platform validates correctness before every deployment.
-
----
-
-## Scope
-
-This document covers HotelByte's testing and quality assurance infrastructure:
-
-- **End-to-End Testing Framework** (`api/tests/`) — an independent Go application that invokes live platform APIs via the official `sdk/go` client
-- **Testing Pyramid** — unit, integration, and E2E layers with defined coverage thresholds per architectural tier
-- **Mock and Data Governance** — policies that govern when mocking is permitted, when real data is mandatory, and how test data provenance is maintained
-- **LLM-Specific Testing** — accuracy, regression, boundary, and benchmark validation for AI-augmented components
-- **Quality Gates** — code review rules, assertion thresholds, incremental reporting, and static assertion site scanning
-
-It does not cover supplier-specific certification procedures, security penetration testing, or infrastructure chaos engineering, which are addressed in separate whitepapers.
+本白皮书描述了设计原则、分层测试架构和操作控制，使 HotelByte 的真实数据测试文化可验证、可审计和可复制。它适用于需要透明了解平台如何在每次部署之前验证正确性的安全审核员、企业客户和集成合作伙伴。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Reproducible Production Fidelity** — Every test that can run against a live API does so, ensuring that validation reflects real supplier behavior, network latency, and data shape.
-2. **Coverage as an Enforceable Contract** — Coverage thresholds are not aspirational targets; they are enforced at code review and in continuous integration.
-3. **Zero Hardcoded Test Data** — All test inputs are derived from real sources or explicitly managed test accounts; synthetic literals are prohibited.
-4. **Shift-Left Defect Prevention** — Quality controls are applied at the earliest feasible stage: static analysis before compilation, unit tests before integration, and E2E assertions before release.
-5. **Observable Test Health** — Assertion counts, scenario pass rates, and coverage deltas are reported incrementally and retained for trend analysis.
+本文档涵盖了 HotelByte 的测试和质量保证基础设施：
 
----
+- **端到端测试框架** (`api/tests/`) — 一个独立的 Go 应用程序，通过官方 `sdk/go` 客户端调用实时平台 API
+- **测试金字塔** — 单元、集成和 E2E 层，每个架构层定义了覆盖阈值
+- **模拟和数据治理** - 管理何时允许模拟、何时强制使用真实数据以及如何维护测试数据来源的策略
+- **LLM 特定测试** — AI 增强组件的准确性、回归、边界和基准验证
+- **质量门** — 代码审查规则、断言阈值、增量报告和静态断言站点扫描
 
-## Design Principles
-
-### Test Against Reality
-
-The most expensive bug is the one that passes all tests and still fails in production. HotelByte's E2E framework treats this as an architectural constraint, not a testing preference. The E2E runner is an independent Go binary that consumes the same `sdk/go` client available to external integrators. It calls real endpoints — HotelList, HotelRates, CheckAvail, Book, Cancel, OrderQuery — against live supplier connections. A booking test creates a real reservation; a cancellation test voids it. This principle eliminates the "works on my machine" class of failures by design.
-
-### Coverage as a Floor, Not a Ceiling
-
-Coverage percentages are enforced minimums, not goals to celebrate. Domain logic must reach 100% coverage because a single unexecuted branch in pricing or state-transition code can result in financial loss. Data access layers must reach 80% because untested CRUD paths often hide N+1 queries or transaction boundary errors. Service layers must reach 70% to ensure that orchestration and error handling paths are exercised. These floors are checked in CI; pull requests that reduce coverage below the tier threshold are blocked.
-
-### Intra-Layer Real, Cross-Layer Mocked
-
-Unit tests follow a strict boundary rule: calls within the same architectural layer use real implementations; calls that cross a layer boundary are mocked. A domain test invokes real domain methods, not mocked ones. A service test mocks the DAO it depends on, but executes real service logic. This rule prevents test suites from testing the mock framework instead of the production code, while still keeping unit tests fast and deterministic.
-
-### Shift-Left Quality
-
-Quality gates are positioned as early as possible in the development lifecycle. Static assertion site scanning (`-assertion-sites`) counts unique assertion points in E2E source code without executing scenarios, giving immediate feedback on coverage before any environment is provisioned. Unit tests run on every commit. Integration tests run against real databases (MySQL, Redis) in CI. E2E tests run against staging before any artifact is promoted toward production.
-
-### Incremental Accountability
-
-Every E2E execution generates a structured assertion report that is compared against the previous report in the same directory. The system surfaces new assertions, removed assertions, and count fluctuations across independent chain buckets (Search, Rate, CheckAvail, Book, Cancel, OrderQuery). This incremental diff prevents silent regression in test coverage even when all scenarios pass.
+它不涵盖供应商特定的认证程序、安全渗透测试或基础设施混沌工程，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Testing Architecture
+## 目标
 
-HotelByte's testing stack is organized into three layers: End-to-End, Integration, and Unit. Each layer has distinct responsibilities, distinct data requirements, and distinct execution environments.
+1. **可重复的生产保真度** - 每个可以针对实时 API 运行的测试都会这样做，确保验证反映真实的供应商行为、网络延迟和数据形状。
+2. **覆盖范围作为可执行合同** — 覆盖范围阈值不是理想目标；它们在代码审查和持续集成中强制执行。
+3. **零硬编码测试数据** - 所有测试输入均来自真实来源或显式管理的测试帐户；禁止合成文字。
+4. **左移缺陷预防** — 在最早的可行阶段应用质量控制：编译前的静态分析、集成前的单元测试以及发布前的 E2E 断言。
+5. **可观察的测试运行状况** - 断言计数、场景通过率和覆盖范围增量会增量报告并保留用于趋势分析。
 
-### End-to-End Layer
+---
 
-The E2E framework (`api/tests/`) is a standalone Go application that exercises the platform through its public API surface. It supports 40+ scenarios including OpenAPI smoke tests, SFTP data export validation, PriceAssist subscription flows, TDEngine time-series queries, supplier integration health checks, and dashboard reliability probes.
+## 设计原则
 
-Key architectural properties:
+### 测试现实
 
-- **Real API Calls Only** — The E2E runner uses the production `sdk/go` client and authenticates with real credentials. No stubbing, no local in-process short-circuiting.
-- **Multi-Environment Execution** — Scenarios can target development, UAT, or production environments via configuration, with read-only restrictions enforced for production.
-- **Structured Assertion Buckets** — Assertions are grouped by business chain (Search, Rate, CheckAvail, Book, Cancel, OrderQuery) plus extended categories (SFTP, PriceAssist, Catalog, Content, Import, HotelMapping, OrderLifecycle, RateLimit, Dashboard, SessionTrace, AccessControl). Each bucket is reported independently.
-- **500-Assertion Threshold** — A run that fails to reach at least 500 total assertions is flagged as an incomplete validation surface, protecting against silent test shrinkage.
-- **Incremental Comparison** — Each report is diffed against the prior report in the output directory, producing a delta of added, removed, and fluctuating assertions.
-- **Static Assertion Scanning** — The `-assertion-sites` flag performs a static scan of scenario source code to count unique assertion points (by file and line) without runtime execution.
+最昂贵的错误是通过了所有测试但在生产中仍然失败的错误。 HotelByte 的 E2E 框架将此视为架构约束，而不是测试偏好。 E2E 运行程序是一个独立的 Go 二进制文件，它使用可供外部集成商使用的相同 `sdk/go` 客户端。它针对实时供应商连接调用真实端点——HotelList、HotelRates、CheckAvail、Book、Cancel、OrderQuery。预订测试创建真实的预订；取消测试会使它无效。这一原则通过设计消除了“在我的机器上运行”类别的故障。
 
-### Integration Layer
+### 覆盖范围是下限，而不是上限
 
-Integration tests validate the behavior of persistence and caching subsystems using real infrastructure instances. The database integration harness uses `github.com/DATA-DOG/go-sqlmock` for SQL assertion and `miniredis/v2` for Redis behavior verification. These tests exercise transaction boundaries, cache invalidation sequences, and query plan correctness against real schema definitions.
+覆盖率是强制执行的最低标准，而不是值得庆祝的目标。域逻辑必须达到 100% 覆盖率，因为定价或状态转换代码中的单个未执行分支可能会导致财务损失。数据访问层必须达到 80%，因为未经测试的 CRUD 路径通常会隐藏 N+1 查询或事务边界错误。服务层必须达到 70%，以确保编排和错误处理路径得到执行。这些楼层在 CI 中进行检查；将覆盖范围降低到层阈值以下的拉取请求将被阻止。
 
-Integration tests are particularly critical for:
+### 层内真实，跨层模拟
 
-- Data access objects (`mysql/`) — verifying that generated SQL matches expectations and that transaction rollbacks occur on failure
-- Cache layers — confirming TTL behavior, eviction policies, and cache-coherence after write operations
-- Time-series queries (`tdengine/`) — validating aggregation logic against real columnar storage semantics
+单元测试遵循严格的边界规则：同一架构层内的调用使用真实的实现；跨层边界的调用会被模拟。域测试调用真实的域方法，而不是模拟的方法。服务测试模拟它所依赖的 DAO，但执行真正的服务逻辑。此规则可防止测试套件测试模拟框架而不是生产代码，同时仍保持单元测试的快速性和确定性。
 
-### Unit Layer
+### 左移质量
 
-Unit tests form the base of the pyramid and are subject to the most rigid coverage requirements. They are organized by architectural tier:
+质量门在开发生命周期中尽早定位。静态断言站点扫描 (`-assertion-sites`) 无需执行场景即可计算 E2E 源代码中的唯一断言点，从而在配置任何环境之前立即提供覆盖范围反馈。单元测试在每次提交时运行。集成测试针对 CI 中的真实数据库（MySQL、Redis）运行。在将任何工件升级到生产之前，E2E 测试会针对暂存运行。
 
-| Tier | Coverage Floor | Rationale |
+### 增量问责制
+
+每个 E2E 执行都会生成一个结构化断言报告，该报告与同一目录中的先前报告进行比较。系统显示新的断言、删除的断言，并计算独立链桶（搜索、费率、CheckAvail、Book、Cancel、OrderQuery）之间的波动。即使所有场景都通过了，这种增量差异也可以防止测试覆盖率的无声回归。
+
+---
+
+## 测试架构
+
+HotelByte 的测试堆栈分为三层：端到端、集成和单元。每一层都有不同的职责、不同的数据需求和不同的执行环境。
+
+### 端到端层
+
+E2E 框架 (`api/tests/`) 是一个独立的 Go 应用程序，通过其公共 API 接口来使用该平台。它支持 40 多个场景，包括 OpenAPI 冒烟测试、SFTP 数据导出验证、PriceAssist 订阅流程、TDEngine 时间序列查询、供应商集成运行状况检查和仪表板可靠性探测。
+
+主要架构属性：
+
+- **仅限真实 API 调用** — E2E 运行程序使用生产 `sdk/go` 客户端并使用真实凭据进行身份验证。无存根，无局部过程内短路。
+- **多环境执行** - 场景可以通过配置针对开发、UAT 或生产环境，并对生产强制实施只读限制。
+- **结构化断言桶** — 断言按业务链（搜索、费率、CheckAvail、预订、取消、OrderQuery）以及扩展类别（SFTP、PriceAssist、目录、内容、导入、HotelMapping、OrderLifecycle、RateLimit、仪表板、SessionTrace、AccessControl）进行分组。每个存储桶都是独立报告的。
+- **500 断言阈值** — 未能达到至少 500 个总断言的运行将被标记为不完整的验证表面，以防止静默测试收缩。
+- **增量比较** - 每个报告都与输出目录中的先前报告进行比较，产生添加、删除和波动断言的增量。
+- **静态断言扫描** — `-assertion-sites` 标志执行场景源代码的静态扫描，以计算唯一的断言点（按文件和行），而无需运行时执行。
+
+### 集成层
+
+集成测试使用真实的基础设施实例来验证持久性和缓存子系统的行为。数据库集成工具使用 `github.com/DATA-DOG/go-sqlmock` 进行 SQL 断言，使用 `miniredis/v2` 进行 Redis 行为验证。这些测试针对真实模式定义来测试事务边界、缓存失效序列以及查询计划的正确性。
+
+集成测试对于以下方面尤其重要：
+
+- 数据访问对象 (`mysql/`) — 验证生成的 SQL 是否符合预期以及失败时发生事务回滚
+- 缓存层 - 确认写入操作后的 TTL 行为、逐出策略和缓存一致性
+- 时间序列查询 (`tdengine/`) — 根据真实列式存储语义验证聚合逻辑
+
+### 单元层
+
+单元测试构成了金字塔的基础，并受到最严格的覆盖率要求的约束。它们按架构层组织：
+
+|等级 |覆盖楼层|理由|
 |---|---|---|
-| `domain/` | 100% | Pure business logic; every branch affects correctness |
-| `mysql/` (DAO) | 80%+ | Data access paths must be exercised to catch query and transaction defects |
-| `service/` | 70%+ | Orchestration and error handling must not silently decay |
-| `convert/` | 90%+ | Mapping functions are mechanically testable and high-risk for data corruption |
-| `protocol/` | No requirement | Data structure definitions; correctness is enforced by the type system |
+| `domain/` | 100% |纯业务逻辑；每个分支都会影响正确性|
+| `mysql/` (DAO) | 80%+ |必须运用数据访问路径来捕获查询和事务缺陷 |
+| `service/` | 70%+ |编排和错误处理绝不能悄无声息地衰退
+| `convert/` | 90%+ |映射函数是可机械测试的并且数据损坏的风险很高 |
+| `protocol/` |没有要求 |数据结构定义；正确性由类型系统强制执行 |
 
-Unit tests use the `mockey` framework for cross-layer mocking, following the intra-layer-real rule. Cross-layer boundaries (service → DAO, DAO → database driver) are mocked to isolate the unit under test. Intra-layer calls remain unmocked to preserve behavioral fidelity.
-
----
-
-## Test Lifecycle and Quality Flow
-
-The quality flow is designed to catch defects at the earliest stage where the relevant validation cost is lowest:
-
-1. **Static Scan** — Before any test execution, `-assertion-sites` counts unique E2E assertion points. A drop in static count triggers an alert before CI resources are consumed.
-2. **Unit Gate** — Every commit triggers unit tests with coverage reporting. Coverage regression below tier floors blocks the pull request.
-3. **Integration Gate** — Database and cache integration tests run against ephemeral real infrastructure. These tests validate schema compatibility and persistence correctness.
-4. **E2E Gate** — The full E2E suite runs against the UAT environment. The 500-assertion threshold and per-chain bucket minimums are enforced. Reports are retained for incremental comparison.
-5. **LLM Validation Gate** — For releases that include AI-augmented components, dedicated accuracy, regression, boundary, and benchmark suites validate model behavior.
-6. **Production Read-Only Probe** — A subset of E2E scenarios runs against production in read-only mode to confirm that live supplier connectivity and data shape remain healthy post-deployment.
+单元测试使用 `mockey` 框架进行跨层模拟，遵循层内真实规则。跨层边界（服务 → DAO、DAO → 数据库驱动程序）被模拟以隔离被测单元。层内调用保持未模拟状态以保持行为保真度。
 
 ---
 
-## Implemented Control Summary
+## 测试生命周期和质量流程
 
-| Control | Customer Value |
+质量流程旨在尽早发现缺陷，相关验证成本最低：
+
+1. **静态扫描** — 在执行任何测试之前，`-assertion-sites` 会计算唯一的 E2E 断言点。静态计数下降会在 CI 资源消耗之前触发警报。
+2. **单元门** - 每次提交都会触发带有覆盖率报告的单元测试。层以下的覆盖率回归会阻止拉取请求。
+3. **集成门** - 针对临时真实基础设施运行数据库和缓存集成测试。这些测试验证架构兼容性和持久性正确性。
+4. **E2E Gate** — 完整的 E2E 套件在 UAT 环境下运行。强制执行 500 次断言阈值和每链存储桶的最小值。保留报告以进行增量比较。
+5. **LLM 验证门** — 对于包含 AI 增强组件的版本，专用精度、回归、边界和基准套件可验证模型行为。
+6. **生产只读探测** - E2E 场景的子集以只读模式针对生产运行，以确认实时供应商连接和数据形状在部署后保持健康。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| Real-Data E2E Framework | Every release is validated against live supplier APIs, real hotel inventory, and actual booking flows — not simulations. |
-| 500-Assertion Threshold | Prevents silent test shrinkage by enforcing a minimum validation surface for every E2E execution. |
-| Structured Assertion Buckets | Independent reporting per business chain (Search, Rate, CheckAvail, Book, Cancel, OrderQuery) ensures no chain is left unvalidated. |
-| Incremental Report Comparison | Each E2E run is diffed against its predecessor, surfacing added, removed, or fluctuating assertions automatically. |
-| Static Assertion Site Scanning | Assertion coverage can be verified without runtime execution, enabling fast feedback in CI and pre-commit hooks. |
-| Tiered Coverage Floors | Domain logic at 100%, DAO at 80%+, service at 70%+, and convert at 90%+ guarantee that critical paths are always exercised. |
-| Zero Hardcoded Test Data Policy | Prohibits synthetic literals in tests; all inputs derive from real sources or managed test accounts, preventing data-naive blind spots. |
-| Unified Test Account Matrix | Platform admin, tenant user, and OpenAPI customer personas are exercised consistently across scenarios, ensuring multi-tenant correctness. |
-| Intra-Layer Real / Cross-Layer Mocked | Unit tests validate real layer internals while mocking only external boundaries, preserving behavioral fidelity without sacrificing speed. |
-| Multi-Environment E2E Execution | Scenarios run against dev, UAT, and production environments with environment-appropriate safety guards (read-only for production). |
-| LLM Accuracy and Benchmark Suites | AI-augmented components undergo accuracy, regression, boundary, and performance validation before release. |
-| Database Integration Harness | Real SQL assertion and Redis behavior verification ensure persistence logic correctness against actual driver semantics. |
+|真实数据端到端框架|每个版本都根据实时供应商 API、真实酒店库存和实际预订流程（而不是模拟）进行验证。 |
+| 500 断言阈值 |通过为每个 E2E 执行强制执行最小验证表面，防止静默测试收缩。 |
+|结构化断言桶 |每个业务链的独立报告（搜索、费率、CheckAvail、Book、Cancel、OrderQuery）确保没有一条链未经验证。 |
+|增量报告比较|每次 E2E 运行都与其前一个运行不同，自动显示添加、删除或波动的断言。 |
+|静态断言站点扫描|无需运行时执行即可验证断言覆盖率，从而在 CI 和预提交挂钩中实现快速反馈。 |
+|分层覆盖地板|域逻辑 100%、DAO 80%+、服务 70%+、转换 90%+ 确保关键路径始终得到执行。 |
+|零硬编码测试数据政策|禁止在测试中使用合成文字；所有输入均来自真实来源或托管测试帐户，从而防止数据天真的盲点。 |
+|统一测试账户矩阵|平台管理员、租户用户和 OpenAPI 客户角色在不同场景中一致执行，确保多租户的正确性。 |
+|层内真实/跨层模拟 |单元测试验证真实层内部结构，同时仅模拟外部边界，在不牺牲速度的情况下保持行为保真度。 |
+|多环境端到端执行 |场景针对开发、UAT 和生产环境运行，具有适合环境的安全防护措施（生产只读）。 |
+|法学硕士准确性和基准套件| AI 增强组件在发布前经过准确性、回归、边界和性能验证。 |
+|数据库集成线束|真正的 SQL 断言和 Redis 行为验证可确保持久性逻辑针对实际驱动程序语义的正确性。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte's testing controls through the following mechanisms:
+外部评审者和企业客户可以通过以下机制验证HotelByte 的测试控制：
 
-1. **Published E2E Reports** — Every E2E execution produces JSON and HTML assertion reports containing per-scenario pass/fail status, per-chain assertion counts, unique assertion point tallies, and incremental deltas. These reports are retained and available for audit review.
+1. **发布的 E2E 报告** — 每个 E2E 执行都会生成 JSON 和 HTML 断言报告，其中包含每个场景的通过/失败状态、每个链断言计数、唯一断言点计数和增量增量。这些报告将被保留并可供审计审查。
 
-2. **Coverage Artifacts** — Unit test coverage reports are generated in standard Go coverage format and can be exported to HTML or LCOV. The reports are tagged by package tier (`domain/`, `mysql/`, `service/`, `convert/`) so reviewers can verify compliance with published floors.
+2. **覆盖率工件** — 单元测试覆盖率报告以标准 Go 覆盖率格式生成，并且可以导出为 HTML 或 LCOV。这些报告按包层（`domain/`、`mysql/`、`service/`、`convert/`）进行标记，以便审阅者可以验证是否符合已发布的楼层。
 
-3. **Static Assertion Manifests** — The `-assertion-sites` output produces a reproducible manifest of every unique assertion point in the E2E scenario codebase. Reviewers can run this scan locally without credentials to confirm the assertion surface independently.
+3. **静态断言清单** — `-assertion-sites` 输出生成 E2E 场景代码库中每个唯一断言点的可重现清单。审核者可以在本地运行此扫描，无需凭据即可独立确认断言表面。
 
-4. **Code Review Rule Transparency** — The zero-tolerance policy for fake data and the tiered coverage requirements are documented in the project's code review rules. Reviewers can inspect these rules to confirm that test data provenance and coverage enforcement are governance-level mandates, not guidelines.
+4. **代码审查规则透明度** - 对虚假数据的零容忍政策和分层覆盖要求记录在项目的代码审查规则中。审核者可以检查这些规则，以确认测试数据来源和覆盖范围执行是治理级别的命令，而不是指导方针。
 
-5. **Test Account Provenance** — All E2E test accounts are defined in a single, version-controlled source of truth. The account matrix (platform admin, tenant user, OpenAPI customer) is exercised across scenarios, enabling reviewers to verify that multi-tenant and permission-boundary tests are consistent.
+5. **测试帐户来源** — 所有 E2E 测试帐户均在单一、版本控制的事实来源中定义。帐户矩阵（平台管理员、租户用户、OpenAPI 客户）跨场景执行，使审核者能够验证多租户和权限边界测试是否一致。
 
-6. **CI Enforcement Logs** — Coverage checks and E2E threshold validations are executed in continuous integration. Pipeline logs record pass/fail decisions, coverage percentages per tier, and assertion counts per chain, providing an auditable trail of every quality gate decision.
+6. **CI 执行日志** — 覆盖率检查和 E2E 阈值验证在持续集成中执行。管道日志记录通过/失败决策、每层的覆盖百分比以及每条链的断言计数，从而提供每个质量门决策的可审计跟踪。
 
-7. **LLM Test Artifacts** — For releases involving AI-augmented components, accuracy scores, boundary case results, and benchmark latencies are captured in structured artifacts that can be reviewed independently.
+7. **LLM 测试工件** — 对于涉及 AI 增强组件的版本，准确度分数、边界情况结果和基准延迟均在可独立审查的结构化工件中捕获。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **ISTQB Certified Tester Foundation Level v4.0** — Test Levels | "Component testing should be performed against the smallest testable part of the software; integration testing should verify the interfaces between components; system testing should evaluate end-to-end behavior." | HotelByte's three-layer architecture (unit, integration, E2E) maps directly to ISTQB levels, with explicit responsibilities and coverage expectations per tier. |
-| **Google Testing Blog — "Just Say No to More End-to-End Tests" (2015)** | "Write fast, reliable unit tests; use integration tests to verify contract boundaries; reserve E2E tests for critical user journeys." | The platform limits E2E to real-API critical journeys while pushing exhaustive path coverage down to fast unit tests, avoiding the flakiness and maintenance cost of over-reliance on E2E. |
-| **ISO/IEC/IEEE 29119-3:2021** — Test Documentation | "Test design shall identify the test conditions, test coverage items, and test cases to be executed." | Structured assertion buckets, static assertion site scanning, and incremental report comparison provide documented, traceable test coverage items for every release. |
-| **Martin Fowler — "The Practical Test Pyramid"** | "Write tests with different granularity. The more high-level you get, the fewer tests you should have." | HotelByte enforces a steep pyramid: thousands of fast unit tests, focused integration tests for persistence boundaries, and a curated set of high-signal E2E scenarios. |
-| **OWASP SAMM v2.0 — Verification Practice** | "Testing should use realistic data that represents production usage patterns to ensure security and functional defects are discovered." | The zero-tolerance fake data policy and real-data E2E mandate ensure that tests exercise production-like data shapes, permission patterns, and supplier responses. |
-| **NIST SP 800-218 Secure Software Development Framework (SSDF) v1.1** — PO.3.2, PW.7.2 | "Maintain the software in a secure configuration and verify that the software meets security requirements through testing." | Coverage floors, multi-environment E2E execution, and LLM-specific benchmark suites form a structured verification program that confirms functional and non-functional requirements before deployment. |
+| **ISTQB 认证测试员基础级别 v4.0** — 测试级别 | “组件测试应该针对软件的最小可测试部分进行；集成测试应该验证组件之间的接口；系统测试应该评估端到端的行为。” | HotelByte 的三层架构（单元、集成、E2E）直接映射到 ISTQB 级别，每层都有明确的职责和覆盖范围期望。 |
+| **Google 测试博客 —“对更多端到端测试说不”(2015)** | “编写快速、可靠的单元测试；使用集成测试来验证合同边界；为关键用户旅程保留 E2E 测试。” |该平台将 E2E 限制为真实 API 关键旅程，同时将详尽的路径覆盖范围降低到快速单元测试，从而避免了过度依赖 E2E 带来的不稳定和维护成本。 |
+| **ISO/IEC/IEEE 29119-3:2021** — 测试文档 | “测试设计应确定测试条件、测试覆盖项目和要执行的测试用例。” |结构化断言桶、静态断言站点扫描和增量报告比较为每个版本提供记录的、可追踪的测试覆盖率项目。 |
+| **Martin Fowler —“实际测试金字塔”** | “编写不同粒度的测试。你获得的级别越高，你应该进行的测试就越少。” | HotelByte 实施了一个陡峭的金字塔：数千个快速单元测试、针对持久性边界的集中集成测试以及一组精选的高信号 E2E 场景。 |
+| **OWASP SAMM v2.0 — 验证实践** | “测试应该使用代表生产使用模式的真实数据，以确保发现安全和功能缺陷。” |零容忍的虚假数据政策和真实数据 E2E 要求确保测试执行类似生产的数据形状、权限模式和供应商响应。 |
+| **NIST SP 800-218 安全软件开发框架 (SDF) v1.1** — PO.3.2、PW.7.2 | “将软件维护在安全配置中，并通过测试验证软件是否满足安全要求。” |覆盖范围、多环境 E2E 执行和 LLM 特定基准套件形成了一个结构化验证程序，可在部署前确认功能和非功能需求。 |
 
 ---
 
-*For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+*如对本白皮书有疑问或审核请求，请通过您指定的合作伙伴渠道联系 HotelByte Engineering。*

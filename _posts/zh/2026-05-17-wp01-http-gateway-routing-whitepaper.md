@@ -1,93 +1,82 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：HTTP 网关与进程内 API 路由白皮书"
+title: "HTTP 网关与进程内 API 路由白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp01-http-gateway-routing/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp01-http-gateway-routing/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp01-http-gateway-routing/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：HTTP 网关与进程内 API 路由白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# HTTP Gateway & In-Process API Routing Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte is a global hotel API distribution platform built in Go 1.26.1 with the go-zero microservices framework. Rather than relying on external API gateways or service mesh sidecars, HotelByte developed an in-process HTTP dispatcher (`httpdispatcher`) that embeds gateway functionality directly into every service process. This architecture eliminates network hop overhead, reduces P99 latency, and enables a unified, defense-in-depth security model.
+HotelByte 是一个采用 Go 1.26.1 构建的全球酒店 API 分销平台，采用 go-zero 微服务框架。 HotelByte 没有依赖外部 API 网关或服务网格 sidecar，而是开发了一个进程内 HTTP 调度程序 (`httpdispatcher`)，将网关功能直接嵌入到每个服务进程中。该架构消除了网络跃点开销，减少了 P99 延迟，并实现了统一的深度防御安全模型。
 
-This whitepaper describes the design principles, layered middleware architecture, and production-validated controls that govern how every API request is received, authenticated, authorized, rate-limited, cached, and responded to. It is intended for security auditors, integration partners, and enterprise customers who require transparency into the platform's ingress handling and access control posture.
-
----
-
-## Scope
-
-This document covers the HotelByte HTTP gateway layer only:
-
-- In-process HTTP service dispatch (`common/httpdispatcher/`)
-- Ten-layer onion middleware chain
-- Authentication (JWT and Short Token Mode)
-- Authorization (RBAC and OpenAPI whitelist)
-- Rate limiting and flow control (IP-level, API-level, tenant-level)
-- Response caching, field filtering, and streaming
-- Error normalization and observability
-
-It does not cover supplier-facing outbound adapters, search engine internals, or data intelligence pipelines, which are addressed in separate whitepapers.
+本白皮书描述了设计原则、分层中间件架构以及经过生产验证的控制，这些控制控制着每个 API 请求的接收、身份验证、授权、速率限制、缓存和响应方式。它适用于需要透明了解平台入口处理和访问控制状态的安全审核员、集成合作伙伴和企业客户。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Zero Network Hop Ingress** — Remove sidecar/proxy latency by compiling gateway logic into the service binary.
-2. **Defense in Depth** — Apply security and resiliency controls at multiple layers, from IP to tenant.
-3. **Observable and Auditable** — Record per-middleware timing, emit structured access logs, and alert on anomalies.
-4. **Consistent API Contract** — Enforce unified request/response envelopes, field-level access control, and deterministic cache behavior.
-5. **Graceful Degradation** — Normalize transient dependency failures into predictable error categories without leaking internal state.
+本文档仅涵盖 HotelByte HTTP 网关层：
 
----
+- 进程内 HTTP 服务调度 (`common/httpdispatcher/`)
+- 十层洋葱中间件链
+- 身份验证（JWT 和Short Token 模式）
+- 授权（RBAC 和OpenAPI 白名单）
+- 速率限制和流量控制（IP 级、API 级、租户级）
+- 响应缓存、字段过滤和流式传输
+- 错误标准化和可观测性
 
-## Design Principles
-
-### Embed Over Proxy
-
-Traditional API gateways (Kong, Envoy, Nginx) or service mesh sidecars introduce at least one additional network hop per request. In a hotel distribution platform where a single search may fan out to dozens of internal calls, these hops compound into measurable latency inflation. HotelByte compiles the gateway directly into each service process. Go reflection maps service interface methods to HTTP routes at startup, eliminating runtime route resolution cost and ensuring the routing table is always consistent with the deployed code.
-
-### Query-Parameter-Only Routing
-
-HotelByte intentionally avoids REST-style path parameters (`/hotels/{id}`). All request arguments are expressed as query parameters. This decision simplifies cache key generation (deterministic ordering, no path ambiguity), strengthens log parsing (uniform access patterns), and reduces the attack surface for path traversal or parameter smuggling.
-
-### Short Token Security Model
-
-Standard JWT embeds claims directly in the token string, causing token size to grow with permission scope and making server-side revocation impractical until natural expiration. HotelByte stores JWT claims in Redis and transmits only a short Token ID to the client. This reduces header overhead, enables instantaneous revocation, and supports sliding expiration tied to Redis access records.
-
-### Structured Concurrency for Cache Invalidation
-
-Write operations asynchronously trigger cache invalidation via a fanout worker pool rather than blocking the response path. This decouples mutation latency from cache consistency, bounded by a worker pool with backpressure-aware semantics. Field collection caches are similarly invalidated to ensure downstream consumers never observe stale partial data.
-
-### Normalize, Don't Leak
-
-Unclassified network, timeout, or connection errors are automatically mapped to a standard `DependencyErr` category. This guarantees that clients receive predictable error envelopes without exposure of internal topology, hostnames, or stack traces.
+它不包括面向供应商的出站适配器、搜索引擎内部结构或数据智能管道，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Layered Architecture
+## 目标
 
-The `httpdispatcher` processes every request through a strict, ordered ten-layer onion middleware chain. Each layer has a single responsibility and can short-circuit the pipeline when a control violation is detected.
+1. **零网络跃点入口** — 通过将网关逻辑编译到服务二进制文件中来消除 sidecar/代理延迟。
+2. **深度防御** — 在从 IP 到租户的多个层应用安全和弹性控制。
+3. **可观察和可审计** — 记录每个中间件的计时，发出结构化访问日志，并对异常情况发出警报。
+4. **一致的 API 契约** — 实施统一的请求/响应信封、字段级访问控制和确定性缓存行为。
+5. **优雅降级** — 将瞬态依赖故障规范化为可预测的错误类别，而不会泄漏内部状态。
+
+---
+
+## 设计原则
+
+### 通过代理嵌入
+
+传统 API 网关（Kong、Envoy、Nginx）或服务网格 sidecar 为每个请求引入至少一个额外的网络跃点。在酒店分发平台中，单个搜索可能会分散到数十个内部调用，这些跳跃复合成可测量的延迟膨胀。 HotelByte 将网关直接编译到各个服务进程中。 Go 反射在启动时将服务接口方法映射到HTTP 路由，消除运行时路由解析成本并确保路由表始终与部署的代码一致。
+
+### 仅查询参数路由
+
+HotelByte 有意避免 REST 风格的路径参数 (`/hotels/{id}`)。所有请求参数都表示为查询参数。此决策简化了缓存密钥生成（确定性排序，无路径歧义），加强了日志解析（统一访问模式），并减少了路径遍历或参数走私的攻击面。
+
+### Short Token 安全模型
+
+标准 JWT 将声明直接嵌入到令牌字符串中，导致令牌大小随着权限范围而增长，并使服务器端撤销在自然过期之前不切实际。 HotelByte 将 JWT 声明存储在 Redis 中，并仅将一个Short Token ID 传输给客户端。这减少了标头开销，实现即时撤销，并支持与 Redis 访问记录相关的滑动过期。
+
+### 缓存失效的结构化并发
+
+写入操作通过扇出工作池异步触发缓存失效，而不是阻塞响应路径。这将突变延迟与缓存一致性解耦，并由具有背压感知语义的工作池限制。字段收集缓存同样会失效，以确保下游消费者永远不会观察到过时的部分数据。
+
+### 正常化，不要泄漏
+
+未分类的网络、超时或连接错误会自动映射到标准 `DependencyErr` 类别。这保证了客户端接收可预测的错误包络，而不会暴露内部拓扑、主机名或堆栈跟踪。
+
+---
+
+## 分层架构
+
+`httpdispatcher`通过严格、有序的十层洋葱中间件链处理每个请求。每层都有单一的职责，并且可以在检测到控制违规时使管道短路。
 
 ```
 Recovery
@@ -102,103 +91,103 @@ Recovery
                   → Response
 ```
 
-### Layer 1 — Recovery
+### 第 1 层 — 恢复
 
-The outermost layer catches panics from any downstream layer, converts them into sanitized internal errors, and reports the full stack trace to Sentry with request context (path, user, tenant, user agent). A single malformed request can never crash the service process.
+最外层捕获来自任何下游层的恐慌，将其转换为已清理的内部错误，并向 Sentry 报告完整的堆栈跟踪以及请求上下文（路径、用户、租户、用户代理）。单个格式错误的请求永远不会导致服务进程崩溃。
 
-### Layer 2 — IP Rate Limiting
+### 第 2 层 — IP 速率限制
 
-Before any routing or authentication occurs, the caller's IP address is evaluated against a configurable rate limit. The layer supports sliding-window counters backed by Redis with an in-memory fallback when Redis is unavailable. IP whitelists (individual addresses and CIDR blocks) are honored, and proxy headers (`X-Forwarded-For`, `X-Real-IP`) are parsed only when explicitly trusted.
+在进行任何路由或身份验证之前，将根据可配置的速率限制评估呼叫者的 IP 地址。该层支持 Redis 支持的滑动窗口计数器，并在 Redis 不可用时进行内存回退。 IP 白名单（个人地址和 CIDR 块）受到尊重，并且仅在明确信任时才会解析代理标头（`X-Forwarded-For`、`X-Real-IP`）。
 
-### Layer 3 — Sentinel API Gateway
+### 第 3 层 — Sentinel API 网关
 
-The third layer applies Sentinel-based API gateway rate limiting. This control enforces global and per-API throughput limits. A dedicated load-test header allows authorized performance testing to bypass this layer, ensuring synthetic traffic does not consume production quota.
+第三层应用基于Sentinel 的API网关限速。此控制强制执行全局和每个 API 的吞吐量限制。专用的负载测试标头允许授权性能测试绕过该层，确保合成流量不会消耗生产配额。
 
-### Layer 4 — Route Handler
+### 第 4 层 — 路由处理程序
 
-Route resolution maps the HTTP path to a registered service method using the startup-time reflection index. Because path parameters are prohibited, every route is an exact match. Query parameters are extracted and validated before being passed downstream.
+路由解析使用启动时反射索引将 HTTP 路径映射到已注册的服务方法。由于禁止使用路径参数，因此每条路由都是完全匹配的。查询参数在传递到下游之前被提取和验证。
 
-### Layer 5 — Authentication
+### 第 5 层 — 身份验证
 
-The authentication layer supports dual token modes: traditional JWT and Short Token Mode. For Short Tokens, the layer retrieves claims from Redis, validates impersonation guards (administrative mock-login scenarios), refreshes user information via `singleflight` (guaranteeing one concurrent refresh per user), and enforces sliding expiration based on Redis access records. Tokens that have been idle beyond the configured timeout are rejected with a standard expiration response.
+身份验证层支持双令牌模式：传统 JWT 和Short Token 模式。对于Short Token，该层从 Redis 检索声明，验证模拟防护（管理模拟登录场景），通过 `singleflight` 刷新用户信息（保证每个用户一次并发刷新），并根据 Redis 访问记录强制执行滑动过期。超过配置的超时时间而闲置的令牌将被标准过期响应拒绝。
 
-### Layer 6 — Mock Guard
+### 第 6 层 — 模拟守卫
 
-Mock operations — where an administrative user impersonates another account for testing or support — are intercepted and validated. This layer ensures impersonation is authorized, logged, and cannot be used to bypass production controls.
+模拟操作（管理用户模拟另一个帐户进行测试或支持）会被拦截和验证。该层确保模拟得到授权、记录，并且不能用于绕过生产控制。
 
-### Layer 7 — Authorization
+### 第 7 层 — 授权
 
-Role-Based Access Control (RBAC) is enforced via an injected Authorizer. Each API method declares required permissions in source annotations; the layer rejects requests that lack them. OpenAPI demo accounts are restricted to a whitelist of methods tagged with the `openapi` permission, preventing exploration beyond documented surfaces.
+基于角色的访问控制 (RBAC) 通过注入的授权者强制执行。每个API方法在源注释中声明所需的权限；该层拒绝缺少它们的请求。 OpenAPI 演示帐户仅限于使用 `openapi` 权限标记的方法白名单，从而防止探索超出记录的表面。
 
-### Layer 8 — Sentinel Web
+### 第 8 层 — Sentinel Web
 
-Tenant- and customer-level flow control is applied here. Sentinel rules can throttle or block traffic at the granularity of individual tenants or customers, ensuring noisy-neighbor isolation without affecting platform-wide availability.
+这里应用租户级和客户级的流量控制。 Sentinel 规则可以按单个租户或客户的粒度限制或阻止流量，确保嘈杂的邻居隔离，而不影响整个平台的可用性。
 
-### Layer 9 — Core Handler
+### 第 9 层 — 核心处理程序
 
-The business execution layer parses request parameters, performs cache lookups (read path), invokes the target business method via reflection, and initiates asynchronous cache invalidation for write operations. Cache keys are derived deterministically from service name, method name, and sorted query parameters. Field-level access control metadata is resolved and attached for the response layer.
+业务执行层解析请求参数，进行缓存查找（读路径），通过反射调用目标业务方法，并对写操作发起异步缓存失效。缓存键是根据服务名称、方法名称和排序的查询参数确定性派生的。字段级访问控制元数据被解析并附加到响应层。
 
-### Layer 10 — Response
+### 第 10 层 — 响应
 
-The innermost layer constructs the unified response envelope, writes cache entries for read operations (with optional compression), applies field filtering based on the caller's access profile, and supports streaming output (SSE) when the service returns a `StreamingOutput` implementation. All responses conform to a single JSON envelope schema.
+最内层构造统一的响应信封，为读取操作写入缓存条目（具有可选的压缩），根据调用者的访问配置文件应用字段过滤，并在服务返回 `StreamingOutput` 实现时支持流输出（SSE）。所有响应都符合单个 JSON 信封架构。
 
 ---
 
-## Implemented Control Summary
+## 实施的控制摘要
 
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| In-Process HTTP Dispatcher | Eliminates sidecar/proxy latency; every request is handled within the service process, reducing P99 response times. |
-| Panic Recovery with Sentry Reporting | A single bad request cannot crash a service instance; incidents are captured and routed to engineering with full context. |
-| IP-Level Rate Limiting | Abusive or misconfigured clients are throttled at the network edge before consuming compute or downstream resources. |
-| Sentinel API Gateway Rate Limiting | Global and per-API throughput limits protect platform stability during traffic spikes and promotional events. |
-| Exact-Path Routing (No Path Parameters) | Predictable cache keys and uniform access logs eliminate ambiguity in caching, monitoring, and log analysis. |
-| Short Token Mode | Smaller headers, instant server-side revocation, and reduced token surface area improve security and transfer efficiency. |
-| Sliding Expiration | API tokens expire based on inactivity, not fixed calendar time, balancing security with uninterrupted legitimate usage. |
-| Singleflight User Refresh | Concurrent requests for the same user trigger only one refresh operation, eliminating cache stampede on user data. |
-| Mock Operation Guard | Administrative impersonation is controlled, audited, and cannot be exploited to access unauthorized data. |
-| RBAC with OpenAPI Whitelist | Fine-grained permission enforcement ensures customers and demo accounts access only explicitly authorized endpoints. |
-| Tenant/Customer Sentinel Flow Control | Multi-tenant isolation prevents one customer's traffic from degrading service quality for others. |
-| Deterministic Response Caching | Read-heavy APIs benefit from Redis-backed caching with automatic invalidation on writes, reducing latency and load. |
-| Async Write-Triggered Cache Invalidation | Cache consistency is maintained without blocking the response path, preserving low-latency mutations. |
-| Field Collection Caching & Filtering | Responses are automatically scoped to fields the caller is permitted to see, preventing overexposure of sensitive attributes. |
-| Streaming Response Support | Real-time endpoints (e.g., progress streams) bypass default JSON marshaling while retaining observability. |
-| Error Normalization | Network and dependency failures are mapped to stable error categories, preventing internal topology leakage. |
-| Per-Middleware Timing with Alerting | Every layer's latency is measured; layers exceeding 10ms trigger operational alerts for rapid diagnosis. |
+|进程内 HTTP 调度程序 |消除 sidecar/代理延迟；每个请求都在服务进程内处理，减少了 P99 响应时间。 |
+|使用哨兵报告进行紧急恢复 |单个错误请求不会导致服务实例崩溃；事件被捕获并发送到具有完整背景的工程人员。 |
+| IP 级限速|滥用或配置错误的客户端在消耗计算或下游资源之前会在网络边缘受到限制。 |
+| Sentinel API 网关速率限制 |全局和每个 API 的吞吐量限制可在流量高峰和促销活动期间保护平台稳定性。 |
+|精确路径路由（无路径参数）|可预测的缓存键和统一的访问日志消除了缓存、监控和日志分析中的歧义。 |
+|Short Token 模式 |更小的标头、即时服务器端撤销和减少的令牌表面积提高了安全性和传输效率。 |
+|滑动到期 | API 令牌根据不活动而不是固定的日历时间到期，从而平衡安全性与不间断的合法使用。 |
+| Singleflight 用户刷新 |同一用户的并发请求仅触发一次刷新操作，消除了用户数据的缓存踩踏现象。 |
+|模拟操作卫士|管理模拟受到控制和审核，并且不能被用来访问未经授权的数据。 |
+| RBAC 与 OpenAPI 白名单 |细粒度的权限实施可确保客户和演示帐户仅访问明确授权的端点。 |
+|租户/客户哨兵流量控制 |多租户隔离可防止一个客户的流量降低其他客户的服务质量。 |
+|确定性响应缓存 |读取密集型 API 受益于 Redis 支持的缓存，写入时自动失效，从而减少延迟和负载。 |
+|异步写触发缓存失效 |在不阻塞响应路径的情况下保持缓存一致性，从而保留低延迟突变。 |
+|字段集合缓存和过滤|响应范围自动限定为允许调用者查看的字段，从而防止敏感属性过度暴露。 |
+|流媒体响应支持 |实时端点（例如进度流）绕过默认的 JSON 封送处理，同时保留可观测性。 |
+|误差归一化|网络和依赖性故障被映射到稳定的错误类别，防止内部拓扑泄漏。 |
+|每个中间件的定时与警报测量每一层的延迟；超过 10ms 的层会触发操作警报以进行快速诊断。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte gateway controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证 HotelByte 网关控制：
 
-1. **Structured Access Logs (HBLog)** — Every request emits a structured log record containing path, service, method, tenant, customer, API key, cache hit/miss status, cost time, and error classification. These logs are retained and available for audit export.
+1. **结构化访问日志 (HBLog)** — 每个请求都会发出结构化日志记录，其中包含路径、服务、方法、租户、客户、API 密钥、缓存命中/未命中状态、成本时间和错误分类。这些日志将被保留并可供审计导出。
 
-2. **Metrics Export** — `APICallTiming` and `APICallCount` metrics are tagged by service, method, tenant, customer, API key, and cache status. Reviewers with metric access can independently validate rate-limit effectiveness, cache hit ratios, and latency distributions.
+2. **指标导出** — `APICallTiming` 和 `APICallCount` 指标按服务、方法、租户、客户、API 密钥和缓存状态进行标记。具有指标访问权限的审阅者可以独立验证速率限制有效性、缓存命中率和延迟分布。
 
-3. **Sentry Integration** — Panic events include full stack traces, request context, user identity, and tenant information. Security teams can correlate Sentry incidents with access logs.
+3. **Sentry Integration** — 紧急事件包括完整堆栈跟踪、请求上下文、用户身份和租户信息。安全团队可以将 Sentry 事件与访问日志关联起来。
 
-4. **Sentinel Dashboards** — Sentinel flow-control rules and real-time QPS/block metrics are observable through standard Sentinel consoles, enabling independent confirmation that rate limits and tenant throttles are active.
+4. **Sentinel 仪表板** — Sentinel 流量控制规则和实时 QPS/块指标可通过标准 Sentinel 控制台进行观察，从而能够独立确认速率限制和租户限制是否处于活动状态。
 
-5. **Token Store Audit** — Short Token access records (last access time, IP, user agent, access count) are stored in Redis and can be queried to verify token usage patterns and sliding expiration behavior.
+5. **令牌存储审核** - Short Token访问记录（上次访问时间、IP、用户代理、访问计数）存储在 Redis 中，可以查询以验证令牌使用模式和滑动过期行为。
 
-6. **Source Annotations** — API methods declare authentication requirements (`@auth`), permissions (`@permission`), and cache behavior (`@cache`) in source code. These annotations are parsed at build time and can be statically audited to verify that controls match published API documentation.
+6. **源注释** — API 方法在源代码中声明身份验证要求 (`@auth`)、权限 (`@permission`) 和缓存行为 (`@cache`)。这些注释在构建时进行解析，并且可以进行静态审核以验证控件是否与已发布的 API 文档相匹配。
 
-7. **Integration Tests** — The `httpdispatcher` package includes comprehensive tests covering cache invalidation, rate limiting, JWT short-token flows, field filtering, authorization, and error normalization. Reviewers can execute these tests to reproduce control behavior in a local environment.
+7. **集成测试** — `httpdispatcher` 包包括全面的测试，涵盖缓存失效、速率限制、JWT Short Token流、字段过滤、授权和错误规范化。审阅者可以执行这些测试以在本地环境中重现控制行为。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **OWASP API Security Top 10 (2023)** — API1:2023 Broken Object Level Authorization | "Implement a proper authorization mechanism that relies on the user policies and hierarchy." | RBAC permission checks (`authorizeMiddleware`) enforce method-level authorization against declared permissions. OpenAPI whitelist further restricts demo account access. |
-| **OWASP API Security Top 10 (2023)** — API6:2023 Unrestricted Access to Sensitive Business Flows | "Implement rate limiting and flow control mechanisms to prevent abuse of business flows." | Three-tier rate limiting (IP, API gateway, tenant/customer Sentinel) prevents automated abuse and protects sensitive booking/search flows. |
-| **NIST SP 800-207 Zero Trust Architecture** | "The enterprise monitors and measures the integrity and security posture of all owned and associated assets." | In-process gateway eliminates trust in external proxies; every request is authenticated, authorized, and metered within the service boundary. |
-| **RFC 8725 JSON Web Token Best Current Practices** | "Keep tokens short-lived and use refresh tokens where necessary." | Short Token Mode stores claims server-side; sliding expiration based on activity ensures tokens are short-lived in practice without forcing frequent reauthentication. |
-| **RFC 6585 HTTP Status Code 429 (Too Many Requests)** | "The 429 status code indicates that the user has sent too many requests in a given amount of time." | Sentinel and IP rate limiters return standard 429 responses with clear rate-limit headers, enabling client-side back-off strategies. |
-| **NIST SP 800-53 Rev. 5 AC-3 Access Enforcement** | "The information system enforces approved authorizations for logical access to information and system resources." | `authorizeMiddleware` enforces RBAC permissions annotated at the method level, with fallback no-auth lists for public endpoints; impersonation is guarded by `mockGuardMiddleware`. |
+| **OWASP API 安全性前 10 名 (2023)** — API1:2023 损坏的对象级授权 | “实施依赖于用户策略和层次结构的适当授权机制。” | RBAC 权限检查 (`authorizeMiddleware`) 针对声明的权限强制执行方法级授权。 OpenAPI 白名单进一步限制模拟账户访问。 |
+| **OWASP API 安全性前 10 名 (2023)** — API6:2023 无限制访问敏感业务流程 | “实施速率限制和流量控制机制，以防止滥用业务流量。” |三层速率限制（IP、API 网关、租户/客户 Sentinel）可防止自动滥用并保护敏感的预订/搜索流。 |
+| **NIST SP 800-207 零信任架构** | “企业监控和测量所有拥有和相关资产的完整性和安全状况。” |进程内网关消除了对外部代理的信任；每个请求都在服务边界内进行身份验证、授权和计量。 |
+| **RFC 8725 JSON Web 令牌当前最佳实践** | “保持令牌短暂，并在必要时使用刷新令牌。” |Short Token 模式在服务器端存储声明；基于活动的滑动过期可确保令牌在实践中是短暂的，而无需强制频繁重新进行身份验证。 |
+| **RFC 6585 HTTP 状态代码 429（请求过多）** | “429 状态代码表示用户在给定时间内发送了太多请求。” | Sentinel 和 IP 速率限制器返回带有明确速率限制标头的标准 429 响应，从而启用客户端回退策略。 |
+| **NIST SP 800-53 Rev. 5 AC-3 访问强制** | “信息系统强制执行对信息和系统资源的逻辑访问的批准授权。” | `authorizeMiddleware` 强制在方法级别注释 RBAC 权限，并为公共端点提供后备无身份验证列表；假冒行为由 `mockGuardMiddleware` 保护。 |
 
 ---
 
-*For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+*如对本白皮书有疑问或审核请求，请通过您指定的合作伙伴渠道联系 HotelByte Engineering。*

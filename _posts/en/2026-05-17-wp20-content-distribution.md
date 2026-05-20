@@ -8,7 +8,7 @@ tags: [Content, Distribution, Hotel Data]
 author: "HotelByte Team"
 description: "A guide to HotelByte's global hotel content distribution model."
 lang: en
-permalink: /whitepapers/wp20-content-distribution/
+permalink: /en/whitepapers/wp20-content-distribution/
 source_asset: hotel-be/docs/en/whitepapers/20-global-content-management-and-distribution.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp20-content-distribution/original/

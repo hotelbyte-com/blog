@@ -8,7 +8,7 @@ tags: [Testing, UAT, Real Data]
 author: "HotelByte Team"
 description: "A guide to HotelByte's real-data validation culture."
 lang: en
-permalink: /whitepapers/wp23-real-data-testing/
+permalink: /en/whitepapers/wp23-real-data-testing/
 source_asset: hotel-be/docs/en/whitepapers/23-real-data-testing-culture.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp23-real-data-testing/original/

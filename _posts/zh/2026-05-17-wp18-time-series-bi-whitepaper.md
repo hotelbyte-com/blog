@@ -1,204 +1,193 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：时序 BI 分析白皮书"
+title: "时序 BI 分析白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp18-time-series-bi/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp18-time-series-bi/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp18-time-series-bi/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：时序 BI 分析白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Time-Series BI Analytics Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte's platform processes millions of hotel search, availability, and booking transactions daily across a global supplier network. Each transaction generates telemetry—request paths, latency measurements, error codes, payload sizes, and supplier interactions—that must be ingested, stored, and analyzed at scale to support operational intelligence, cost allocation, and quality assurance.
+HotelByte 的平台每天通过全球供应商网络处理数百万笔酒店搜索、供应情况和预订交易。每笔交易都会生成遥测数据（请求路径、延迟测量、错误代码、有效负载大小和供应商交互），必须大规模摄取、存储和分析这些遥测数据，以支持运营智能、成本分配和质量保证。
 
-This whitepaper describes HotelByte's Time-Series BI Analytics infrastructure, a purpose-built operational intelligence layer that delivers sub-second analytics over high-velocity log data. The architecture combines an optimized ingestion pipeline with sharded writes, sub-table partitioning by operational dimensions, and a dual-path query strategy that prioritizes pre-aggregated metrics for dashboard-speed responsiveness while preserving full-resolution raw data for deep-dive diagnostics. Cost analytics are derived directly from the time-series store, enabling real-time visibility into per-tenant, per-API, and per-supplier consumption patterns.
+本白皮书介绍了 HotelByte 的时序 BI 分析基础设施，这是一个专门构建的运营智能层，可通过高速日志数据提供亚秒级分析。该架构将优化的摄取管道与分片写入、按操作维度进行子表分区以及双路径查询策略相结合，该策略优先考虑预聚合指标以实现仪表板速度响应，同时保留用于深度诊断的全分辨率原始数据。成本分析直接源自时间序列存储，从而能够实时了解每个租户、每个 API 和每个供应商的消费模式。
 
-The intended audience includes enterprise customers, security auditors, integration partners, and technical evaluators.
-
----
-
-## Scope
-
-This document covers the architectural design, operational behavior, and resilience posture of HotelByte's time-series analytics subsystem. Specifically, it addresses:
-
-- The time-series ingestion layer, including batch write optimization and shard-distribution strategies
-- The storage layer, including sub-table partitioning, TAG-based indexing, and schema evolution compatibility
-- The query layer, including pre-aggregation tables, concurrent multi-path analytics, and latency-percentile computation
-- Cost analytics derived from time-series telemetry, including per-tenant request counts and payload-volume aggregation
-- Operational monitoring, data quality verification, and graceful degradation under query load
-- Auditability mechanisms that validate the accuracy and completeness of analytics outputs
-
-This whitepaper does not cover general application logging conventions, frontend dashboard implementations, or financial billing reconciliation logic, which are documented separately.
+目标受众包括企业客户、安全审核员、集成合作伙伴和技术评估员。
 
 ---
 
-## Objectives
+## 范围
 
-The Time-Series BI Analytics layer was designed to meet five operational objectives:
+本文档涵盖了 HotelByte 时间序列分析子系统的架构设计、操作行为和弹性状态。具体来说，它解决了：
 
-1. **Ingest High-Velocity Telemetry Without Blocking Production Paths** — Log data is written through an asynchronous, buffered pipeline that isolates analytics ingestion from critical request-serving paths.
+- 时间序列摄取层，包括批量写入优化和分片分配策略
+- 存储层，包括分表分区、基于TAG 的索引、模式演进兼容性
+- 查询层，包括预聚合表、并发多路径分析和延迟百分位计算
+- 来自时间序列遥测的成本分析，包括每个租户的请求计数和有效负载量聚合
+- 运行监控、数据质量验证以及查询负载下的优雅降级
+- 验证分析输出的准确性和完整性的审核机制
 
-2. **Deliver Sub-Second Operational Dashboards** — Pre-aggregated hourly metrics enable dashboards to load in under ten milliseconds, even when the raw dataset spans billions of rows.
-
-3. **Preserve Full-Resolution Diagnostic Capability** — Raw records remain queryable for forensic analysis and session reconstruction, ensuring aggregation speed never sacrifices investigative depth.
-
-4. **Enable Real-Time Cost Visibility** — Request counts, payload sizes, and supplier call distributions are computed directly against the time-series store, providing tenants with near-real-time consumption visibility.
-
-5. **Maintain Analytical Availability Under Load** — When expensive percentile queries encounter resource contention, the system degrades gracefully to alternative statistical sources rather than failing the user experience.
-
----
-
-## Design Principles
-
-### Query-Time Optimization
-
-HotelByte inverts the typical ingestion-query trade-off by performing targeted pre-aggregation during off-peak hours, materializing hourly rollups of request volumes, error rates, latency percentiles, and data-quality metrics into a dedicated aggregation table. Dashboard queries consume these rollups by default, reducing latency from multiple seconds to single-digit milliseconds. Raw table queries are reserved for trace-level investigations and ad-hoc analysis where full resolution is required.
-
-### Graceful Degradation
-
-Latency percentile calculations over large time windows are inherently expensive. HotelByte's query layer implements a cascading resolution strategy: pre-aggregated percentiles are used first; if unavailable, the system computes approximate percentiles directly from the time-series engine; in exceptional load conditions, the platform can synthesize percentile estimates from companion histogram metrics. Each step preserves analytical utility while respecting operational latency budgets.
-
-### Multi-Tenant Isolation
-
-The time-series schema encodes tenant identity through TAG dimensions (hostname, user identity, and entity identifiers) rather than ordinary columns, enabling the database engine to apply partition pruning at the storage level. Tenant-scoped queries scan only relevant sub-tables, maintaining consistent query performance as the overall dataset grows.
-
-### Schema Evolution Compatibility
-
-The analytics layer detects schema capabilities at runtime and automatically adapts write and query patterns to match the current table definition. This ensures that analytics ingestion continues uninterrupted through planned schema migrations, without requiring synchronized deployment windows.
-
-### Write-Path Resilience
-
-Ingestion throughput is protected through buffered worker queues, hash-based shard distribution, and monotonic timestamp allocation. Write batches are distributed across concurrent workers based on tenant identity, preventing head-of-line blocking. When sub-millisecond log bursts arrive, the timestamp allocator ensures chronological ordering without collision, preserving data integrity at high write velocity.
+本白皮书不涵盖一般应用程序日志记录约定、前端仪表板实现或财务计费对账逻辑，这些内容均单独记录。
 
 ---
 
-## Analytics Architecture
+## 目标
 
-### Ingestion Layer
+时序 BI 分析层旨在满足五个运营目标：
 
-The ingestion layer receives structured log records from the platform's request-processing pipeline and stages them for time-series persistence. Records are grouped by destination sub-table, determined from operational dimensions such as hostname and tenant identity. Each group is routed to a concurrent shard worker using a deterministic hash function, ensuring that records for a given tenant flow through the same worker and preserving temporal ordering within that partition.
+1. **在不阻塞生产路径的情况下摄取高速遥测** - 日志数据通过异步缓冲管道写入，该管道将分析摄取与关键请求服务路径隔离。
 
-Each worker maintains a bounded job queue. When capacity is reached, backpressure is applied upstream, preventing unbounded memory growth during traffic spikes. Within each worker, timestamps are allocated monotonically per sub-table, guaranteeing strict chronological order even for sub-millisecond batches.
+2. **交付亚秒级操作仪表板** - 预先聚合的每小时指标使仪表板能够在十毫秒内加载，即使原始数据集跨越数十亿行也是如此。
 
-### Storage Layer
+3. **保留全分辨率诊断能力** - 原始记录仍然可查询以进行取证分析和会话重建，确保聚合速度不会牺牲调查深度。
 
-The storage layer uses a super-table abstraction that defines the common schema for all log records, with sub-tables created dynamically for each unique combination of TAG values. TAGs are indexed dimensions—hostname, user identity, seller entity, and buyer entity—that the query optimizer uses to eliminate irrelevant partitions before scanning data. Chronologically ordered data is stored in physically contiguous blocks while pruning aggressively on TAG filters.
+4. **启用实时成本可见性** - 请求计数、有效负载大小和供应商呼叫分布直接根据时间序列存储进行计算，为租户提供近乎实时的消费可见性。
 
-The schema supports two complementary tables. The raw table stores every log record at full resolution. The hourly aggregation table stores pre-computed rollups—total logs, session counts, error counts, request volumes, latency percentiles, and data-quality indicators—enabling instantaneous summary queries over arbitrary time windows.
-
-A background aggregation process computes hourly rollups from the raw table and writes them into the pre-aggregation table. This process is idempotent and safe to run concurrently; duplicate writes for the same hour overwrite prior values, ensuring that backfills produce consistent results without double-counting.
-
-### Query Layer
-
-The query layer implements a dual-path resolution strategy. For summary statistics and trend visualizations, the query engine first inspects the pre-aggregation table. If aggregated data exists for the requested time window, it is returned immediately. If aggregated data is absent or partial, the engine falls back to computing metrics directly from the raw table.
-
-Top-N analytics—such as the most frequent error codes, suppliers with the highest error rates, and the most heavily used API endpoints—are executed as concurrent, independent queries with a bounded parallelism limit. This prevents analytics workloads from monopolizing execution resources while delivering unified statistical snapshots.
-
-Latency percentile queries use the time-series engine's native approximate percentile function for statistical efficiency. If this computation exceeds latency budgets, the query layer synthesizes estimates from companion histogram telemetry, ensuring dashboard availability is never compromised by expensive calculations.
-
-### Cost Analytics
-
-Cost analytics leverage the same time-series store to provide tenant-visible consumption metrics:
-
-- **Daily Cost Aggregation** computes per-tenant request counts and cumulative payload volumes, grouped by user identity, entity, and API path. This enables precise allocation of infrastructure and supplier costs to the originating tenant and endpoint.
-
-- **Supplier Distribution Analysis** computes the volume of calls dispatched to each downstream supplier, broken down by inbound API path. This visibility allows tenants to understand supplier utilization patterns and optimize their integration topology.
-
-Both patterns query the raw time-series table directly, ensuring cost metrics reflect the latest data without waiting for rollup generation.
+5. **在负载下保持分析可用性** - 当昂贵的百分位查询遇到资源争用时，系统会优雅地降级到替代统计源，而不是破坏用户体验。
 
 ---
 
-## Data Lifecycle and Query Flow
+## 设计原则
 
-A typical log record flows through the analytics infrastructure as follows:
+### 查询时间优化
 
-1. **Generation** — The request gateway emits a structured log entry upon completion of each API call, capturing latency, status, payload metadata, and supplier interaction details.
+HotelByte 通过在非高峰时段执行有针对性的预聚合，将请求量、错误率、延迟百分位数和数据质量指标每小时汇总到专用聚合表中，从而反转了典型的摄取-查询权衡。仪表板查询默认使用这些汇总，将延迟从数秒减少到个位数毫秒。原始表查询保留用于需要完全解析的跟踪级调查和临时分析。
 
-2. **Batching** — Log records are accumulated into micro-batches and submitted to the ingestion layer, amortizing write overhead without introducing perceptible latency.
+### 优雅的降级
 
-3. **Sharding** — The ingestion layer hashes each record by tenant identity and dispatches it to the appropriate shard worker, balancing write load while preserving per-tenant ordering.
+大时间窗口上的延迟百分位计算本质上是昂贵的。 HotelByte 的查询层实现了级联解析策略：首先使用预先聚合的百分位数；如果不可用，系统直接从时间序列引擎计算近似百分位数；在特殊负载条件下，该平台可以根据配套直方图指标综合百分位估计值。每个步骤都保留了分析效用，同时尊重操作延迟预算。
 
-4. **Persistence** — Shard workers construct optimized insert statements with TAG values and column data, writing records into the appropriate sub-table under the super-table hierarchy.
+### 多租户隔离
 
-5. **Hourly Aggregation** — A scheduled process scans the raw table for the previous hour, computes summary statistics, and writes the results into the pre-aggregation table. This process runs independently of ingestion and can be backfilled over historical data when needed.
+时间序列模式通过 TAG 维度（主机名、用户身份和实体标识符）而不是普通列对租户身份进行编码，从而使数据库引擎能够在存储级别应用分区修剪。租户范围的查询仅扫描相关子表，随着整体数据集的增长保持一致的查询性能。
 
-6. **Query Resolution** — When a dashboard or API request arrives, the query layer first checks the pre-aggregation table, returning data instantly if available; otherwise, it falls back to the raw table. Top-N and percentile queries follow their respective optimized paths.
+### 模式演化兼容性
 
-7. **Cost Computation** — Daily cost aggregation queries scan the raw table for the target calendar day, grouping by tenant and API path to produce consumption reports.
+分析层在运行时检测架构功能，并自动调整写入和查询模式以匹配当前的表定义。这可确保分析摄取通过计划的架构迁移继续不间断，无需同步部署窗口。
+
+### 写入路径弹性
+
+通过缓冲工作队列、基于哈希的分片分配和单调时间戳分配来保护摄取吞吐量。写入批次根据租户身份分布在并发工作人员之间，从而防止队头阻塞。当亚毫秒级日志突发到达时，时间戳分配器可确保按时间顺序排序而不会发生冲突，从而在高写入速度下保持数据完整性。
 
 ---
 
-## Implemented Control Summary
+## 分析架构
 
-| Control | Customer Value |
+### 摄取层
+
+摄取层从平台的请求处理管道接收结构化日志记录，并将其暂存以实现时间序列持久化。记录按目标子表进行分组，该子表是根据主机名和租户身份等操作维度确定的。每个组都使用确定性哈希函数路由到并发分片工作线程，确保给定租户的记录流经同一工作线程并保留该分区内的时间顺序。
+
+每个工作人员维护一个有界作业队列。当达到容量时，向上游施加反压，防止流量高峰期间内存无限增长。在每个工作线程中，时间戳是按子表单调分配的，即使对于亚毫秒级批次也能保证严格的时间顺序。
+
+### 存储层
+
+存储层使用超级表抽象来定义所有日志记录的通用模式，并为每个唯一的 TAG 值组合动态创建子表。标签是索引维度（主机名、用户身份、卖方实体和买方实体），查询优化器使用它们在扫描数据之前消除不相关的分区。按时间顺序排列的数据存储在物理上连续的块中，同时在 TAG 过滤器上进行积极的修剪。
+
+该架构支持两个互补表。原始表以全分辨率存储每个日志记录。每小时聚合表存储预先计算的汇总（总日志、会话计数、错误计数、请求量、延迟百分位数和数据质量指标），从而支持在任意时间窗口内进行即时摘要查询。
+
+后台聚合过程根据原始表计算每小时汇总并将其写入预聚合表中。该过程是幂等的并且可以安全地并发运行；同一小时的重复写入会覆盖先前的值，确保回填产生一致的结果，而不会重复计算。
+
+### 查询层
+
+查询层实现双路径解析策略。对于汇总统计和趋势可视化，查询引擎首先检查预聚合表。如果请求的时间窗口内存在聚合数据，则立即返回。如果聚合数据不存在或不完整，引擎将回退到直接从原始表计算指标。
+
+Top-N 分析（例如最常见的错误代码、错误率最高的供应商以及使用最频繁的 API 端点）作为具有有限并行度限制的并发、独立查询执行。这可以防止分析工作负载在提供统一的统计快照时独占执行资源。
+
+延迟百分位数查询使用时间序列引擎的本机近似百分位数函数来提高统计效率。如果此计算超出延迟预算，查询层会综合来自配套直方图遥测的估计值，确保仪表板可用性永远不会因昂贵的计算而受到影响。
+
+### 成本分析
+
+成本分析利用相同的时间序列存储来提供租户可见的消耗指标：
+
+- **每日成本聚合** 计算每个租户的请求计数和累积负载量，按用户身份、实体和 API 路径分组。这使得能够将基础设施和供应商成本精确分配给原始租户和端点。
+
+- **供应商分布分析**计算发送给每个下游供应商的调用量，按入站 API 路径细分。这种可见性使租户能够了解供应商利用模式并优化其集成拓扑。
+
+两种模式都直接查询原始时间序列表，确保成本指标反映最新数据，而无需等待汇总生成。
+
+---
+
+## 数据生命周期和查询流程
+
+典型的日志记录按如下方式流经分析基础设施：
+
+1. **生成** — 请求网关在完成每个 API 调用后发出结构化日志条目，捕获延迟、状态、有效负载元数据和供应商交互详细信息。
+
+2. **批处理** — 日志记录累积成微批次并提交到摄取层，分摊写入开销，而不会引入可察觉的延迟。
+
+3. **分片** — 摄取层根据租户身份对每个记录进行哈希处理，并将其分派给适当的分片工作人员，平衡写入负载，同时保留每个租户的顺序。
+
+4. **持久化** — 分片工作人员使用 TAG 值和列数据构造优化的插入语句，将记录写入超表层次结构下的相应子表中。
+
+5. **每小时聚合** — 计划的进程扫描前一小时的原始表，计算汇总统计信息，并将结果写入预聚合表中。此过程独立于摄取运行，并且可以在需要时回填历史数据。
+
+6. **查询解析**——当仪表板或API请求到达时，查询层首先检查预聚合表，如果有数据则立即返回；否则，它会回退到原始表。 Top-N 和百分位数查询遵循各自的优化路径。
+
+7. **成本计算** — 每日成本聚合查询扫描目标日历日的原始表，按租户和 API 路径分组以生成消耗报告。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Sharded Write Pipeline** | Ingestion throughput scales horizontally across concurrent workers, preventing analytics backpressure from affecting production request paths. |
-| **Sub-Table Partitioning by Tenant** | Tenant-scoped queries scan only relevant partitions, ensuring consistent query latency regardless of total platform data volume. |
-| **Pre-Aggregated Hourly Metrics** | Dashboard and summary queries resolve in under ten milliseconds by reading pre-computed rollups rather than scanning billions of raw records. |
-| **Dual-Path Query Resolution** | The query layer automatically selects the fastest available data source (pre-aggregated or raw), balancing speed against analytical freshness. |
-| **Schema Evolution Compatibility** | The analytics layer auto-detects schema capabilities and adapts write and query patterns transparently, ensuring continuity through planned upgrades. |
-| **Monotonic Timestamp Allocation** | Sub-millisecond log bursts are stored in strict chronological order without collision, preserving data integrity at high write velocity. |
-| **Concurrent Multi-Path Analytics** | Top-N error codes, supplier errors, and endpoint usage are computed in parallel with bounded concurrency, delivering unified snapshots without head-of-line blocking. |
-| **Cascading Latency Percentile Resolution** | Percentile statistics are resolved through pre-aggregated data, native approximate computation, or companion histogram telemetry, ensuring dashboard availability under all load conditions. |
-| **Daily Cost Aggregation by Tenant and API** | Tenants receive precise per-day request counts and payload volumes grouped by entity and API path, enabling accurate cost allocation and usage forecasting. |
-| **Supplier Call Distribution Analysis** | Downstream supplier utilization is visible per inbound API path, supporting integration optimization and supplier performance management. |
-| **Idempotent Hourly Rollup Backfill** | Historical aggregation gaps can be filled safely without double-counting, ensuring consistent metrics even after operational incidents or schema changes. |
-| **Bounded Worker Queue Backpressure** | Each shard worker enforces a fixed-capacity job queue, protecting memory stability during traffic spikes and maintaining predictable ingestion behavior. |
+| **分片写入管道** |摄取吞吐量在并发工作人员之间水平扩展，防止分析背压影响生产请求路径。 |
+| **按租户进行子表分区** |租户范围的查询仅扫描相关分区，从而确保一致的查询延迟，无论平台总数据量如何。 |
+| **预先聚合的每小时指标** |通过读取预先计算的汇总而不是扫描数十亿条原始记录，仪表板和摘要查询可在十毫秒内解决。 |
+| **双路径查询解析** |查询层自动选择最快的可用数据源（预聚合或原始），平衡速度与分析新鲜度。 |
+| **模式演化兼容性** |分析层自动检测架构功能并透明地调整写入和查询模式，从而确保计划升级的连续性。 |
+| **单调时间戳分配** |亚毫秒级日志突发按严格的时间顺序存储，不会发生冲突，从而在高写入速度下保持数据完整性。 |
+| **并发多路径分析** | Top-N 错误代码、供应商错误和端点使用情况与有界并发并行计算，从而提供统一的快照，而不会出现队头阻塞。 |
+| **级联延迟百分位数分辨率** |百分位统计数据通过预聚合数据、本机近似计算或配套直方图遥测来解决，确保仪表板在所有负载条件下的可用性。 |
+| **按租户和 API 进行的每日成本汇总** |租户收到按实体和 API 路径分组的精确的每日请求计数和有效负载量，从而实现准确的成本分配和使用预测。 |
+| **供应商来电分布分析** |每个入站 API 路径下游供应商的利用率都是可见的，支持集成优化和供应商绩效管理。 |
+| **幂等每小时汇总回填** |可以安全地填补历史聚合缺口，无需重复计算，即使在发生操作事件或架构更改后也能确保指标的一致性。 |
+| **有界工作队列背压** |每个分片工作线程强制执行固定容量的作业队列，在流量高峰期间保护内存稳定性并保持可预测的摄取行为。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte's time-series analytics controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证 HotelByte 的时间序列分析控制：
 
-1. **Structured Aggregation Logs.** The hourly aggregation process emits structured logs recording the time window processed, total records scanned, and computed percentile values. These logs support independent verification that rollup values accurately reflect the underlying raw data.
+1. **结构化聚合日志。** 每小时聚合过程会发出结构化日志，记录处理的时间窗口、扫描的总记录和计算的百分位值。这些日志支持独立验证，确保汇总值准确反映底层原始数据。
 
-2. **Data Quality Metrics.** The analytics layer continuously measures the completeness of latency and error-code fields. Missing-value rates are surfaced as first-class metrics, enabling reviewers to assess data fidelity.
+2. **数据质量指标。** 分析层持续测量延迟和错误代码字段的完整性。缺失值率作为一流的指标出现，使审阅者能够评估数据的保真度。
 
-3. **Query Performance Telemetry.** Every query path emits latency and outcome metrics. Reviewers can verify that dashboards operate within stated latency budgets and identify when fallback paths are engaged.
+3. **查询性能遥测。** 每个查询路径都会发出延迟和结果指标。审核人员可以验证仪表板是否在规定的延迟预算内运行，并确定何时使用后备路径。
 
-4. **Cost Analytics Reconciliation.** Daily cost aggregation outputs can be cross-referenced against request gateway logs and supplier call logs. The same raw time-series data feeds both operational dashboards and cost reports, ensuring a single source of truth.
+4. **成本分析调节。** 每日成本聚合输出可以与请求网关日志和供应商调用日志交叉引用。相同的原始时间序列数据提供给运营仪表板和成本报告，确保单一事实来源。
 
-5. **Schema Capability Detection Logs.** When the analytics layer adapts to schema changes, the adaptation decision and detected capabilities are logged, creating an auditable trail of compatibility maintenance.
+5. **架构功能检测日志。** 当分析层适应架构更改时，会记录适应决策和检测到的功能，从而创建兼容性维护的可审计跟踪。
 
-6. **Source Code Verification.** The time-series analytics pipeline is implemented in the platform's core BI layer, subject to the same code review, static analysis, and integration test coverage as the rest of the platform.
+6. **源代码验证。** 时间序列分析管道在平台的核心 BI 层中实现，与平台的其余部分一样接受相同的代码审查、静态分析和集成测试覆盖率。
 
-7. **Integration Tests.** The BI layer includes tests covering batch ingestion, shard distribution, timestamp ordering, pre-aggregation accuracy, query fallback behavior, and cost aggregation correctness.
+7. **集成测试。** BI 层包括涵盖批量摄取、分片分布、时间戳排序、预聚合准确性、查询回退行为和成本聚合正确性的测试。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **TDengine Documentation — Super Table Design** | "A super table is a template for a type of data collection point. Sub-tables are created automatically using the super table as a template and each sub-table corresponds to a data collection point." | HotelByte's super-table schema defines the canonical log structure, while sub-tables are created per tenant-host combination. TAG-based pruning ensures tenant-scoped queries access only relevant partitions, aligning with the time-series engine's design intent. |
-| **Inmon, W. H. — "Building the Data Warehouse" (4th Ed.)** | "The data warehouse is subject oriented, integrated, time variant, and nonvolatile... the nonvolatile nature of the data warehouse means that once committed, the data is not updated or deleted." | HotelByte's raw time-series table acts as an append-only, nonvolatile warehouse of operational events. Pre-aggregated rollups are derived immutably from this source, preserving an auditable history of platform activity. |
-| **Kimball, R. & Ross, M. — "The Data Warehouse Toolkit" (3rd Ed.)** | "Aggregates are the single most dramatic way to affect performance in a large data warehouse... the aggregate navigator chooses the most efficient available aggregate." | HotelByte's dual-path query layer implements aggregate navigation: the engine prioritizes pre-aggregated rollups and transparently falls back to the raw table when unavailable, matching Kimball's pattern. |
-| **NIST SP 800-53 Rev. 5 — AU-6 (Audit Review)** | "The organization analyzes audit records for indications of inappropriate or unusual activity." | HotelByte's structured aggregation logs, data quality metrics, and query performance telemetry provide audit records necessary to detect anomalous ingestion patterns and query path degradation, supporting continuous operational audit. |
-| **Fowler, M. — "Patterns of Enterprise Application Architecture" — CQRS** | "CQRS stands for Command Query Responsibility Segregation... the model for updating information is different from the model for reading information." | HotelByte's analytics layer applies CQRS principles: the write path is optimized for throughput and ordering, while the read path is optimized for query patterns, with distinct models serving each responsibility. |
-| **Brewer, E. — "CAP Twelve Years Later: How the 'Rules' Have Changed" (IEEE Computer, 2012)** | "The CAP theorem prohibits only a tiny part of the design space: perfect availability and consistency in the presence of partitions, which are rare." | HotelByte's cascading percentile resolution and dual-path query strategy prioritize analytical availability: when one computation path is slower, the system serves metrics through alternative paths rather than failing the query, aligning with the reality that transient load variations are common. |
-| **Dean, J. & Barroso, L. A. — "The Tail at Scale" (CACM, 2013)** | "Latency variability in large-scale systems is inevitable... techniques such as request hedging and tied requests can reduce the effects of tail latency." | HotelByte's concurrent multi-path analytics execute as independent parallel queries with bounded concurrency, ensuring that a single slow path does not delay the overall statistical snapshot, mirroring tail-latency mitigation at the query layer. |
+| **TDengine 文档 — 超级表格设计** | “超级表是一种数据采集点的模板。以超级表为模板自动创建子表，每个子表对应一个数据采集点。” | HotelByte 的超级表模式定义了规范的日志结构，而子表是根据租户-主机组合创建的。基于标记的修剪可确保租户范围的查询仅访问相关分区，从而与时间序列引擎的设计意图保持一致。 |
+| **Inmon, W. H. —“构建数据仓库”（第 4 版）** | “数据仓库是面向主题的、集成的、时变的和非易失性的……数据仓库的非易失性意味着一旦提交，数据就不会更新或删除。” | HotelByte 的原始时间序列表充当操作事件的仅附加、非易失性仓库。预聚合汇总是从该来源不可更改地导出的，保留了平台活动的可审计历史记录。 |
+| **Kimball, R. 和 Ross, M. —“数据仓库工具包”（第 3 版）** | “聚合是影响大型数据仓库性能的最显着的方式......聚合导航器选择最有效的可用聚合。” | HotelByte 的双路径查询层实现聚合导航：引擎优先考虑预聚合汇总，并在不可用时透明地回退到原始表，这与 Kimball 的模式相匹配。 |
+| **NIST SP 800-53 Rev. 5 — AU-6（审核审查）** | “该组织分析审计记录以查找不当或异常活动的迹象。” | HotelByte 的结构化聚合日志、数据质量指标和查询性能遥测提供检测异常摄取模式和查询路径降级所需的审核记录，支持持续运营审核。 |
+| **Fowler, M. —“企业应用程序架构模式”— CQRS** | “CQRS 代表命令查询职责分离……更新信息的模型与读取信息的模型不同。” | HotelByte 的分析层应用 CQRS 原则：写入路径针对吞吐量和排序进行了优化，而读取路径针对查询模式进行了优化，并使用不同的模型服务于每个职责。 |
+| **Brewer, E. —“CAP 十二年后：‘规则’如何变化”（IEEE 计算机，2012 年）** | “CAP 定理只禁止设计空间的一小部分：在存在分区的情况下实现完美的可用性和一致性，这是罕见的。” | HotelByte 的级联百分位分辨率和双路径查询策略优先考虑分析可用性：当一条计算路径较慢时，系统通过替代路径提供指标，而不是使查询失败，这与瞬态负载变化很常见的现实保持一致。 |
+| **Dean, J. 和 Barroso, L. A. —“大规模尾部”（CACM，2013 年）** | “大规模系统中的延迟变化是不可避免的......请求对冲和绑定请求等技术可以减少尾部延迟的影响。” | HotelByte 的并发多路径分析作为具有有限并发性的独立并行查询执行，确保单个慢速路径不会延迟整体统计快照，从而在查询层镜像尾部延迟缓解。 |
 
 ---
 
-*This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+*本白皮书由 HotelByte Engineering 发布。如果对本文所述的技术控制有疑问，请联系 HotelByte 技术支持或您指定的客户成功工程师。*

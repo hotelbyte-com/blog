@@ -8,7 +8,7 @@ tags: [Search, Hotel API, Supplier Aggregation]
 author: "HotelByte Team"
 description: "A guide to HotelByte's real-time hotel search aggregation architecture."
 lang: en
-permalink: /whitepapers/wp11-real-time-search/
+permalink: /en/whitepapers/wp11-real-time-search/
 source_asset: hotel-be/docs/en/whitepapers/11-real-time-search-aggregation.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp11-real-time-search/original/

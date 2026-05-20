@@ -1,209 +1,198 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：五维可观测性白皮书"
+title: "五维可观测性白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp24-observability/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp24-observability/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp24-observability/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：五维可观测性白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Five-Dimensional Observability Whitepaper
-
-**HotelByte Platform | Technical Whitepaper | v2.0**
+**HotelByte 平台 |技术白皮书 | v2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-Modern hotel distribution platforms operate at the intersection of high-velocity API traffic, multi-supplier integrations, and real-time inventory management. In this environment, traditional monitoring—focused on infrastructure uptime and resource utilization—is insufficient. HotelByte has architected a **Five-Dimensional Observability Framework** that provides comprehensive visibility across error tracking, distributed tracing, continuous profiling, metrics and monitoring, and business-context logging.
+现代酒店分销平台在高速 API 流量、多供应商集成和实时库存管理的交叉点上运行。在这种环境中，专注于基础设施正常运行时间和资源利用率的传统监控是不够的。 HotelByte 构建了一个**五维可观测性框架**，提供跨错误跟踪、分布式跟踪、连续分析、指标和监控以及业务上下文日志记录的全面可见性。
 
-This whitepaper details how HotelByte transforms raw telemetry into actionable intelligence, enabling rapid incident response, proactive performance optimization, and complete audit trails for every booking decision. Our approach moves beyond simple data collection to establish **correlation as a first-class principle**—ensuring that logs, traces, metrics, and errors are intrinsically linked through unified identifiers that follow a request from edge ingress through every downstream supplier interaction.
+本白皮书详细介绍了 HotelByte 如何将原始遥测数据转化为可操作的情报，从而实现快速事件响应、主动性能优化以及每个预订决策的完整审计跟踪。我们的方法超越了简单的数据收集，建立了**相关性作为一流的原则**——确保日志、跟踪、指标和错误通过统一标识符内在链接，这些标识符遵循边缘入口通过每个下游供应商交互的请求。
 
-The result is a platform where anomalies are detected in seconds, root causes are identified in minutes, and every business-critical decision leaves a verifiable evidence trail.
-
----
-
-## Scope
-
-This whitepaper covers the observability capabilities of the HotelByte API distribution platform as experienced by platform operators, integration partners, and enterprise customers. It describes:
-
-- **Error tracking and incident reporting** for API and supplier-facing services
-- **Distributed tracing** across multi-hop booking flows
-- **Continuous profiling** for production performance optimization
-- **Metrics collection and visualization** for business and operational intelligence
-- **Business-context logging** for decision auditability and compliance
-- **Readiness and health verification** for deployment safety and load balancer integration
-
-The scope excludes third-party supplier systems outside HotelByte's operational boundary, but includes all telemetry generated at HotelByte integration points.
+结果是一个平台，可以在几秒钟内检测到异常，在几分钟内确定根本原因，并且每个关键业务决策都会留下可验证的证据线索。
 
 ---
 
-## Objectives
+## 范围
 
-The Five-Dimensional Observability Framework is designed to achieve four primary objectives:
+本白皮书涵盖了平台运营商、集成合作伙伴和企业客户所体验到的 HotelByte API 分销平台的可观测性功能。它描述：
 
-1. **Mean Time to Detection (MTTD) under 60 seconds** for customer-impacting anomalies through real-time telemetry pipelines and automated alerting.
+- API 和面向供应商的服务的 **错误跟踪和事件报告**
+- **跨多跳预订流程的分布式跟踪**
+- **连续分析**以优化生产性能
+- **业务和运营智能的指标收集和可视化**
+- **业务上下文日志记录**用于决策的可审核性和合规性
+- **准备情况和运行状况验证**，用于部署安全和负载均衡器集成
 
-2. **Mean Time to Resolution (MTTR) under 15 minutes** for P1 incidents through correlated traces, contextual logs, and precise error attribution.
-
-3. **Complete request lineage** for every search, availability check, and booking transaction, enabling forensic analysis and compliance demonstration.
-
-4. **Proactive performance management** through continuous profiling and business metrics that surface degradation before it becomes customer-visible.
-
----
-
-## Design Principles
-
-HotelByte's observability architecture is governed by three core design principles that shape every implementation decision:
-
-### Observability by Design
-
-Telemetry is not an afterthought or bolt-on component. Every service is instrumented at construction time with standardized exporters, consistent naming conventions, and predefined cardinality boundaries. This ensures that new features enter production with full visibility from day one, eliminating observability gaps that typically accompany rapid feature delivery.
-
-### Sensitive Data Minimization
-
-HotelByte processes authentication credentials, payment contexts, and personal information across supplier integrations. Our telemetry pipeline implements automatic sanitization of sensitive headers—including Authorization, Cookie, and Token values—before data leaves the application boundary. This principle ensures that debugging capabilities never compromise data protection obligations.
-
-### Correlation Over Collection
-
-Raw telemetry volume does not equate to operational clarity. HotelByte prioritizes **correlation** through a unified `logid` identifier that propagates across all five observability dimensions. A single identifier links a Sentry error event to its distributed trace, its Prometheus metrics, its profiling snapshot, and its business log entries. This correlation-first approach eliminates the manual join operations that traditionally consume incident response time.
+该范围不包括 HotelByte 运营范围之外的第三方供应商系统，但包括 HotelByte 集成点生成的所有遥测数据。
 
 ---
 
-## Observability Architecture
+## 目标
 
-HotelByte implements observability as five integrated layers, each addressing a distinct operational concern while contributing to a unified operational picture.
+五维可观测性框架旨在实现四个主要目标：
 
-### Layer 1: Error Tracking and Incident Reporting
+1. **通过实时遥测管道和自动警报，影响客户的异常情况的平均检测时间 (MTTD) 低于 60 秒**。
 
-The error tracking layer captures exceptions, panics, and business-critical failures across all services. It implements automated sensitive-data filtering to ensure that no authentication credentials or session tokens are transmitted to error reporting infrastructure.
+2. **通过相关跟踪、上下文日志和精确的错误归因，P1 事件的平均解决时间 (MTTR) 低于 15 分钟**。
 
-Trace association is achieved by propagating the request's `logid` as a structured tag on every error event. This creates an instantaneous bridge between an error notification and the complete request context—enabling engineers to move directly from alert to root cause without manual log correlation.
+3. **每次搜索、可用性检查和预订交易的完整请求沿袭**，从而实现取证分析和合规性演示。
 
-Business-critical panics are automatically promoted to fatal-level events, ensuring that service-degrading failures receive immediate escalation. The system incorporates storm control and deduplication to prevent alert fatigue during cascading failures, ensuring that on-call responders receive one actionable notification per distinct issue rather than hundreds of redundant alerts.
-
-### Layer 2: Distributed Tracing
-
-HotelByte employs OpenTelemetry (OTel) as the foundation for distributed tracing, with automatic instrumentation via `otelhttp` middleware. This captures request timing, downstream call latency, and service dependencies without manual code changes.
-
-The tracing layer extracts the OpenTelemetry Trace ID and surfaces it as the `logid` in application logs, creating seamless interoperability between trace visualizations and log analysis tools. Exporter flexibility allows HotelByte to route trace data via OTLP/gRPC, OTLP/HTTP, Zipkin, or stdout pipelines—adapting to diverse operational environments without instrumentation changes.
-
-In a typical booking flow, a trace follows the customer's search request from the edge API through rate-limiting, cache evaluation, supplier availability checks, response normalization, and final response assembly. Each span carries timing data, error status, and custom attributes that reveal exactly where latency accumulates or failures originate.
-
-### Layer 3: Continuous Profiling
-
-Production performance optimization requires understanding not just *what* is slow, but *why* it is slow. HotelByte deploys continuous profiling to capture CPU and memory flame graphs from production workloads without perceptible overhead.
-
-This layer enables engineers to identify hot paths, allocation churn, and goroutine contention that metrics alone cannot reveal. By maintaining historical profiling data, HotelByte can compare application behavior before and after deployments, immediately identifying performance regressions that escape traditional load testing.
-
-### Layer 4: Metrics and Monitoring
-
-The metrics layer provides quantitative visibility into API health, business operations, and supplier integrations. HotelByte organizes metrics into five functional domains:
-
-**API Metrics:** `APICallTiming`, `APICallCount`, and `APICallBizErrCount` characterize request latency, volume, and business-level error rates at every exposed endpoint.
-
-**Business Metrics:** `BusinessCallTiming` and `BusinessCodeCount` track domain-operation performance and outcome distributions, revealing patterns such as rate-limit responses or supplier unavailability.
-
-**Supplier Metrics:** `SupplierRateLimitWaitTiming` and `SupplierCircuitBreakerRejected` expose integration health—quantifying time spent waiting for supplier rate-limit windows and identifying circuit-breaker activations that protect platform stability.
-
-**Cache Metrics:** `CacheHit` and `CacheMiss` ratios guide cache effectiveness optimization and identify potential data freshness issues.
-
-**Agent Metrics:** `AgentDispatchTotal` and `AgentExecutionTiming` monitor background task execution and worker pool utilization.
-
-These metrics feed into Prometheus for storage and alerting, with Grafana dashboards providing visualization across TDengine, MySQL, and VictoriaLogs data sources. Dashboard deployment is automated to ensure consistency across environments.
-
-### Layer 5: Business-Context Logging and Readiness
-
-The logging layer captures not just events, but **decision processes**. For every availability check, rate comparison, and booking attempt, HotelByte records the intermediate states, supplier responses, normalization decisions, and anomalies encountered.
-
-This business-context logging transforms debugging from reactive log-grepping into structured narrative reconstruction. When a customer reports an unexpected rate or unavailable property, engineers can reconstruct the exact supplier responses, cache state, and business rules that produced the observed result.
-
-The readiness probe layer complements logging with automated health verification. MySQL and Redis health checks provide Kubernetes and load balancers with accurate service-state signals, ensuring traffic is only routed to fully operational instances and enabling safe rolling deployments.
+4. **主动绩效管理** 通过持续的分析和业务指标，在客户可见之前发现降级情况。
 
 ---
 
-## Observability Lifecycle / Alert Flow
+## 设计原则
 
-The Five-Dimensional Observability Framework operates through a continuous lifecycle:
+HotelByte 的可观测性架构受三个核心设计原则的约束，这些原则影响着每个实施决策：
 
-1. **Instrumentation:** Every service emits standardized telemetry at build time via OpenTelemetry, Prometheus client libraries, and structured logging.
+### 设计的可观测性
 
-2. **Ingestion:** Telemetry flows through collectors into dedicated stores—Sentry for errors, Tempo/Jaeger for traces, Pyroscope for profiles, Prometheus for metrics, and VictoriaLogs for business logs.
+遥测不是事后添加或附加的组件。每个服务在构建时都使用标准化导出器、一致的命名约定和预定义的基数边界进行检测。这确保了新功能从第一天开始就具有完全可见性，从而消除了快速功能交付通常伴随的可观测性差距。
 
-3. **Correlation:** The `logid` identifier stitches together events across all stores. An anomalous metric spike leads directly to related traces; a trace error leads directly to logs and Sentry events.
+### 敏感数据最小化
 
-4. **Detection:** Prometheus alert rules evaluate metric thresholds, Sentry issues aggregate error events, and Grafana dashboards surface visual anomalies.
+HotelByte 跨供应商集成处理身份验证凭据、支付上下文和个人信息。在数据离开应用程序边界之前，我们的遥测管道会自动清理敏感标头（包括授权、Cookie 和令牌值）。这一原则确保调试功能永远不会损害数据保护义务。
 
-5. **Response:** On-call engineers receive contextual alerts containing the `logid`, enabling one-click navigation to the complete request lifecycle across all five dimensions.
+### 集合的相关性
 
-6. **Resolution:** Fix verification is confirmed through the same correlation path—ensuring that resolved issues disappear from alerts, traces return to baseline, and logs show successful outcomes.
-
-7. **Learning:** Post-incident, profiling data and business logs inform preventive improvements, while metric baselines are adjusted to detect similar patterns earlier.
+原始遥测量并不等于操作清晰度。 HotelByte 通过统一的 `logid` 标识符优先考虑**相关性**，该标识符在所有五个可观测性维度上传播。单个标识符将 Sentry 错误事件链接到其分布式跟踪、Prometheus 指标、分析快照及其业务日志条目。这种关联优先的方法消除了传统上消耗事件响应时间的手动连接操作。
 
 ---
 
-## Implemented Control Summary
+## 可观测性架构
 
-| Control | Customer Value |
+HotelByte 将可观测性实现为五个集成层，每个层都解决不同的运营问题，同时有助于形成统一的运营图。
+
+### 第 1 层：错误跟踪和事件报告
+
+错误跟踪层捕获所有服务中的异常、恐慌和关键业务故障。它实现自动敏感数据过滤，以确保不会将任何身份验证凭据或会话令牌传输到错误报告基础设施。
+
+跟踪关联是通过将请求的 `logid` 作为每个错误事件的结构化标记进行传播来实现的。这在错误通知和完整请求上下文之间创建了一个即时桥梁，使工程师能够直接从警报转移到根本原因，而无需手动关联日志。
+
+业务关键型恐慌会自动升级为致命级别事件，确保服务降级故障立即升级。该系统结合了风暴控制和重复数据删除功能，可防止级联故障期间的警报疲劳，确保待命响应人员针对每个不同问题收到一个可操作的通知，而不是数百个冗余警报。
+
+### 第 2 层：分布式跟踪
+
+HotelByte 采用 OpenTelemetry (OTel) 作为分布式跟踪的基础，并通过 `otelhttp` 中间件进行自动检测。这可以捕获请求计时、下游调用延迟和服务依赖性，而无需手动更改代码。
+
+跟踪层提取 OpenTelemetry 跟踪 ID 并将其显示为应用程序日志中的 `logid`，从而在跟踪可视化和日志分析工具之间创建无缝互操作性。导出器灵活性允许 HotelByte 通过 OTLP/gRPC、OTLP/HTTP、Zipkin 或 stdout 管道路由跟踪数据，无需更改仪器即可适应不同的操作环境。
+
+在典型的预订流程中，跟踪通过速率限制、缓存评估、供应商可用性检查、响应规范化和最终响应组装来跟踪来自边缘 API 的客户搜索请求。每个跨度都包含计时数据、错误状态和自定义属性，这些属性可准确揭示延迟累积或故障起源的位置。
+
+### 第 3 层：连续分析
+
+生产性能优化不仅需要了解“什么”慢，还要了解“为什么”慢。 HotelByte 部署连续分析以从生产工作负载中捕获 CPU 和内存火焰图，而不会产生可察觉的开销。
+
+该层使工程师能够识别仅靠指标无法揭示的热路径、分配流失和 goroutine 争用。通过维护历史分析数据，HotelByte 可以比较部署前后的应用程序行为，立即识别传统负载测试中无法避免的性能回归。
+
+### 第 4 层：指标和监控
+
+指标层提供 API 运行状况、业务运营和供应商集成的定量可见性。 HotelByte 将指标组织为五个功能域：
+
+**API 指标：** `APICallTiming`、`APICallCount` 和 `APICallBizErrCount` 描述每个公开端点的请求延迟、数量和业务级错误率。
+
+**业务指标：** `BusinessCallTiming` 和 `BusinessCodeCount` 跟踪域操作性能和结果分布，揭示速率限制响应或供应商不可用等模式。
+
+**供应商指标：** `SupplierRateLimitWaitTiming` 和 `SupplierCircuitBreakerRejected` 揭示集成运行状况 - 量化等待供应商速率限制窗口所花费的时间并识别保护平台稳定性的断路器激活。
+
+**缓存指标：** `CacheHit` 和 `CacheMiss` 比率指导缓存有效性优化并识别潜在的数据新鲜度问题。
+
+**代理指标：** `AgentDispatchTotal` 和 `AgentExecutionTiming` 监控后台任务执行和工作池利用率。
+
+这些指标输入 Prometheus 进行存储和警报，Grafana 仪表板提供跨 TDengine、MySQL 和 VictoriaLogs 数据源的可视化。仪表板部署是自动化的，以确保跨环境的一致性。
+
+### 第 5 层：业务上下文日志记录和准备情况
+
+日志记录层不仅捕获事件，还捕获**决策过程**。对于每次可用性检查、价格比较和预订尝试，HotelByte 都会记录中间状态、供应商响应、标准化决策和遇到的异常情况。
+
+这种业务上下文日志记录将调试从反应式日志查询转变为结构化叙述重建。当客户报告意外的费率或不可用的财产时，工程师可以重建准确的供应商响应、缓存状态和产生观察结果的业务规则。
+
+就绪探测层通过自动运行状况验证来补充日志记录。 MySQL 和 Redis 运行状况检查为 Kubernetes 和负载均衡器提供准确的服务状态信号，确保流量仅路由到完全运行的实例并实现安全滚动部署。
+
+---
+
+## 可观测性生命周期/警报流程
+
+五维可观测性框架在一个连续的生命周期中运行：
+
+1. **检测：** 每个服务都会在构建时通过 OpenTelemetry、Prometheus 客户端库和结构化日志记录发出标准化遥测数据。
+
+2. **摄取：** 遥测数据通过收集器流入专用存储区 - 用于错误的 Sentry、用于跟踪的 Tempo/Jaeger、用于配置文件的 Pyrscope、用于指标的 Prometheus 以及用于业务日志的 VictoriaLogs。
+
+3. **相关性：** `logid` 标识符将所有商店中的事件拼接在一起。异常指标峰值直接导致相关痕迹；跟踪错误直接导致日志和哨兵事件。
+
+4. **检测：** Prometheus 警报规则评估指标阈值，Sentry 发出聚合错误事件，Grafana 仪表板显示视觉异常。
+
+5. **响应：** 值班工程师收到包含 `logid` 的上下文警报，从而可以一键导航到跨所有五个维度的完整请求生命周期。
+
+6. **解决方案：** 通过相同的关联路径确认修复验证 - 确保已解决的问题从警报中消失，跟踪返回到基线，并且日志显示成功的结果。
+
+7. **学习：** 事件发生后，分析数据和业务日志可以为预防性改进提供信息，同时调整指标基线以更早地检测到类似的模式。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Sensitive Header Sanitization** | Authentication credentials and session tokens are automatically removed from error reports and traces, ensuring debugging never exposes customer data. |
-| **Trace-to-Log Correlation (`logid`)** | A single identifier links errors, traces, metrics, and logs—reducing incident investigation from manual correlation to one-click context retrieval. |
-| **Panic Auto-Capture with Storm Control** | Service failures are immediately reported without overwhelming on-call teams, ensuring rapid response during cascading incidents. |
-| **Automated Error Deduplication** | Duplicate errors are grouped into single actionable issues, eliminating alert fatigue and focusing engineering effort on distinct problems. |
-| **OpenTelemetry Auto-Instrumentation** | HTTP middleware automatically captures distributed traces without code changes, ensuring complete request visibility from day one. |
-| **Multi-Protocol Trace Export** | Support for OTLP/gRPC, OTLP/HTTP, Zipkin, and stdout enables integration with diverse operational backends without instrumentation lock-in. |
-| **Continuous CPU/Memory Profiling** | Production flame graphs reveal performance bottlenecks that metrics miss, enabling proactive optimization before customer impact. |
-| **Business Metrics Dashboards** | API latency, error rates, cache performance, and supplier health are visualized in real time, providing operational transparency to platform users. |
-| **Circuit Breaker and Rate-Limit Metrics** | Supplier integration health is quantified, enabling data-driven decisions about supplier reliability and timeout configurations. |
-| **Business-Context Structured Logging** | Every booking decision leaves an auditable trail of supplier responses, cache state, and business rules applied—enabling forensic analysis and compliance demonstration. |
-| **Automated Readiness Probing** | MySQL and Redis health checks ensure traffic only reaches fully operational instances, preventing failed requests during deployments or outages. |
-| **Grafana Auto-Deployment** | Dashboards and data sources are deployed consistently across environments, eliminating configuration drift and ensuring uniform operational visibility. |
+| **敏感标头清理** |身份验证凭据和会话令牌会自动从错误报告和跟踪中删除，确保调试永远不会暴露客户数据。 |
+| **跟踪到日志相关性 (`logid`)** |单个标识符链接错误、跟踪、指标和日志，从而将事件调查从手动关联减少到一键式上下文检索。 |
+| **通过风暴控制进行恐慌自动捕获** |服务故障会立即报告，不会让待命团队不堪重负，从而确保在发生级联事件时能够快速响应。 |
+| **自动错误重复数据删除** |重复的错误被分组为单个可操作的问题，从而消除警报疲劳并将工程工作集中在不同的问题上。 |
+| **开放遥测自动检测** | HTTP 中间件无需更改代码即可自动捕获分布式跟踪，从而确保从第一天起就具有完整的请求可见性。 |
+| **多协议跟踪导出** |对 OTLP/gRPC、OTLP/HTTP、Zipkin 和 stdout 的支持可以与各种操作后端集成，而无需仪器锁定。 |
+| **连续 CPU/内存分析** |生产火焰图揭示了指标遗漏的性能瓶颈，从而在影响客户之前实现主动优化。 |
+| **业务指标仪表板** | API 延迟、错误率、缓存性能和供应商运行状况均实时可视化，为平台用户提供操作透明度。 |
+| **熔断器和速率限制指标** |供应商集成健康状况得到量化，从而实现有关供应商可靠性和超时配置的数据驱动决策。 |
+| **业务上下文结构化日志记录** |每个预订决策都会留下供应商响应、缓存状态和应用的业务规则的可审计跟踪，从而实现取证分析和合规性演示。 |
+| **自动就绪探测** | MySQL 和 Redis 运行状况检查确保流量仅到达完全运行的实例，从而防止部署或中断期间请求失败。 |
+| **Grafana 自动部署** |仪表板和数据源在不同环境中一致部署，消除配置偏差并确保统一的操作可见性。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-HotelByte's observability framework provides multiple verification mechanisms to demonstrate control effectiveness:
+HotelByte 的可观测性框架提供了多种验证机制来证明控制有效性：
 
-**Trace Verification:** Any request can be retrieved by its `logid` to verify complete lifecycle coverage—from ingress through all downstream calls to final response assembly.
+**跟踪验证：** 任何请求都可以由其 `logid` 检索，以验证完整的生命周期覆盖范围 - 从入口到所有下游调用再到最终响应组装。
 
-**Metric Audit:** Prometheus metric endpoints are scrapeable and expose raw counters and histograms that can be independently verified against application behavior.
+**指标审计：** Prometheus 指标端点是可抓取的，并公开原始计数器和直方图，可以针对应用程序行为进行独立验证。
 
-**Log Reconstruction:** Structured business logs enable full reconstruction of booking decisions, allowing auditors to verify that business rules were applied correctly and supplier responses were handled appropriately.
+**日志重建：** 结构化业务日志可以全面重建预订决策，从而使审核员能够验证业务规则是否正确应用以及供应商响应是否得到适当处理。
 
-**Error Event Inspection:** Sentry events retain complete stack traces, request context, and correlated trace identifiers—enabling independent verification that error reporting is complete and sanitized.
+**错误事件检查：** Sentry 事件保留完整的堆栈跟踪、请求上下文和相关跟踪标识符，从而能够独立验证错误报告是否完整且经过清理。
 
-**Profiling Comparison:** Historical flame graphs can be compared across release boundaries to independently verify performance claims and detect regressions.
+**分析比较：** 可以跨版本边界比较历史火焰图，以独立验证性能声明并检测回归。
 
-**Health Check Verification:** Readiness endpoints are externally accessible and return standardized HTTP responses that load balancers and orchestrators can validate independently.
+**运行状况检查验证：** 就绪端点可从外部访问，并返回负载均衡器和编排器可以独立验证的标准化 HTTP 响应。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Google SRE Book (Site Reliability Engineering)** | "Monitoring should address two questions: what's broken, and why? The 'what' and 'why' are key dimensions of the problem... Observability is the ability to understand the internal state of a system by examining its outputs." | HotelByte's five-layer architecture directly implements the Google SRE "what" and "why" separation: metrics and alerts answer "what's broken," while distributed tracing, business logging, and profiling answer "why." |
-| **Honeycomb—Observability Engineering** | "Observability is about how well you can understand your system from the work it does... The core output of observability is not dashboards but the ability to ask new questions." | HotelByte's `logid`-based correlation and structured business logging enable ad-hoc forensic querying across all dimensions, supporting the Honeycomb principle that observability must answer unknown-unknown questions post-hoc. |
-| **NIST SP 800-92—Guide to Computer Security Log Management** | "Organizations should implement processes for analyzing log data... Correlating events among multiple log sources can provide a more comprehensive view of an incident." | HotelByte's unified `logid` identifier and cross-dimensional correlation implement the NIST recommendation for multi-source event correlation, enabling comprehensive incident reconstruction. |
-| **OpenTelemetry Specification v1.40.0** | "OpenTelemetry provides a single set of APIs, libraries, agents, and collector services to capture distributed traces and metrics from your application." | HotelByte implements OpenTelemetry for distributed tracing with automatic HTTP instrumentation and multi-protocol export, ensuring vendor-neutral telemetry collection. |
-| **Prometheus—Best Practices (Metric and Label Naming)** | "Metric names should have a (single-word) application prefix... Labels enable aggregation and dimensional analysis." | HotelByte's metrics follow Prometheus naming conventions with functional prefixes (`API`, `Business`, `Supplier`, `Cache`, `Agent`) and consistent labels for dimensional analysis. |
-| **OWASP—Logging Cheat Sheet** | "Never log sensitive data such as passwords, session IDs, credit card numbers... Sanitize data before logging." | HotelByte's Sentry integration automatically sanitizes Authorization, Cookie, and Token headers from error reports, implementing OWASP logging security guidance at the platform level. |
+| **Google SRE 书籍（站点可靠性工程）** | “监控应该解决两个问题：什么出了问题，以及为什么？‘什么’和‘为什么’是问题的关键维度……可观测性是通过检查系统的输出来了解系统内部状态的能力。” | HotelByte 的五层架构直接实现了 Google SRE“什么”和“为什么”分离：指标和警报回答“什么出了问题”，而分布式跟踪、业务日志记录和分析则回答“为什么”。 |
+| **蜂巢—可观测性工程** | “可观测性是指您能够从系统所做的工作中了解系统的程度......可观测性的核心输出不是仪表板，而是提出新问题的能力。” | HotelByte 基于 `logid` 的关联性和结构化业务日志记录支持跨所有维度的即席取证查询，支持 Honeycomb 原则，即可观测性必须事后回答未知的未知问题。 |
+| **NIST SP 800-92 — 计算机安全日志管理指南** | “组织应该实施分析日志数据的流程……关联多个日志源之间的事件可以提供更全面的事件视图。” | HotelByte 的统一`logid`标识符和跨维度关联实现了NIST关于多源事件关联的建议，从而实现了全面的事件重建。 |
+| **OpenTelemetry 规范 v1.40.0** | “OpenTelemetry 提供了一组 API、库、代理和收集器服务，用于从应用程序捕获分布式跟踪和指标。” | HotelByte 通过自动 HTTP 检测和多协议导出实现分布式跟踪 OpenTelemetry，确保供应商中立的遥测收集。 |
+| **Prometheus — 最佳实践（指标和标签命名）** | “指标名称应该有一个（单字）应用程序前缀......标签支持聚合和维度分析。” | HotelByte 的指标遵循 Prometheus 命名约定，具有功能前缀（`API`、`Business`、`Supplier`、`Cache`、`Agent`）和用于维度分析的一致标签。 |
+| **OWASP — 日志备忘单** | “切勿记录密码、会话 ID、信用卡号等敏感数据……在记录前清理数据。” | HotelByte 的 Sentry 集成会自动清理错误报告中的授权、Cookie 和令牌标头，从而在平台级别实施 OWASP 日志记录安全指导。 |
 
 ---
 
-*This whitepaper represents the current state of HotelByte's observability capabilities. The architecture is continuously evolved in response to operational experience, customer requirements, and advances in telemetry technology.*
+*本白皮书代表了 HotelByte 可观测能力的当前状态。该架构不断发展，以响应操作经验、客户需求和遥测技术的进步。*

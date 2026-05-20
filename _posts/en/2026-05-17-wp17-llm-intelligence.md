@@ -8,7 +8,7 @@ tags: [LLM, AI Operations, Diagnosis]
 author: "HotelByte Team"
 description: "A guide to HotelByte's LLM-augmented operations model."
 lang: en
-permalink: /whitepapers/wp17-llm-intelligence/
+permalink: /en/whitepapers/wp17-llm-intelligence/
 source_asset: hotel-be/docs/en/whitepapers/17-llm-augmented-intelligence-engine.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp17-llm-intelligence/original/

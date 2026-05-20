@@ -20,17 +20,7 @@ future: true  # Show future posts for testing
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
-  - jekyll-polyglot
 
-# I18n
-languages: ["zh", "en"]
-default_lang: "zh"
-parallel_localization: true
-exclude_from_localization:
-  - assets
-  - CNAME
-  - _layouts
-  - _includes
 
 # URL structure (configured in defaults for language support)
 
@@ -85,7 +75,7 @@ defaults:
       type: "posts"
     values:
       lang: en
-      permalink: /:categories/:title/
+      permalink: /en/:categories/:title/
   - scope:
       path: ""
     values:

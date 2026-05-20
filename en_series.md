@@ -2,7 +2,7 @@
 layout: post
 title: Topic Guides
 lang: en
-permalink: /series/
+permalink: /en/series/
 ---
 
 <div class="series">

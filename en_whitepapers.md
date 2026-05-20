@@ -2,7 +2,7 @@
 layout: home
 title: HotelByte Technical Whitepapers
 lang: en
-permalink: /whitepapers/
+permalink: /en/whitepapers/
 ---
 
 <section class="whitepaper-hub">

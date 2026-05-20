@@ -1,105 +1,94 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：供应商适配框架与标准化白皮书"
+title: "供应商适配框架与标准化白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp06-supplier-adapter-framework/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp06-supplier-adapter-framework/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp06-supplier-adapter-framework/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：供应商适配框架与标准化白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Supplier Adapter Framework & Standardization Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte is a global hotel API distribution platform that aggregates inventory from 27+ hotel suppliers—ranging from direct-connect bed banks and OTA platforms to wholesale aggregators and niche regional operators. Each supplier exposes a distinct API surface with its own authentication scheme, data model, error vocabulary, and rate-limiting behavior. Without architectural discipline, this heterogeneity would produce duplicated business logic, inconsistent error semantics, and unpredictable caching behavior.
+HotelByte 是一个全球酒店 API 分销平台，聚合来自 27 多家酒店供应商的库存——从直连床库和 OTA 平台到批发聚合商和利基区域运营商。每个供应商都公开一个独特的 API 表面，具有自己的身份验证方案、数据模型、错误词汇和速率限制行为。如果没有架构规则，这种异构性将产生重复的业务逻辑、不一致的错误语义和不可预测的缓存行为。
 
-This whitepaper describes HotelByte's Supplier Adapter Framework, a three-layer isolation architecture that unifies every supplier behind a single, strongly typed interface contract. The framework enforces standardized data types, canonical error mappings, mandatory session persistence, and unified HTTP execution—while preserving supplier-specific optimizations where they add value. It is intended for security auditors, integration partners, and enterprise customers who require transparency into how HotelByte normalizes third-party supplier interactions without compromising correctness or observability.
-
----
-
-## Scope
-
-This document covers the architectural design, interface contracts, and assurance properties of HotelByte's supplier integration layer. Specifically:
-
-- **Proxy Layer** (`supplier/proxy/`): Unified entry point, session persistence, price conversion, cache management, and temporary offline controls.
-- **Middleware Layer** (`supplier/middleware/`): Unified HTTP execution, error normalization, rate limiting, circuit breaking, proxy keepalive, and response decoding.
-- **Supplier Layer** (`supplier/integration/{supplier}/`): Standard interface implementation, supplier-specific data models, response conversion, metadata storage, and geographic mapping.
-- **Supplier Classification Model**: Core, edge, and special supplier storage strategies and their performance characteristics.
-
-This whitepaper does not cover HotelByte's search ranking engine, pricing intelligence systems, or customer-facing booking API, which are addressed in companion documents.
+本白皮书描述了 HotelByte 的供应商适配器框架，这是一个三层隔离架构，将每个供应商统一在一个强类型接口合约后面。该框架强制执行标准化数据类型、规范错误映射、强制会话持久性和统一 HTTP 执行，同时保留供应商特定的优化以增加价值。它适用于需要透明了解 HotelByte 如何在不影响正确性或可观测性的情况下标准化第三方供应商交互的安全审核员、集成合作伙伴和企业客户。
 
 ---
 
-## Objectives
+## 范围
 
-The Supplier Adapter Framework is designed to achieve the following objectives:
+本文档涵盖了 HotelByte 供应商集成层的架构设计、接口契约和保证属性。具体来说：
 
-1. **Interface Contract Uniformity** — Every supplier implements the same `Supplier` interface, ensuring that search, booking, and content operations behave identically regardless of the underlying provider.
+- **代理层** (`supplier/proxy/`)：统一入口点、会话持久性、价格转换、缓存管理和临时离线控制。
+- **中间件层** (`supplier/middleware/`)：统一 HTTP 执行、错误标准化、速率限制、熔断、代理保活和响应解码。
+- **供应商层** (`supplier/integration/{supplier}/`)：标准接口实现、供应商特定的数据模型、响应转换、元数据存储和地理映射。
+- **供应商分类模型**：核心、边缘和特殊供应商存储策略及其性能特征。
 
-2. **Type Safety at Scale** — Enforce unified integer (`int64`), float (`float64`), and time representations across all supplier boundaries, eliminating serialization drift and platform-specific width hazards.
-
-3. **Error Semantic Normalization** — Map opaque supplier error codes into canonical business error categories (e.g., `PriceChangedError`, `SupplierRateLimitErr`) via configuration, preventing error vocabulary leakage into customer-facing responses.
-
-4. **Operational Isolation** — Separate supplier-specific logic from cross-cutting concerns such as caching, rate limiting, circuit breaking, and logging. Supplier engineers own adapter correctness; the platform owns resilience.
-
-5. **Query Performance Tiering** — Distinguish between high-frequency core suppliers (stored inline) and lower-frequency edge suppliers (stored via reference tables), optimizing the data access path for each supplier's observed traffic pattern.
+本白皮书不涉及 HotelByte 的搜索排名引擎、定价智能系统或面向客户的预订 API，这些内容在配套文档中介绍。
 
 ---
 
-## Design Principles
+## 目标
 
-### Interface Contract First
+供应商适配器框架旨在实现以下目标：
 
-HotelByte's `Supplier` interface is the single source of truth for all supplier interactions. It comprises three capability groups:
+1. **接口契约一致性** — 每个供应商都实现相同的 `Supplier` 接口，确保搜索、预订和内容操作行为相同，无论底层提供商如何。
+
+2. **大规模类型安全** — 在所有供应商边界上强制执行统一的整数 (`int64`)、浮点 (`float64`) 和时间表示，消除序列化漂移和特定于平台的宽度危险。
+
+3. **错误语义规范化** - 通过配置将不透明的供应商错误代码映射到规范的业务错误类别（例如 `PriceChangedError`、`SupplierRateLimitErr`），防止错误词汇泄漏到面向客户的响应中。
+
+4. **操作隔离** — 将特定于供应商的逻辑与缓存、速率限制、断路和日志记录等横切关注点分开。供应商工程师自己的适配器正确性；平台拥有弹性。
+
+5. **查询性能分层** — 区分高频核心供应商（内联存储）和低频边缘供应商（通过参考表存储），针对每个供应商观察到的流量模式优化数据访问路径。
+
+---
+
+## 设计原则
+
+### 接口合约优先
+
+HotelByte 的 `Supplier` 接口是所有供应商交互的单一事实来源。它包含三个功能组：
 
 - `SupplierContent`: `HotelStaticDetail`, `HotelsMetadata`
-- `SupplierResource`: `HotelList`, `HotelRates`, `CheckAvail`
-- `SupplierBooking`: `Book`, `QueryOrderByIDs`, `SearchOrders`, `Cancel`
+- `SupplierResource`：`HotelList`、`HotelRates`、`CheckAvail`
+- `SupplierBooking`：`Book`、`QueryOrderByIDs`、`SearchOrders`、`Cancel`
 
-No supplier may expose ad-hoc operations outside this contract. This constraint guarantees that upstream services—search, booking, content management—can treat every supplier as a substitutable dependency, enabling A/B testing, failover routing, and capacity scaling without interface rework.
+任何供应商不得在本合同之外公开临时操作。这一约束保证了上游服务（搜索、预订、内容管理）可以将每个供应商视为可替代的依赖项，从而实现 A/B 测试、故障转移路由和容量扩展，而无需接口返工。
 
-### Layered Responsibility Isolation
+### 分层责任隔离
 
-The framework strictly partitions concerns across three layers:
+该框架严格地将关注点划分为三个层：
 
-- The **Proxy Layer** owns session lifecycle, cache key generation, price conversion, and supplier selection. It is forbidden from duplicating request parameters or performing supplier-specific parsing.
-- The **Middleware Layer** owns HTTP transport, retry policies, error decoding, rate limiting, and circuit breaking. All outbound HTTP calls MUST use `middleware.Execute`; raw `http.Client` usage is prohibited.
-- The **Supplier Layer** owns request construction, response parsing, domain model conversion, and supplier-specific metadata extraction (e.g., `rateKey` tokens). It may not implement its own caching or retry logic.
+- **代理层**拥有会话生命周期、缓存密钥生成、价格转换和供应商选择。禁止重复请求参数或执行供应商特定的解析。
+- **中间件层**拥有 HTTP 传输、重试策略、错误解码、速率限制和熔断。所有出站 HTTP 调用必须使用 `middleware.Execute`；禁止原始 `http.Client` 使用。
+- **供应商层**拥有请求构造、响应解析、域模型转换和供应商特定的元数据提取（例如，`rateKey` 令牌）。它可能不会实现自己的缓存或重试逻辑。
 
-This separation ensures that a resilience improvement in the middleware (e.g., adding adaptive backoff) immediately benefits all 27+ suppliers without per-adapter changes.
+这种分离确保中间件的弹性改进（例如，添加自适应退避）立即使所有 27 个以上的供应商受益，而无需对每个适配器进行更改。
 
-### Type Safety Enforcement
+### 类型安全执行
 
-Supplier APIs are notorious for inconsistent numeric types: `int` on 32-bit systems, `float32` for prices, and integer timestamps masquerading as strings. HotelByte mandates:
+供应商 API 因不一致的数字类型而臭名昭著：32 位系统上的 `int`、价格的 `float32` 以及伪装成字符串的整数时间戳。 HotelByte 要求：
 
-- **Integers**: unified `int64`; `int`, `int32`, and `uint` are prohibited.
-- **Floats**: unified `float64`; `float32` is prohibited.
-- **Time**: `string` at supplier boundaries, `time.Time` internally.
-- **No weak types**: `map[string]interface{}` is forbidden in adapter models.
+- **整数**：统一`int64`；禁止 `int`、`int32` 和 `uint`。
+- **浮动**：统一`float64`； `float32` 被禁止。
+- **时间**：`string` 在供应商边界，`time.Time` 在内部。
+- **无弱类型**：适配器模型中禁止 `map[string]interface{}`。
 
-These rules are enforced at compile time and verified in code review, eliminating an entire class of cross-platform serialization defects.
+这些规则在编译时强制执行并在代码审查中进行验证，从而消除了一整类跨平台序列化缺陷。
 
-### Config-Driven Error Mapping
+### 配置驱动的错误映射
 
-Each supplier defines its own error ontology. One supplier's `"2018"` may mean "currency not supported," while another's `"RATE_CHANGED"` signals a price revision. Rather than hard-coding these mappings in Go source, HotelByte externalizes them into per-supplier `config.yaml` files:
+每个供应商都定义了自己的错误本体。一个供应商的 `"2018"` 可能意味着“不支持货币”，而另一个供应商的 `"RATE_CHANGED"` 则表示价格调整。 HotelByte 没有将这些映射硬编码到 Go 源代码中，而是将它们外部化到每个供应商的 `config.yaml` 文件中：
 
 ```yaml
 errorMappings:
@@ -108,23 +97,23 @@ errorMappings:
     bizErrorMessage: "No available room"
 ```
 
-This approach allows operations teams to adjust error semantics without redeploying code, and ensures that new suppliers can be onboarded by authoring configuration rather than modifying shared libraries.
+这种方法允许运营团队调整错误语义而无需重新部署代码，并确保新供应商可以通过编写配置而不是修改共享库来加入。
 
-### Supplier Classification
+### 供应商分类
 
-Not all suppliers carry equal query volume. HotelByte classifies suppliers into three tiers:
+并非所有供应商都有相同的查询量。 HotelByte 将供应商分为三级：
 
-- **Core suppliers** (IDs 1–30): Hotel-to-supplier mappings are stored inline in the `hotel` table (`supplier_N_id`). Queries execute against a single table with no JOIN overhead.
-- **Edge suppliers** (IDs 31+): Mappings are stored in the `hotel_edge_supplier_ref` table. A JOIN is required, trading modest latency for schema extensibility.
-- **Special suppliers** (IDs 10,000,000+): In-memory or transient mappings for simulation, testing, and provisional integrations.
+- **核心供应商**（ID 1–30）：酒店到供应商的映射内联存储在 `hotel` 表 (`supplier_N_id`) 中。针对单个表执行查询，没有 JOIN 开销。
+- **边缘供应商**（ID 31+）：映射存储在 `hotel_edge_supplier_ref` 表中。需要 JOIN，以适度的延迟换取模式可扩展性。
+- **特殊供应商**（ID 10,000,000+）：用于模拟、测试和临时集成的内存中或瞬态映射。
 
-This tiering prevents the hotel content table from growing unbounded while keeping the hottest query paths maximally efficient.
+这种分层可以防止酒店内容表无限增长，同时保持最热门查询路径的最大效率。
 
 ---
 
-## Layered Architecture
+## 分层架构
 
-HotelByte's supplier integration is organized into three vertically isolated layers, each abstracting a distinct operational concern:
+HotelByte 的供应商集成分为三个垂直隔离的层，每个层抽象出一个不同的运营问题：
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -145,29 +134,29 @@ HotelByte's supplier integration is organized into three vertically isolated lay
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Proxy Layer
+### 代理层
 
-The Proxy Layer is the single entry point for all supplier calls. Its responsibilities include:
+代理层是所有供应商调用的单一入口点。其职责包括：
 
-- **Session Persistence**: Multi-step booking flows (e.g., `HotelRates` → `CheckAvail` → `Book`) require state continuity. The proxy persists session parameters across API calls so that downstream suppliers receive correlated context without upstream services managing state.
-- **Cache Management**: The proxy generates deterministic cache keys from supplier, credential, session, API name, and request hash. It consults a tiered cache (L1 session-scoped, L2 global) before permitting an outbound call, and writes back non-empty, successful responses automatically.
-- **Price Conversion**: Supplier currencies and pricing models are normalized into the platform's canonical price representation before returning to the application layer.
-- **Temporary Offline Control**: Operational incidents (supplier outage, credential rotation, contract suspension) can be gated at the proxy level without modifying supplier code or application logic.
+- **会话持久性**：多步骤预订流程（例如，`HotelRates` → `CheckAvail` → `Book`）需要状态连续性。代理在 API 调用之间保留会话参数，以便下游供应商接收相关上下文，而无需上游服务管理状态。
+- **缓存管理**：代理根据供应商、凭证、会话、API 名称和请求哈希生成确定性缓存密钥。它在允许出站调用之前查阅分层缓存（L1 会话范围、L2 全局），并自动写回非空的成功响应。
+- **价格转换**：供应商货币和定价模型在返回到应用层之前被标准化为平台的规范价格表示。
+- **临时离线控制**：操作事件（供应商中断、凭证轮换、合同暂停）可以在代理级别进行控制，而无需修改供应商代码或应用程序逻辑。
 
-### Middleware Layer
+### 中间件层
 
-The Middleware Layer encapsulates all HTTP transport semantics. Every supplier call flows through `middleware.Execute`, which provides:
+中间件层封装了所有 HTTP 传输语义。每个供应商呼叫都通过 `middleware.Execute`，它提供：
 
-- **Unified HTTP Client**: A preconfigured `req.Client` with standardized timeouts, retry policies (3 retries, 300ms–2s backoff), and proxy resolution. System proxy fallback is explicitly disabled to prevent environmental leakage.
-- **Response Error Handling**: HTTP error states are decoded into structured error responses using the supplier's configured error mappings. HTTP 429 responses trigger adaptive rate-limit backoff.
-- **Rate Limiting**: Per-credential rate limiting is enforced before every outbound call, with queueing and wait-time metrics exposed for observability.
-- **Circuit Breaking**: Supplier-level circuit breakers skip requests after consecutive failures, preventing goroutine accumulation during downstream outages.
-- **Proxy Keepalive**: For suppliers requiring SOCKS5 tunneling, the middleware performs lightweight proxy health checks and automatic reconnection on cache misses.
-- **Structured Logging**: Every request and response is captured in the HBLog format, including input body, output body, headers, cost time, and credential metadata—without supplier code touching logging directly.
+- **统一 HTTP 客户端**：预配置的 `req.Client`，具有标准化超时、重试策略（3 次重试、300 毫秒 - 2 秒退避）和代理解析。系统代理回退被明确禁用以防止环境泄漏。
+- **响应错误处理**：使用供应商配置的错误映射将 HTTP 错误状态解码为结构化错误响应。 HTTP 429 响应触发自适应速率限制退避。
+- **速率限制**：在每次出站呼叫之前强制执行每个凭证的速率限制，并公开排队和等待时间指标以供观察。
+- **断路器**：供应商级断路器在连续失败后跳过请求，防止下游中断期间 goroutine 累积。
+- **代理保持活动**：对于需要 SOCKS5 隧道的供应商，中间件执行轻量级代理运行状况检查并在缓存未命中时自动重新连接。
+- **结构化日志记录**：每个请求和响应都以 HBLog 格式捕获，包括输入正文、输出正文、标头、成本时间和凭证元数据，而供应商代码无需直接接触日志记录。
 
-### Supplier Layer
+### 供应商层
 
-The Supplier Layer contains the per-supplier adapter implementations. Each supplier directory follows a standardized file organization (using Dida as the reference paradigm):
+供应商层包含每个供应商的适配器实现。每个供应商目录都遵循标准化的文件组织（使用Dida作为参考范例）：
 
 ```
 supplier/integration/{supplier}/
@@ -186,76 +175,76 @@ supplier/integration/{supplier}/
   └── full_flow_test.go
 ```
 
-This convention enables engineers to locate any capability for any supplier within seconds. The layer's responsibilities are:
+这种约定使工程师能够在几秒钟内找到任何供应商的任何能力。该层的职责是：
 
-- **Request Construction**: Map domain requests into supplier-specific payloads (JSON, XML, form-data, or query parameters).
-- **Response Conversion**: Parse supplier responses and convert them into canonical domain models using strongly typed converters.
-- **Metadata Storage**: Persist supplier-specific identifiers (e.g., `rateKey`, `bookingId`) in domain models so that subsequent calls in a session can reference them.
-- **Interface Compliance**: Every supplier struct must satisfy `SupplierResponse` (`ErrorCode()`, `ErrorMsg()`) and `EmptySupplierResponse` (`IsEmpty()`), enabling the middleware to perform uniform error and cache-eligibility checks.
-
----
-
-## Supplier Lifecycle / Onboarding Flow
-
-Adding a new supplier to HotelByte follows a standardized lifecycle that preserves architectural integrity:
-
-1. **Interface Compliance**: Implement the `Supplier` interface for all content, resource, and booking operations.
-2. **File Structure Conformance**: Create the canonical file set per the Dida reference paradigm.
-3. **Type Safety Audit**: Verify that all models use `int64`, `float64`, and `string` (boundary) / `time.Time` (internal); no weak types.
-4. **Error Mapping Configuration**: Populate `config.yaml` with per-API error mappings translating supplier codes to canonical business errors.
-5. **Middleware Integration**: Ensure all HTTP calls route through `middleware.Execute`; no raw HTTP clients.
-6. **Full Flow Testing**: Author `full_flow_test.go` covering HotelList → HotelRates → CheckAvail → Book → QueryOrder → Cancel.
-7. **Classification Assignment**: Register the supplier as core (1–30), edge (31+), or special (10,000,000+) based on projected traffic and operational priority.
-8. **Certification Gate**: Pass integration certification against live supplier sandboxes before production promotion.
+- **请求构造**：将域请求映射到供应商特定的有效负载（JSON、XML、表单数据或查询参数）。
+- **响应转换**：解析供应商响应并使用强类型转换器将其转换为规范域模型。
+- **元数据存储**：在域模型中保留供应商特定的标识符（例如，`rateKey`、`bookingId`），以便会话中的后续调用可以引用它们。
+- **接口合规性**：每个供应商结构必须满足 `SupplierResponse`（`ErrorCode()`、`ErrorMsg()`）和 `EmptySupplierResponse`（`IsEmpty()`），使中间件能够执行统一的错误和缓存资格检查。
 
 ---
 
-## Implemented Control Summary
+## 供应商生命周期/入职流程
 
-| Control | Customer Value |
+向 HotelByte 添加新供应商遵循标准化生命周期，可保持架构完整性：
+
+1. **接口合规性**：为所有内容、资源和预订操作实施 `Supplier` 接口。
+2. **文件结构一致性**：根据 Dida 参考范例创建规范文件集。
+3. **型式安全审核**：验证所有型号均使用`int64`、`float64`和`string`（边界）/`time.Time`（内部）；没有弱类型。
+4. **错误映射配置**：使用每个 API 错误映射填充 `config.yaml`，将供应商代码转换为规范业务错误。
+5. **中间件集成**：确保所有HTTP调用都通过`middleware.Execute`路由；没有原始 HTTP 客户端。
+6. **全流程测试**：作者 `full_flow_test.go` 涵盖 HotelList → HotelRates → CheckAvail → Book → QueryOrder → Cancel。
+7. **分类分配**：根据预计流量和运营优先级，将供应商注册为核心 (1–30)、边缘 (31+) 或特殊 (10,000,000+)。
+8. **认证门**：在生产推广之前通过针对实时供应商沙箱的集成认证。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Unified Supplier Interface Contract** | All 27+ suppliers present identical content, resource, and booking capabilities. Customers experience consistent behavior regardless of which supplier fulfills a search or booking request. |
-| **Three-Layer Responsibility Isolation** | Resilience improvements (retries, caching, rate limiting) in the proxy and middleware layers propagate to every supplier automatically, without per-adapter reimplementation. |
-| **Config-Driven Error Normalization** | Opaque supplier error codes are mapped to canonical business errors at runtime via configuration. Customers receive meaningful, actionable error messages instead of raw supplier codes. |
-| **Strong Type Safety Enforcement** | Unified `int64`, `float64`, and `time.Time` types prevent serialization drift, integer overflow, and floating-point precision loss across heterogeneous supplier APIs. |
-| **Mandatory Session Persistence** | Multi-step booking flows maintain state continuity across `HotelRates`, `CheckAvail`, and `Book` calls, eliminating race conditions and parameter mismatches. |
-| **Tiered Supplier Classification** | Core suppliers serve from inline table columns for sub-millisecond lookups; edge suppliers use reference tables for flexible expansion. Query performance is matched to traffic frequency. |
-| **Supplier-Level Circuit Breaking** | Consecutive failures trigger automatic request skipping, preventing cascading overload and preserving platform capacity for healthy suppliers. |
-| **Adaptive Rate Limiting** | Per-credential QPM enforcement with queueing and backoff protects supplier relationships and ensures fair resource allocation across tenants. |
-| **Empty-Response Cache Exclusion** | Responses implementing `EmptySupplierResponse` are automatically excluded from caching, preventing the storage and serving of invalid or incomplete inventory snapshots. |
-| **Standardized File Organization** | Every supplier follows the same directory and file naming convention, reducing cognitive load and enabling automated audits, scaffolding, and cross-supplier diff analysis. |
+| **统一供应商接口合同** |所有 27 家以上的供应商都提供相同的内容、资源和预订功能。无论哪个供应商满足搜索或预订请求，客户都会体验到一致的行为。 |
+| **三层责任隔离** |代理和中间件层中的弹性改进（重试、缓存、速率限制）会自动传播到每个供应商，而无需针对每个适配器重新实现。 |
+| **配置驱动的错误标准化** |不透明的供应商错误代码在运行时通过配置映射到规范的业务错误。客户收到的是有意义的、可操作的错误消息，而不是原始的供应商代码。 |
+| **强类型安全执行** |统一的 `int64`、`float64` 和 `time.Time` 类型可防止异构供应商 API 之间的序列化漂移、整数溢出和浮点精度损失。 |
+| **强制会话持续** |多步骤预订流程可保持 `HotelRates`、`CheckAvail` 和 `Book` 调用之间的状态连续性，从而消除竞争条件和参数不匹配。 |
+| **供应商分级分类** |核心供应商通过内联表列提供亚毫秒级查找服务；边缘供应商利用参考表进行灵活扩展。查询性能与流量频率相匹配。 |
+| **供应商级熔断** |连续失败会触发自动请求跳过，防止级联过载并为健康的供应商保留平台容量。 |
+| **自适应速率限制** |通过排队和退避的按凭证 QPM 实施可保护供应商关系并确保租户之间公平的资源分配。 |
+| **空响应缓存排除** |实施 `EmptySupplierResponse` 的响应会自动从缓存中排除，从而防止存储和提供无效或不完整的清单快照。 |
+| **标准化文件组织** |每个供应商都遵循相同的目录和文件命名约定，从而减少认知负荷并实现自动审核、脚手架和跨供应商差异分析。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-HotelByte's supplier adapter framework exposes multiple verification surfaces that allow operators and auditors to confirm correct behavior:
+HotelByte 的供应商适配器框架公开了多个验证表面，允许操作员和审计员确认正确的行为：
 
-**Structured Request-Response Logging.** Every supplier call emits an HBLog record containing the full request body, response body, HTTP status, headers, cost time, internal cost time, and credential metadata. These logs are trace-correlated, enabling end-to-end tracking from a customer search to the final supplier HTTP exchange.
+**结构化请求-响应日志记录。** 每个供应商调用都会发出一条 HBLog 记录，其中包含完整的请求正文、响应正文、HTTP 状态、标头、成本时间、内部成本时间和凭证元数据。这些日志是跟踪相关的，可以实现从客户搜索到最终供应商 HTTP 交换的端到端跟踪。
 
-**Metrics Exposure.** Prometheus-compatible counters and histograms are exported for cache hit rates, supplier call latency, rate-limit wait times, circuit-breaker state transitions, and per-supplier error rates. Metrics support real-time alerting and historical SLA reporting.
+**指标暴露。** 导出与 Prometheus 兼容的计数器和直方图，用于缓存命中率、供应商调用延迟、速率限制等待时间、断路器状态转换和每个供应商的错误率。指标支持实时警报和历史 SLA 报告。
 
-**Config Auditing.** Error mappings, timeout values, base URLs, and proxy settings are declared in version-controlled YAML configuration rather than embedded in source code. Configuration changes are diffable, reviewable, and reversible without deployment.
+**配置审核。** 错误映射、超时值、基本 URL 和代理设置在版本控制的 YAML 配置中声明，而不是嵌入源代码中。配置更改是可区分、可审查和可逆的，无需部署。
 
-**Full Flow Test Coverage.** Every supplier includes `full_flow_test.go` exercising the complete booking lifecycle. These tests validate request construction, response conversion, error mapping, and session continuity against recorded or sandboxed supplier responses.
+**全流程测试覆盖。** 每个供应商都包括 `full_flow_test.go` 来执行完整的预订生命周期。这些测试根据记录或沙盒的供应商响应来验证请求构造、响应转换、错误映射和会话连续性。
 
-**Supplier Classification Verification.** Core/edge/special classification is encoded in the `protocol.Supplier` enumeration with explicit `IsCoreSupplier()` and `IsEdgeSupplier()` predicates. Storage-layer queries can be audited to confirm that classification aligns with observed query patterns.
+**供应商分类验证。** 核心/边缘/特殊分类使用显式 `IsCoreSupplier()` 和 `IsEdgeSupplier()` 谓词在 `protocol.Supplier` 枚举中进行编码。可以审核存储层查询以确认分类与观察到的查询模式一致。
 
-**Type Safety Verification.** The build pipeline enforces the absence of `int`, `int32`, `uint`, `float32`, and `map[string]interface{}` in supplier model files through static analysis and lint gates.
+**类型安全验证。** 构建管道通过静态分析和 lint 门强制供应商模型文件中不存在 `int`、`int32`、`uint`、`float32` 和 `map[string]interface{}`。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Robert C. Martin, "Clean Architecture" (Prentice Hall, 2017)** | "The dependency rule states that source code dependencies can only point inwards. Nothing in an inner circle can know anything at all about something in an outer circle." | HotelByte's three-layer architecture enforces inward-pointing dependencies: the Supplier Layer depends on the Middleware Layer, which depends on the Proxy Layer. Supplier-specific code never imports caching, logging, or HTTP retry logic directly. |
-| **Robert C. Martin, "The Interface Segregation Principle" (1996)** | "Clients should not be forced to depend on methods that they do not use." | The `Supplier` interface is decomposed into `SupplierContent`, `SupplierResource`, and `SupplierBooking` capability groups. A read-only content importer need not implement booking methods, and a booking-only connector need not implement search. |
-| **Google API Design Guide, "Standard Methods"** | "Use a small set of standard methods... to keep your API consistent and simple." | HotelByte mandates exactly eight standard operations across all suppliers (`HotelStaticDetail`, `HotelsMetadata`, `HotelList`, `HotelRates`, `CheckAvail`, `Book`, `QueryOrderByIDs`, `SearchOrders`, `Cancel`), preventing API surface fragmentation. |
-| **OWASP API Security Top 10 (2023), API6:2023 — Unrestricted Access to Sensitive Business Flows** | "Implement mechanisms to prevent automated abuse... such as rate limiting, device fingerprinting, and bot detection." | The middleware layer enforces per-credential rate limiting, circuit breaking, and adaptive backoff before every supplier call, protecting both HotelByte infrastructure and supplier endpoints from abusive traffic patterns. |
-| **ISO/IEC 25010:2011, "Compatibility — Interoperability"** | "The degree to which two or more systems, products or components can exchange information and use the information that has been exchanged." | The Supplier Adapter Framework maximizes interoperability by normalizing heterogeneous supplier protocols (REST, SOAP, XML, JSON) into a single domain model and interface contract, enabling substitutability without upstream code changes. |
-| **NIST SP 800-53 Rev. 5 — SC-5 (Denial of Service Protection)** | "The information system protects against or limits the effects of denial of service attacks." | Circuit breaking, request coalescing, rate limiting, and proxy keepalive collectively limit the blast radius of supplier outages and traffic spikes, preserving platform availability for non-impacted suppliers and tenants. |
+| **Robert C. Martin，“清洁架构”（Prentice Hall，2017 年）** | “依赖关系规则规定，源代码依赖关系只能指向内部。内圈中的任何内容都无法了解外圈中的任何内容。” | HotelByte 的三层架构强制执行内向依赖关系：供应商层依赖于中间件层，而中间件层又依赖于代理层。供应商特定的代码从不直接导入缓存、日志记录或 HTTP 重试逻辑。 |
+| **Robert C. Martin，“接口隔离原则”(1996)** | “不应强迫客户依赖他们不使用的方法。” | `Supplier` 接口分解为 `SupplierContent`、`SupplierResource` 和 `SupplierBooking` 功能组。只读内容导入器不需要实现预订方法，并且仅预订连接器不需要实现搜索。 |
+| **Google API 设计指南，“标准方法”** | “使用一小组标准方法......来保持 API 的一致性和简单性。” | HotelByte 要求所有供应商执行八种标准操作（`HotelStaticDetail`、`HotelsMetadata`、`HotelList`、`HotelRates`、`CheckAvail`、`Book`、`QueryOrderByIDs`、`SearchOrders`、`Cancel`），以防止 API 表面碎片。 |
+| **OWASP API 安全排名前 10 名 (2023 年)，API6:2023 — 无限制访问敏感业务流程** | “实施防止自动滥用的机制……例如速率限制、设备指纹识别和机器人检测。” |中间件层在每次供应商调用之前强制执行每个凭证的速率限制、熔断和自适应退避，从而保护 HotelByte 基础设施和供应商端点免受滥用流量模式的影响。 |
+| **ISO/IEC 25010:2011，“兼容性 — 互操作性”** | “两个或多个系统、产品或组件可以交换信息并使用已交换信息的程度。” |供应商适配器框架通过将异构供应商协议（REST、SOAP、XML、JSON）标准化为单个域模型和接口契约来最大化互操作性，从而无需更改上游代码即可实现可替换性。 |
+| **NIST SP 800-53 Rev. 5 — SC-5（拒绝服务保护）** | “信息系统可以防止或限制拒绝服务攻击的影响。” |熔断、请求合并、速率限制和代理保活共同限制了供应商中断和流量峰值的影响范围，从而为未受影响的供应商和租户保留了平台可用性。 |
 
 ---
 
-*This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+*本白皮书由 HotelByte Engineering 发布。如果对本文所述的技术控制有疑问，请联系 HotelByte 技术支持或您指定的客户成功工程师。*

@@ -8,7 +8,7 @@ tags: [Engineering, Specs, Testing]
 author: "HotelByte Team"
 description: "A guide to HotelByte's spec-driven development workflow."
 lang: en
-permalink: /whitepapers/wp22-spec-driven-development/
+permalink: /en/whitepapers/wp22-spec-driven-development/
 source_asset: hotel-be/docs/en/whitepapers/22-spec-driven-development.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp22-spec-driven-development/original/

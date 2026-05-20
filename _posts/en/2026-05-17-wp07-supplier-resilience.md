@@ -8,7 +8,7 @@ tags: [Supplier Integration, Resilience, Reliability]
 author: "HotelByte Team"
 description: "A guide to HotelByte's supplier resilience controls."
 lang: en
-permalink: /whitepapers/wp07-supplier-resilience/
+permalink: /en/whitepapers/wp07-supplier-resilience/
 source_asset: hotel-be/docs/en/whitepapers/07-supplier-resilience-engineering.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp07-supplier-resilience/original/

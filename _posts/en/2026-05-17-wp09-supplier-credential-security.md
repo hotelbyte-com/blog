@@ -8,7 +8,7 @@ tags: [Security, Credentials, Supplier Integration]
 author: "HotelByte Team"
 description: "A guide to HotelByte's supplier credential security posture."
 lang: en
-permalink: /whitepapers/wp09-supplier-credential-security/
+permalink: /en/whitepapers/wp09-supplier-credential-security/
 source_asset: hotel-be/docs/en/whitepapers/09-supplier-credential-security.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp09-supplier-credential-security/original/

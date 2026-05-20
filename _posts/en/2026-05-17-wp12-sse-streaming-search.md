@@ -8,7 +8,7 @@ tags: [SSE, Streaming, Search, Hotel API]
 author: "HotelByte Team"
 description: "A guide to HotelByte's streaming search architecture."
 lang: en
-permalink: /whitepapers/wp12-sse-streaming-search/
+permalink: /en/whitepapers/wp12-sse-streaming-search/
 source_asset: hotel-be/docs/en/whitepapers/12-sse-streaming-search-architecture.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp12-sse-streaming-search/original/

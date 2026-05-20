@@ -1,206 +1,195 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：价格智能与竞争基准白皮书"
+title: "价格智能与竞争基准白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp19-price-intelligence/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp19-price-intelligence/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp19-price-intelligence/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：价格智能与竞争基准白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Price Intelligence & Competitive Benchmarking Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte's Price Intelligence & Competitive Benchmarking system continuously monitors supplier pricing across global hotel markets and delivers actionable alerts when meaningful savings opportunities emerge. The system evaluates up to 900,000 supplier price calls per full analytical cycle across hotel–market–supplier–lead-time–length-of-stay–occupancy combinations, while maintaining respectful, sustainable crawling practices.
+HotelByte 的价格智能与竞争基准系统持续监控全球酒店市场的供应商定价，并在出现有意义的节省机会时提供可操作的警报。该系统在每个完整的分析周期中评估多达 900,000 个供应商价格电话，涵盖酒店-市场-供应商-交付周期-入住时间-入住组合，同时保持尊重、可持续的爬行实践。
 
-The architecture comprises four integrated layers: a high-concurrency crawler with market-aware throttling and circuit-breaker protection; a time-series fact store that immutably records every supplier interaction; a comparison engine that benchmarks live prices against customer baselines; and an alert layer that generates threshold-triggered, frequency-capped notifications. Every operation is auditable through cryptographic request fingerprints, structured error classification, and comprehensive lifecycle event logging.
-
----
-
-## Scope
-
-This document covers the architectural design and operational behavior of the price intelligence crawler, fact storage, comparison, and alert layers; concurrency control and rate-limit circuit breaking; the time-series data model for supplier call facts and rate facts; the competitive comparison pipeline; the alert lifecycle; dynamic query frequency scheduling; report generation and secure delivery; and auditability mechanisms for external verification.
-
-This document does not cover supplier adapter internals, general search aggregation algorithms, or the dynamic pricing rules engine, which are addressed in separate whitepapers.
+该架构包括四个集成层：具有市场感知节流和断路器保护的高并发爬虫；一个时间序列事实存储，永久记录每个供应商交互；比较引擎，根据客户基线对实时价格进行基准测试；以及生成阈值触发、频率上限通知的警报层。每个操作都可以通过加密请求指纹、结构化错误分类和全面的生命周期事件日志记录进行审核。
 
 ---
 
-## Objectives
+## 范围
 
-The price intelligence system was designed to achieve five objectives:
+本文档涵盖了价格智能爬虫、事实存储、比较和警报层的架构设计和操作行为；并发控制和限速熔断；供应商呼叫事实和费率事实的时间序列数据模型；竞争比较渠道；警报生命周期；动态查询频率调度；报告生成和安全交付；以及外部验证的可审计机制。
 
-1. **Comprehensive Market Coverage** — Capture pricing data across multiple suppliers, source markets, lead times, lengths of stay, and occupancy configurations.
-2. **Respectful Supplier Engagement** — Maintain sustainable supplier relationships through market-level concurrency throttling, rate-limit circuit breakers, and structured error classification.
-3. **Actionable Customer Alerts** — Deliver threshold-based notifications with frequency capping to prevent alert fatigue.
-4. **Full Data Lineage** — Preserve an immutable, queryable record of every supplier request and response, including cryptographic fingerprints and error taxonomies.
-5. **Elastic Operational Efficiency** — Concentrate monitoring resources on bookings approaching check-in while relaxing frequency for distant dates.
+本文档不涵盖供应商适配器内部结构、通用搜索聚合算法或动态定价规则引擎，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Design Principles
+## 目标
 
-### Data-Driven Decisions
+价格智能系统旨在实现五个目标：
 
-Every pricing insight is grounded in observable, timestamped supplier data rather than estimates, static rate cards, or heuristic projections. The system does not interpolate missing rates or assume price continuity across dates. If a supplier does not return a rate for a given query parameterset, that absence is recorded as a structured fact rather than filled with synthetic data. This principle ensures that competitive benchmarks reflect actual market conditions at the moment of observation.
-
-### Respectful Crawling
-
-The platform treats supplier API capacity as a shared resource to be conserved. Crawl jobs are governed by three complementary controls: job-level concurrency limits prevent overall system overload; per-source-market semaphores prevent any single geographic market from receiving disproportionate query volume; and a rate-limit circuit breaker halts new task dispatch when cumulative rate-limit errors exceed a configurable threshold. Error responses are classified into structured categories—rate limit, timeout, cancellation, and supplier error—enabling targeted backoff strategies and transparent operational reporting.
-
-### Actionable Intelligence
-
-Alerts are generated only when observed savings exceed a customer-defined percentage threshold relative to a baseline price. To prevent notification fatigue, the system enforces a minimum 24-hour interval between successive alerts for the same subscription. Customers may manually trigger on-demand comparisons at any time, and the platform supports both pre-booking price monitoring (comparing live supplier rates against a reference price) and post-booking price protection (continuing to monitor after an order is placed).
-
-### Transparent Auditability
-
-Every crawl, comparison, and alert leaves a verifiable trace. Supplier requests and responses are fingerprinted with SHA-256 hashes, creating cryptographically verifiable evidence of exactly what was asked and what was returned. Every alert lifecycle event—creation, notification dispatch, user viewing, and user action—is persisted as a structured audit record. Report downloads are protected with HMAC-signed, time-bounded URLs that log access events for compliance review.
-
-### Elastic Scale
-
-The system dynamically adjusts query frequency based on booking proximity. Check-in dates within 7 days are queried every 2 hours; dates within 14 days every 6 hours; dates within 30 days every 12 hours; and all others every 24 hours. This elasticity concentrates computational and supplier engagement resources where price volatility is highest and customer decision windows are narrowest.
+1. **全面的市场覆盖** — 捕获多个供应商、源市场、交货时间、停留时间和占用配置的定价数据。
+2. **尊重供应商参与** — 通过市场级并发限制、速率限制断路器和结构化错误分类，维持可持续的供应商关系。
+3. **可操作的客户警报** — 提供基于阈值的通知和频率上限，以防止警报疲劳。
+4. **完整数据沿袭** — 保留每个供应商请求和响应的不可变、可查询记录，包括加密指纹和错误分类法。
+5. **弹性运营效率** — 将监控资源集中在即将办理登机手续的预订上，同时放宽远距离日期的频率。
 
 ---
 
-## Price Intelligence Architecture
+## 设计原则
 
-The architecture is organized into four orthogonal layers that separate data acquisition from data storage, competitive analysis, and customer notification.
+### 数据驱动的决策
 
-### Crawler Layer
+每个定价洞察都基于可观察的、带时间戳的供应商数据，而不是估计、静态价目表或启发式预测。系统不会插入缺失率或假设不同日期的价格连续性。如果供应商没有返回给定查询参数集的费率，则该缺失将被记录为结构化事实，而不是用合成数据填充。这一原则确保竞争基准反映观察时的实际市场状况。
 
-The crawler layer dispatches normalized price queries to supplier APIs at scale while respecting operational limits. It accepts a job run definition and a set of crawl tasks—each specifying a hotel, supplier, source market, dates, length of stay, occupancy profile, and currency—and executes them through a bounded concurrency pool.
+### 恭敬地爬行
 
-**Concurrency controls.** Job-level concurrency is bounded through an `errgroup` with a configurable `GOMAXPROCS` limit. Per-source-market semaphores enforce independent concurrency caps for each geographic market, preventing any single market from dominating the query budget.
+该平台将供应商 API 容量视为需要保存的共享资源。爬网作业由三个互补的控件控制：作业级并发限制可防止整体系统过载；每个源市场信号量可防止任何单一地理市场接收不成比例的查询量；当累积速率限制错误超过可配置阈值时，速率限制断路器会停止新任务调度。错误响应分为结构化类别（速率限制、超时、取消和供应商错误），从而实现有针对性的退避策略和透明的运营报告。
 
-**Rate-limit circuit breaker.** An atomic counter tracks rate-limit errors per run. When this counter reaches a configurable threshold, new task dispatch halts, and the run completes with a structured blocked reason. This protects supplier APIs from sustained overload.
+### 可行的情报
 
-**Credential validation.** Each task is validated against authenticated supplier credentials before dispatch. Only credentials matching the target supplier and authorized customer entity are accepted.
+仅当观察到的节省相对于基准价格超过客户定义的百分比阈值时，才会生成警报。为了防止通知疲劳，系统强制同一订阅的连续警报之间至少间隔 24 小时。客户可以随时手动触发按需比较，平台支持预订前价格监控（将实时供应商价格与参考价格进行比较）和预订后价格保护（下单后继续监控）。
 
-### Fact Storage Layer
+### 透明的可审计性
 
-Every supplier interaction and extracted rate is persisted as an immutable fact in a time-series database.
+每次抓取、比较和警报都会留下可验证的痕迹。供应商的请求和响应均使用 SHA-256 哈希进行指纹识别，从而创建可加密验证的证据，准确说明所请求的内容和返回的内容。每个警报生命周期事件（创建、通知调度、用户查看和用户操作）都作为结构化审核记录保存。报告下载受到 HMAC 签名、有时间限制的 URL 的保护，这些 URL 记录访问事件以供合规性审查。
 
-**Supplier Call Facts** capture the lifecycle of each crawl task: identifiers, hotel and supplier metadata, source market, credential, request and response SHA-256 hashes, HTTP status, latency, error classification, and rate-limit-hit flag. These enable retrospective debugging and supplier SLA verification.
+### 弹性秤
 
-**Rate Facts** capture the structured content of successful responses: hotel, supplier, market, stay parameters, room type, rate package, board, refundable mode, net amount, and currency. These form a longitudinal price dataset for trend analysis and coverage reporting.
-
-Facts are inserted in configurable batches to optimize write throughput.
-
-### Comparison Layer
-
-The comparison layer transforms raw supplier rate data into competitive intelligence by benchmarking live prices against customer baselines.
-
-**Unified multi-supplier querying.** The engine reuses the platform's standard `HotelList` search interface to query multiple suppliers simultaneously under identical conditions—same hotel, dates, occupancy, and currency—ensuring that price differences reflect genuine supplier variation.
-
-**Baseline benchmarking.** Each subscription carries a customer-defined baseline price. During each cycle, the system identifies the lowest live supplier price and computes savings relative to this baseline.
-
-**Snapshot persistence.** Every comparison result is stored as a price snapshot, creating a complete price history accessible through the subscription detail API.
-
-**Report generation.** Completed runs generate Excel or CSV reports segmented by source market, with HMAC-signed download URLs and 90-day expiry. Automated email delivery is available for configured recipients.
-
-### Alert Layer
-
-The alert layer converts competitive insights into customer-facing notifications through a structured, gated workflow.
-
-**Threshold-triggered generation.** An alert is created only when observed savings meet or exceed the subscription's configured threshold percentage (default 5%).
-
-**Frequency capping.** A minimum 24-hour interval between alerts for the same subscription prevents notification spam.
-
-**Pre-booking and post-booking alerts.** Pre-booking alerts compare live rates against the original baseline. Post-booking alerts (after order linking) compare against the best price found or order price, continuing until the free-cancellation deadline or check-in date.
-
-**Asynchronous notification dispatch.** Notifications are dispatched asynchronously through enabled channels (email, push). Delivery status is tracked independently without blocking the core monitoring loop.
+系统根据预订邻近程度动态调整查询频率。每2小时查询一次7天内的入住日期； 14 天内的日期，每 6 小时一次； 30 天内每 12 小时一次的日期；以及所有其他每 24 小时一次。这种弹性将计算资源和供应商参与资源集中在价格波动最大、客户决策窗口最窄的地方。
 
 ---
 
-## Monitoring Lifecycle & Alert Flow
+## 价格智能架构
 
-The monitoring lifecycle operates across on-demand comparison and scheduled background monitoring.
+该架构分为四个正交层，将数据采集与数据存储、竞争分析和客户通知分开。
 
-### On-Demand Comparison Flow
+### 爬虫层
 
-When a customer manually triggers a comparison:
-1. The subscription is retrieved and ownership validated.
-2. A unified multi-supplier query is dispatched.
-3. The best price is saved as a snapshot.
-4. Savings are calculated against the baseline.
-5. If thresholds and cooldowns are satisfied, an alert is created and notifications dispatched asynchronously.
-6. Results are returned to the customer in real time.
+爬虫层大规模向供应商 API 发送标准化价格查询，同时遵守操作限制。它接受作业运行定义和一组爬网任务（每个任务指定酒店、供应商、源市场、日期、停留时间、占用情况和货币），并通过有界并发池执行它们。
 
-### Scheduled Monitoring Flow
+**并发控制。** 作业级并发通过具有可配置 `GOMAXPROCS` 限制的 `errgroup` 进行限制。每个源市场信号量对每个地理市场实施独立的并发上限，防止任何单一市场主导查询预算。
 
-Background monitoring executes through a scheduled cron job with overlap protection and distributed locking:
-1. Active subscriptions are retrieved and prioritized.
-2. Subscriptions are filtered by dynamic query frequency.
-3. Remaining subscriptions are sorted: booked first, nearer check-in dates first.
-4. Each subscription is monitored concurrently within a bounded pool, with panic recovery and error reporting.
-5. Live rates are queried, snapshots saved, best prices updated, and alerts created when thresholds are met.
-6. Expired subscriptions are transitioned to expired status during daily cleanup.
+**速率限制断路器。** 原子计数器跟踪每次运行的速率限制错误。当此计数器达到可配置阈值时，新任务调度将停止，并且运行会因结构化阻塞原因而完成。这可以保护供应商 API 免受持续过载的影响。
+
+**凭证验证。** 每个任务在分派之前都会根据经过身份验证的供应商凭证进行验证。仅接受与目标供应商和授权客户实体匹配的凭证。
+
+### 事实存储层
+
+每个供应商交互和提取率都作为一个不可变的事实保存在时间序列数据库中。
+
+**供应商调用事实**捕获每个爬网任务的生命周期：标识符、酒店和供应商元数据、源市场、凭证、请求和响应 SHA-256 哈希值、HTTP 状态、延迟、错误分类和速率限制命中标志。这些可实现回顾性调试和供应商 SLA 验证。
+
+**房价事实**捕获成功回复的结构化内容：酒店、供应商、市场、入住参数、房间类型、房价套餐、膳食、退款模式、净额和货币。这些形成了用于趋势分析和覆盖范围报告的纵向价格数据集。
+
+事实以可配置的批次插入，以优化写入吞吐量。
+
+### 比较层
+
+比较层通过根据客户基线对实时价格进行基准测试，将原始供应商费率数据转化为竞争情报。
+
+**统一的多供应商查询。** 该引擎重用平台的标准 `HotelList` 搜索界面，在相同的条件（相同的酒店、日期、入住率和货币）下同时查询多个供应商，确保价格差异反映真实的供应商差异。
+
+**基准基准。** 每个订阅都有客户定义的基准价格。在每个周期中，系统都会识别最低的实时供应商价格并计算相对于该基准的节省量。
+
+**快照持久性。** 每个比较结果都存储为价格快照，创建可通过订阅详细信息 API 访问的完整价格历史记录。
+
+**报告生成。** 完成的运行会生成按源市场细分的 Excel 或 CSV 报告，其中包含 HMAC 签名的下载 URL 和 90 天有效期。自动电子邮件传送可供配置的收件人使用。
+
+### 警报层
+
+警报层通过结构化、门控的工作流程将竞争洞察转化为面向客户的通知。
+
+**阈值触发的生成。** 仅当观察到的节省达到或超过订阅配置的阈值百分比（默认 5%）时，才会创建警报。
+
+**频率上限。** 同一订阅的警报之间的至少 24 小时间隔可防止垃圾通知。
+
+**预订前和预订后提醒。**预订前提醒将实时房价与原始基准进行比较。预订后提醒（订单链接后）会与找到的最优惠价格或订单价格进行比较，一直持续到免费取消截止日期或入住日期。
+
+**异步通知调度。** 通知通过启用的渠道（电子邮件、推送）异步调度。独立跟踪交付状态，不会阻塞核心监控循环。
 
 ---
 
-## Implemented Control Summary
+## 监控生命周期和警报流
 
-| Control | Customer Value |
+监控生命周期跨按需比较和预定后台监控运行。
+
+### 按需比较流程
+
+当客户手动触发比较时：
+1. 检索订阅并验证所有权。
+2、统一多供应商查询调度。
+3. 最佳价格保存为快照。
+4. 节省量是根据基准计算的。
+5. 如果满足阈值和冷却时间，则会创建警报并异步分派通知。
+6.结果实时返回给客户。
+
+### 预定监控流程
+
+后台监控通过具有重叠保护和分布式锁定的预定 cron 作业执行：
+1. 检索有效订阅并确定优先级。
+2.按动态查询频率过滤订阅。
+3. 剩余订阅排序：已预订的先，入住日期较近的先。
+4. 每个订阅在有界池中同时受到监控，并具有紧急恢复和错误报告功能。
+5. 查询实时汇率，保存快照，更新最佳价格，并在达到阈值时创建警报。
+6. 过期订阅在日常清理期间将转换为过期状态。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Job-Level Concurrency Limiting** | Crawl execution is bounded by a configurable maximum concurrency level, preventing platform resource exhaustion and ensuring predictable supplier load. |
-| **Per-Source-Market Semaphores** | Independent concurrency caps per geographic market prevent any single market from receiving disproportionate query volume, preserving fair supplier engagement. |
-| **Rate-Limit Circuit Breaker** | When cumulative rate-limit errors exceed a threshold, new task dispatch halts automatically, protecting supplier APIs from sustained overload and maintaining platform credibility. |
-| **Structured Error Classification** | Errors are classified as rate limit, timeout, cancellation, or supplier error, enabling transparent SLA reporting and targeted operational response. |
-| **Cryptographic Request/Response Fingerprinting** | SHA-256 hashes of every request and response create immutable evidence of exactly what was queried and what was returned, supporting audit and dispute resolution. |
-| **Time-Series Fact Storage** | Supplier call facts and rate facts are persisted in a time-series database, enabling longitudinal price trend analysis, supplier coverage tracking, and historical benchmarking. |
-| **Unified Multi-Supplier Comparison** | Price comparisons reuse the platform's standard search interface, ensuring that supplier rates are evaluated under identical conditions—same hotel, dates, occupancy, and currency. |
-| **Threshold-Triggered Alerts** | Customers receive notifications only when observed savings meet or exceed a configurable percentage threshold, ensuring alerts are meaningful rather than noisy. |
-| **24-Hour Alert Cooldown** | A minimum interval between successive alerts for the same subscription prevents notification fatigue during periods of price volatility. |
-| **Pre-Booking and Post-Booking Monitoring** | The system supports both initial price shopping and post-booking price protection, continuing to monitor until the cancellation deadline or check-in date. |
-| **Dynamic Query Frequency** | Query intervals scale from 2 hours (within 7 days of check-in) to 24 hours (distant dates), concentrating resources where price sensitivity is highest. |
-| **HMAC-Signed Report Downloads** | Generated comparison reports are protected by time-bounded, HMAC-signed URLs with access logging, ensuring that competitive data is shared securely. |
-| **Credential-Validated Dispatch** | Every crawl task is validated against authenticated supplier credentials before dispatch, ensuring that queries are authorized and attributable. |
-| **Audit Event Logging** | All major operations—profile creation, manual runs, scheduled runs, alert triggers, report downloads, and email deliveries—are recorded as structured audit events. |
+| **作业级并发限制** |爬网执行受可配置的最大并发级别限制，防止平台资源耗尽并确保可预测的供应商负载。 |
+| **按来源市场信号量** |每个地理市场独立的并发上限可防止任何单一市场接收不成比例的查询量，从而保持公平的供应商参与。 |
+| **限速断路器** |当累积速率限制错误超过阈值时，新任务调度会自动停止，从而保护供应商 API 免受持续过载并维护平台可信度。 |
+| **结构化错误分类** |错误被分类为速率限制、超时、取消或供应商错误，从而实现透明的 SLA 报告和有针对性的运营响应。 |
+| **加密请求/响应指纹识别** |每个请求和响应的 SHA-256 哈希值都会创建查询内容和返回内容的不可变证据，支持审计和争议解决。 |
+| **时间序列事实存储** |供应商呼叫事实和费率事实保存在时间序列数据库中，从而实现纵向价格趋势分析、供应商覆盖范围跟踪和历史基准测试。 |
+| **统一多供应商比较** |价格比较重用该平台的标准搜索界面，确保在相同的条件下评估供应商价格——相同的酒店、日期、入住率和货币。 |
+| **阈值触发警报** |仅当观察到的节省达到或超过可配置的百分比阈值时，客户才会收到通知，确保警报有意义而不是嘈杂。 |
+| **24 小时警报冷却** |同一订阅的连续警报之间的最小间隔可以防止价格波动期间的通知疲劳。 |
+| **预订前和预订后监控** |该系统支持初始价格购物和预订后价格保护，持续监控直至取消截止日期或入住日期。 |
+| **动态查询频率** |查询间隔从 2 小时（签到后 7 天内）到 24 小时（远期日期），将资源集中在价格敏感度最高的地方。 |
+| **HMAC 签名报告下载** |生成的比较报告受到具有访问日志记录的有时限的、HMAC 签名的 URL 的保护，确保竞争数据的安全共享。 |
+| **凭证验证的调度** |每个爬网任务在分派之前都会根据经过身份验证的供应商凭据进行验证，确保查询经过授权且可归因。 |
+| **审核事件记录** |所有主要操作（配置文件创建、手动运行、计划运行、警报触发器、报告下载和电子邮件传送）都记录为结构化审核事件。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte's price intelligence controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证HotelByte 的价格智能控制：
 
-1. **Structured Fact Querying** — Reviewers can query supplier call facts and rate facts by run, market, and time range. Each record includes SHA-256 hashes, latency, error classification, and rate attributes, enabling independent verification of crawl integrity.
+1. **结构化事实查询** — 审阅者可以查询供应商来电事实，并按运行、市场和时间范围对事实进行评级。每条记录都包含 SHA-256 哈希值、延迟、错误分类和速率属性，从而能够独立验证爬网完整性。
 
-2. **Historical Price Trending** — Longitudinal queries plot supplier price movements across runs for the same hotel, market, and stay parameters, validating that baselines reflect actual market dynamics.
+2. **历史价格趋势** — 纵向查询绘制了同一酒店、市场和入住参数的供应商价格变动情况，验证基线是否反映了实际的市场动态。
 
-3. **Audit Event Stream** — Structured audit events capture every significant lifecycle transition with actor identity, timestamps, and contextual JSON detail.
+3. **审计事件流** — 结构化审计事件通过参与者身份、时间戳和上下文 JSON 详细信息捕获每个重要的生命周期转换。
 
-4. **Report Download Verification** — Report URLs carry HMAC signatures with configurable expiry. Invalid access attempts are logged as audit events for data custody verification.
+4. **报告下载验证** — 报告 URL 携带具有可配置到期时间的 HMAC 签名。无效的访问尝试将记录为审核事件，以进行数据保管验证。
 
-5. **Integration and Unit Tests** — Tests cover crawler concurrency, circuit breaker logic, error classification, savings calculation, alert evaluation, and dynamic frequency scheduling. Reviewers can execute these locally.
+5. **集成和单元测试** — 测试涵盖爬虫并发、断路器逻辑、错误分类、节省计算、警报评估和动态频率调度。审阅者可以在本地执行这些操作。
 
-6. **Coverage Trend Analysis** — The fact store aggregates call outcomes into coverage metrics per supplier per run, enabling independent assessment of data quality and availability.
+6. **覆盖率趋势分析** — 事实存储将呼叫结果汇总为每个供应商每次运行的覆盖率指标，从而能够对数据质量和可用性进行独立评估。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Kuhn, M. & Johnson, K., *Applied Predictive Modeling* — Data Collection Ethics** | "When collecting data from external sources, it is important to respect the terms of service and rate limits to maintain sustainable access." | HotelByte's crawler implements per-source-market semaphores, job-level concurrency limits, and a rate-limit circuit breaker to respect supplier API capacity and preserve long-term data access relationships. |
-| **Fleisher, C.S. & Bensoussan, B.E., *Business and Competitive Analysis* — Competitive Intelligence Framework** | "Competitive intelligence is the process of monitoring the competitive environment to support executive decision making… it involves the ethical and legal collection of information." | The price intelligence system collects supplier pricing data through authorized API credentials under explicit customer relationships, with structured error classification and circuit-breaker protection ensuring ethical, sustainable competitive benchmarking. |
-| **Robots Exclusion Protocol (RFC 9309)** | "Crawlers should limit the rate at which they make requests to any given origin server." | While operating through authenticated supplier APIs rather than web crawling, HotelByte applies the same principle through source-market semaphores and configurable concurrency limits that throttle request rates to each supplier origin. |
-| **NIST SP 800-53 Rev. 5 AU-6 — Audit Record Review** | "The organization reviews and analyzes audit records for indications of inappropriate or unusual activity." | The system generates structured audit events for every significant operation, with actor attribution, timestamps, and machine-readable detail JSON, enabling independent review and anomaly detection. |
-| **ISO/IEC 27001:2022, Annex A.8.2 — Information Removal** | "Information stored in information systems shall be securely removed when no longer required." | Expired report files are automatically purged after 90 days through a scheduled cleanup task, and download URLs carry time-bounded signatures, ensuring that competitive data does not persist beyond its operational necessity. |
-| **Porter, M.E., *Competitive Strategy* — Price Signaling and Market Monitoring** | "Firms must continuously monitor competitor pricing to detect strategic moves and market shifts." | HotelByte's dynamic query frequency and threshold-based alerting system operationalize continuous competitive monitoring, concentrating query resources on near-term bookings where strategic price signals are most actionable. |
+| **Kuhn, M. 和 Johnson, K.，*应用预测建模* — 数据收集伦理** | “从外部来源收集数据时，尊重服务条款和速率限制以保持可持续的访问非常重要。” | HotelByte 的爬虫程序实现了按源市场信号量、作业级别并发限制和速率限制断路器，以尊重供应商 API 容量并保留长期数据访问关系。 |
+| **Fleisher, C.S. 和 Bensoussan, B.E.，*业务和竞争分析* — 竞争情报框架** | “竞争情报是监控竞争环境以支持行政决策的过程……它涉及道德和合法的信息收集。” |价格智能系统在明确的客户关系下通过授权的 API 凭证收集供应商定价数据，并通过结构化错误分类和断路器保护确保道德、可持续的竞争基准。 |
+| **机器人排除协议 (RFC 9309)** | “爬虫应该限制它们向任何给定源服务器发出请求的速率。” |虽然通过经过身份验证的供应商 API 而不是网络爬行进行操作，但 HotelByte 通过源市场信号量和可配置的并发限制来应用相同的原则，从而限制每个供应商来源的请求率。 |
+| **NIST SP 800-53 Rev. 5 AU-6 — 审计记录审查** | “该组织审查并分析审计记录，以发现不当或异常活动的迹象。” |该系统为每个重要操作生成结构化审计事件，包括参与者属性、时间戳和机器可读的详细 JSON，从而实现独立审查和异常检测。 |
+| **ISO/IEC 27001:2022，附件 A.8.2 — 信息删除** | “存储在信息系统中的信息在不再需要时应安全删除。” |过期的报告文件将在 90 天后通过计划的清理任务自动清除，下载 URL 带有有时限的签名，确保竞争性数据不会超出其运营需要而持续存在。 |
+| **波特，M.E.，*竞争策略* — 价格信号和市场监控** | “企业必须持续监控竞争对手的定价，以发现战略举措和市场变化。” | HotelByte 的动态查询频率和基于阈值的警报系统可实施持续的竞争监控，将查询资源集中在战略价格信号最可行的近期预订上。 |

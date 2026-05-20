@@ -7,7 +7,7 @@ tags: [Hotel API, Whitepaper, Architecture]
 author: "HotelByte Team"
 description: "Full HotelByte technical whitepaper published on the blog for readable public access."
 lang: en
-permalink: /whitepapers/wp24-observability/original/
+permalink: /en/whitepapers/wp24-observability/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp24-observability/
 ---

@@ -1,185 +1,174 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：供应商凭证安全白皮书"
+title: "HotelByte 供应商凭证安全白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp09-supplier-credential-security/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp09-supplier-credential-security/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp09-supplier-credential-security/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：供应商凭证安全白皮书
+凭证安全是 HotelByte 平台信任模型的核心部分。酒店分销连接客户、供应商、库存、定价、订单和运营支持系统。供应商凭证代表对关键外部系统的访问，因此 HotelByte 将它们视为高度敏感的资产，并通过围绕最小权限、最小暴露、运行时隔离、可追溯审计和业务连续性构建的分层控制来保护它们。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+本白皮书解释了 HotelByte 的安全理念、设计原则以及针对供应商凭证实施的工程控制。它面向需要了解 HotelByte 如何降低管理、显示、审计、日志查询和业务执行路径中的凭证暴露风险的客户、供应商、合作伙伴和安全审查人员。
 
-# HotelByte Supplier Credential Security Whitepaper
+## 范围
 
-## Executive Summary
+本文档涵盖了 HotelByte 平台中的供应商凭证管理和使用场景，包括：
 
-Credential security is a core part of the HotelByte platform trust model. Hotel distribution connects customers, suppliers, inventory, pricing, orders, and operational support systems. Supplier credentials represent access to critical external systems, so HotelByte treats them as highly sensitive assets and protects them through layered controls built around least privilege, minimal exposure, runtime isolation, traceable auditability, and business continuity.
+- 供应商凭证创建、查看、更新和删除。
+- 管理 API 和管理界面中的凭证显示。
+- 供应商运行时执行路径中的凭证使用。
+- 审计记录、日志查询、会话视图和支持工作流程中的凭证保护。
+- 由供应商凭证模式驱动的敏感字段识别和显示控制。
 
-This whitepaper explains HotelByte's security philosophy, design principles, and implemented engineering controls for supplier credentials. It is intended for customers, suppliers, partners, and security reviewers who need to understand how HotelByte reduces credential exposure risk across management, display, audit, log query, and business execution paths.
+本白皮书并不取代商业协议、DPA、SLA 或特定的合规性认证文件。如果客户需要更深入的安全审查材料，HotelByte 可以在适当的商业和保密框架下提供补充证据。
 
-## Scope
+## 安全目标
 
-This document covers supplier credential management and usage scenarios in the HotelByte platform, including:
+HotelByte 的供应商凭证安全目标是：
 
-- Supplier credential creation, viewing, updating, and deletion.
-- Credential display in management APIs and management interfaces.
-- Credential usage in supplier runtime execution paths.
-- Credential protection in audit records, log queries, session views, and support workflows.
-- Sensitive field identification and display controls driven by supplier credential schemas.
+1、凭证仅用于必要的业务执行路径。
+2. 非运行时表面默认不显示完整的秘密。
+3. 管理界面、日志查询、审计记录和支持工具默认使用屏蔽数据或参考数据。
+4. 凭证相关的变更是可追踪的。
+5. 安全控制可保持搜索、定价、预订和取消流程中的业务连续性。
+6. 新供应商入职包括敏感字段识别、显示控制和回归覆盖作为交付的一部分。
 
-This whitepaper does not replace commercial agreements, DPAs, SLAs, or specific compliance certification documents. Where customers require deeper security review material, HotelByte can provide supplemental evidence under the appropriate commercial and confidentiality framework.
+## 设计原则
 
-## Security Objectives
+### 最小暴露
 
-HotelByte's supplier credential security objectives are:
+凭证安全不仅仅涉及秘密的存储位置。还取决于日常操作中是否不必要地显示秘密。 HotelByte 减少了管理页面、API 响应、审计记录、日志查询和支持工作流程中的秘密暴露。当平台需要识别凭证时，它会优先考虑业务元数据，例如供应商、帐户别名、环境、状态和凭证 ID。
 
-1. Credentials are used only in necessary business execution paths.
-2. Non-runtime surfaces do not display complete secrets by default.
-3. Management surfaces, log queries, audit records, and support tools use masked data or reference data by default.
-4. Credential-related changes are traceable.
-5. Security controls preserve business continuity across search, pricing, booking, and cancellation flows.
-6. New supplier onboarding includes sensitive field identification, display controls, and regression coverage as part of delivery.
+### 最低权限
 
-## Design Principles
+凭证管理功能应仅适用于具有明确操作职责的角色。运行时服务使用相关供应商调用所需的凭据。当屏蔽或参考信息足够时，管理和支持工具应避免访问完整的秘密。
 
-### Minimal Exposure
+### 管理平面和运行时平面分离
 
-Credential security is not only about where a secret is stored. It also depends on whether the secret is unnecessarily displayed during daily operations. HotelByte reduces secret exposure in management pages, API responses, audit records, log queries, and support workflows. When the platform needs to identify a credential, it prioritizes business metadata such as supplier, account alias, environment, status, and credential ID.
+HotelByte 将管理显示和运行时供应商执行视为单独的安全边界。运行时流程需要凭证才能向供应商进行身份验证。管理显示、日志查询、审计和实体配置流程仅需要识别或屏蔽信息。分离这些路径可以减少不必要的暴露，同时保持业务连续性。
 
-### Least Privilege
+### 可追溯性
 
-Credential management capabilities should be available only to roles with a clear operational responsibility. Runtime services use the credential required for the relevant supplier call. Management and support tooling should avoid access to complete secrets when masked or reference information is sufficient.
+关键凭证操作（包括创建、更新和删除）需要审核跟踪。审计记录支持安全治理、问题调查和客户支持，但它们不应成为额外的明文秘密存储。
 
-### Management Plane and Runtime Plane Separation
+### 业务连续性
 
-HotelByte treats management display and runtime supplier execution as separate security boundaries. Runtime flows require credentials to authenticate with suppliers. Management display, log query, audit, and entity configuration flows require only identifying or masked information. Separating these paths reduces unnecessary exposure while preserving business continuity.
+酒店供应链需要稳定的执行力。 HotelByte 将凭证安全控制嵌入到核心业务工作流程中，以便在搜索、定价、预订和取消路径继续可靠运行的同时保护访问凭证。
 
-### Traceability
+## 分层安全架构
 
-Critical credential operations, including create, update, and delete, need audit trails. Audit records support security governance, issue investigation, and customer support, but they should not become additional plaintext secret stores.
+### 第 1 层：输入和架构控制
 
-### Business Continuity
+HotelByte 使用凭证模式来描述供应商身份验证结构并通过字段语义识别敏感字段。常见的敏感字段包括password、secret、apiKey、token、licenseKey、securityKey、authorization。
 
-Hotel supply chains require stable execution. HotelByte embeds credential security controls into core business workflows so that access credentials are protected while search, pricing, booking, and cancellation paths continue to operate reliably.
+架构控件用于：
 
-## Layered Security Architecture
+- 驱动器管理输入类型。
+- 标记敏感字段。
+- 支持屏蔽显示。
+- 为新供应商入职提供一致的安全基线。
 
-### Layer 1: Input and Schema Controls
+### 第 2 层：管理表面上的默认屏蔽
 
-HotelByte uses credential schemas to describe supplier authentication structures and identify sensitive fields by field semantics. Common sensitive fields include password, secret, apiKey, token, licenseKey, securityKey, and authorization.
+默认情况下，供应商凭证在管理界面和管理 API 中被屏蔽。敏感字段作为掩码占位符返回，从而降低管理员在日常查看、屏幕截图、转发或支持协作期间遇到完整机密的风险。
 
-Schema controls are used to:
+当管理员编辑非敏感配置时，系统支持保留现有机密，因此屏蔽的占位符不会意外覆盖真实凭据。
 
-- Drive management input types.
-- Mark sensitive fields.
-- Support masked display.
-- Provide a consistent security baseline for new supplier onboarding.
+### 第 3 层：运行时隔离
 
-### Layer 2: Default Masking on Management Surfaces
+供应商运行时流程需要凭证来验证供应商 API 调用。 HotelByte 将完整凭证的使用限制在需要它的供应商执行路径中，并避免将完整凭证传播到管理显示、实体配置、日志查询或审核显示上下文中。
 
-Supplier credentials are masked by default in management interfaces and management APIs. Sensitive fields are returned as mask placeholders, reducing the risk that administrators encounter complete secrets during routine viewing, screenshots, forwarding, or support collaboration.
+### 第 4 层：审计和可观测性安全
 
-When administrators edit non-sensitive configuration, the system supports preserving existing secrets so masked placeholders do not accidentally overwrite real credentials.
+凭证审核记录保留参与者、目标对象、操作类型、时间戳和上下文信息。审计有效负载使用屏蔽副本或安全元数据，因此它们不会成为额外的明文秘密位置。
 
-### Layer 3: Runtime Isolation
+日志查询结果、会话视图和支持调查输出执行敏感信息清理，以减少故障排除和协作期间的暴露。
 
-Supplier runtime flows need credentials to authenticate supplier API calls. HotelByte restricts complete credential usage to the supplier execution paths that need it and avoids spreading complete credentials into management display, entity configuration, log query, or audit display contexts.
+### 第 5 层：基于引用的配置和副本减少
 
-### Layer 4: Audit and Observability Safety
+如果不需要完整的机密，HotelByte 会存储凭证参考信息，而不是复制完整的凭证内容。这减少了不必要的秘密内部副本，并使凭证所有权边界更加清晰。
 
-Credential audit records retain actor, target object, action type, timestamp, and contextual information. Audit payloads use masked copies or safe metadata so they do not become additional plaintext secret locations.
+## 凭证生命周期保护
 
-Log query results, session views, and support investigation outputs perform sensitive information cleanup to reduce exposure during troubleshooting and collaboration.
+### 创建
 
-### Layer 5: Reference-Based Configuration and Copy Reduction
+创建凭证后，系统会验证字段结构和供应商架构。管理响应返回屏蔽的凭据信息，因此创建响应不会不必要地暴露完整的秘密。
 
-Where complete secrets are not required, HotelByte stores credential reference information instead of duplicating full credential content. This reduces unnecessary internal copies of secrets and keeps credential ownership boundaries clearer.
+### 查看
 
-## Credential Lifecycle Protection
+查看凭证时，敏感字段默认被屏蔽。该平台优先考虑凭证 ID、名称、供应商、状态、环境和其他识别元数据。
 
-### Create
+### 更新
 
-When a credential is created, the system validates field structure and supplier schema. Management responses return masked credential information so the create response does not expose complete secrets unnecessarily.
+在更新期间，掩码占位符的意思是“保守现有秘密”。这可以防止出现一种常见的故障模式，即管理员仅更改非敏感字段，但意外地将屏蔽占位符写回为真实凭证值。
 
-### View
+### 使用
 
-When a credential is viewed, sensitive fields are masked by default. The platform prioritizes credential ID, name, supplier, status, environment, and other identifying metadata.
+完整的凭据仅在外部供应商身份验证需要的供应商运行时执行路径中使用。
 
-### Update
+### 删除
 
-During updates, mask placeholders mean "keep the existing secret." This prevents a common failure mode where an administrator changes only a non-sensitive field but accidentally writes a masked placeholder back as the real credential value.
+删除凭证后，系统会保留操作的审核跟踪。审计记录不存储明文秘密。
 
-### Use
+## 实施的控制摘要
 
-Complete credentials are used only in supplier runtime execution paths where they are required for external supplier authentication.
-
-### Delete
-
-When a credential is deleted, the system keeps an audit trail of the operation. Audit records do not store plaintext secrets.
-
-## Implemented Control Summary
-
-| Control | Customer Value |
+|控制|客户价值 |
 | --- | --- |
-| Default masking on management surfaces | Reduces exposure during routine viewing, screenshots, forwarding, and support collaboration |
-| Safe edit semantics | Prevents masked placeholders from overwriting real credentials |
-| Audit-safe copies | Preserves traceability without duplicating plaintext secrets into audit records |
-| Runtime isolation | Keeps complete credentials limited to supplier execution paths that require them |
-| Reference-based configuration | Reduces unnecessary internal secret copies |
-| Log query sanitization | Reduces exposure during troubleshooting, session review, and export workflows |
-| Schema-based sensitive field identification | Reuses a consistent security baseline when onboarding new suppliers |
-| Regression coverage | Protects masking, safe edit, reference, and log read sanitization paths from regression |
+|管理表面上的默认屏蔽 |减少日常查看、截图、转发过程中的暴露，支持协作 |
+|安全编辑语义 |防止屏蔽占位符覆盖真实凭据 |
+|审计安全副本 |保留可追溯性，无需将明文机密复制到审计记录中 |
+|运行时隔离 |保持完整的凭证仅限于需要它们的供应商执行路径 |
+|基于参考的配置 |减少不必要的内部机密副本 |
+|日志查询清理 |减少故障排除、会话审查和导出工作流程期间的暴露
+|基于模式的敏感字段识别|在加入新供应商时重复使用一致的安全基线 |
+|回归覆盖率|保护屏蔽、安全编辑、引用和日志读取清理路径免遭回归 |
 
-## Auditability
+## 可审计性
 
-HotelByte treats security commitments as verifiable commitments. Credential security controls can be reviewed through the following evidence areas:
+HotelByte 将安全承诺视为可验证的承诺。可以通过以下证据领域来审查凭证安全控制：
 
-- Whether sensitive fields are masked in management API responses.
-- Whether update APIs correctly preserve existing secrets when mask placeholders are provided.
-- Whether audit payloads avoid plaintext secrets.
-- Whether business entity configuration uses credential references instead of copying full credential content.
-- Whether log query, session view, and support export results apply sanitization.
-- Whether new supplier schemas mark sensitive fields.
-- Whether unit and regression tests cover key exposure paths.
+- 管理 API 响应中是否屏蔽敏感字段。
+- 当提供掩码占位符时，更新 API 是否正确保留现有机密。
+- 审计有效负载是否避免明文秘密。
+- 业务实体配置是否使用凭证引用而不是复制完整的凭证内容。
+- 日志查询、会话视图和支持导出结果是否应用清理。
+- 新的供应商模式是否标记敏感字段。
+- 单元和回归测试是否涵盖关键暴露路径。
 
-## Customer and Supplier Collaboration Recommendations
+## 客户和供应商合作建议
 
-HotelByte's platform controls should be paired with customer and supplier operational practices. We recommend:
+HotelByte 的平台控制应与客户和供应商的运营实践相结合。我们推荐：
 
-- Use separate credentials for separate environments.
-- Use separate accounts for separate systems, suppliers, or business purposes.
-- Periodically review users and roles that can manage credentials.
-- Avoid sharing plaintext secrets through email, chat, screenshots, or documents.
-- Rotate credentials after personnel changes, suspected exposure, permission mistakes, or supplier-side security incidents.
-- Submit or update credentials only through agreed secure channels.
+- 对不同的环境使用不同的凭据。
+- 将单独的帐户用于单独的系统、供应商或业务目的。
+- 定期审查可以管理凭据的用户和角色。
+- 避免通过电子邮件、聊天、屏幕截图或文档共享明文机密。
+- 在人员变动、疑似暴露、权限错误或供应商方安全事件后轮换凭证。
+- 仅通过商定的安全渠道提交或更新凭据。
 
-## Authoritative Source References
+## 权威来源参考
 
-HotelByte's credential security design is informed by the following authoritative sources. Each source is mapped to the controls described in this whitepaper.
+HotelByte 的凭证安全设计来自以下权威来源。每个源都映射到本白皮书中描述的控件。
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 | --- | --- | --- |
-| [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html) | “centralize the storage, provisioning, auditing, rotation and management of secrets” | Unified credential management, audit records, runtime isolation, and reference-based configuration reduce scattered secret copies. |
-| [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html) | “building application logging mechanisms, especially related to security logging” | Log query, session view, and support investigation results are sanitized to reduce secret exposure through display paths. |
-| [NIST SP 800-57 Part 1 Rev. 5](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) | “guidance and best practices for the management of cryptographic keying material” | Credentials are treated as highly sensitive access material with lifecycle, access-boundary, audit, and minimal-exposure controls. |
-| [NIST SP 800-52 Rev. 2](https://csrc.nist.gov/pubs/sp/800/52/r2/final) | “Selection, Configuration, and Use of Transport Layer Security” | TLS is used as the transport-protection baseline for credential management and business execution flows. |
-| [RFC 8446: TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446) | “confidentiality and integrity for the data” | Modern TLS semantics support the confidentiality and integrity objectives for data in transit. |
-| [RFC 6750: OAuth 2.0 Bearer Token Usage](https://www.rfc-editor.org/rfc/rfc6750) | “primary security consideration when using bearer tokens” | Token and API-key credentials are treated as possession-sensitive access material and are hidden from nonessential display surfaces by default. |
-| [MITRE CWE-532](https://cwe.mitre.org/data/definitions/532) | “Insertion of Sensitive Information into Log File” | Log query, session view, and support export results are sanitized to reduce sensitive information exposure through logs. |
-| [MITRE CWE-798](https://cwe.mitre.org/data/definitions/798.html) | “Use of Hard-coded Credentials” | Credentials should not be placed in code, static documents, or uncontrolled configuration; controlled credential records are used for management and runtime paths. |
+| [OWASP 秘密管理备忘单](XHBPLACE0X) | “集中存储、配置、审计、轮换和管理秘密” |统一的凭证管理、审计记录、运行时隔离和基于引用的配置减少了分散的秘密副本。 |
+| [OWASP 日志备忘单](XHBPLACE0X) | “构建应用程序日志记录机制，特别是与安全日志记录相关的机制” |日志查询、会话视图和支持调查结果均经过清理，以减少通过显示路径泄露秘密。 |
+| [NIST SP 800-57 第 1 部分修订版 5](XHBPLACE0X) | “加密密钥材料管理指南和最佳实践”|凭证被视为高度敏感的访问材料，具有生命周期、访问边界、审计和最小暴露控制。 |
+| [NIST SP 800-52 修订版 2](XHBPLACE0X) | “传输层安全的选择、配置和使用”| TLS 用作凭证管理和业务执行流的传输保护基线。 |
+| [RFC 8446：TLS 1.3](XHBPLACE0X) | “数据的保密性和完整性” |现代 TLS 语义支持传输中数据的机密性和完整性目标。 |
+| [RFC 6750：OAuth 2.0 承载令牌使用](XHBPLACE0X) | “使用不记名代币时的主要安全考虑”|令牌和 API 密钥凭据被视为所有权敏感的访问材料，并且默认情况下对非必要的显示表面隐藏。 |
+| [MITRE CWE-532](XHBPLACE0X) | “将敏感信息插入日志文件”|日志查询、会话视图和支持导出结果均经过清理，以减少通过日志暴露的敏感信息。 |
+| [MITRE CWE-798](XHBPLACE0X) | “使用硬编码凭证”|凭证不应放置在代码、静态文档或不受控制的配置中；受控凭证记录用于管理和运行时路径。 |
 
-## Closing
+## 结束
 
-Supplier credential security is not a single feature. It is a control system that spans product design, engineering implementation, and operational workflows. Through default masking, runtime isolation, audit-safe copies, reference-based configuration, log query sanitization, and schema-driven governance, HotelByte continuously reduces unnecessary credential exposure in the hotel supply chain while providing customers and suppliers with a stable and trusted connectivity foundation.
+供应商凭证安全不是一个单一的功能。它是一个涵盖产品设计、工程实施和操作工作流程的控制系统。通过默认屏蔽、运行时隔离、审计安全副本、基于引用的配置、日志查询清理和模式驱动的治理，HotelByte 不断减少酒店供应链中不必要的凭证暴露，同时为客户和供应商提供稳定且值得信赖的连接基础。

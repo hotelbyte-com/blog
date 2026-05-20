@@ -350,15 +350,15 @@ a:hover {
 }
 
 .whitepaper-reader-note {
-  margin: 0 0 var(--space-8);
-  padding: var(--space-5);
+  margin: 0 0 var(--space-7);
+  padding: var(--space-4) var(--space-5);
   border: 1px solid hsl(var(--border));
   border-left: 4px solid hsl(var(--primary));
   border-radius: var(--radius);
   background: hsl(var(--primary-subdued));
   color: hsl(var(--text));
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .page-wrapper {
@@ -469,17 +469,26 @@ a:hover {
 }
 
 .post-header {
-  margin-bottom: var(--space-10);
-  padding-bottom: var(--space-8);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
   border-bottom: 1px solid hsl(var(--border-subdued));
 }
 
+.post-eyebrow {
+  margin: 0 0 var(--space-3);
+  color: hsl(var(--primary-hovered));
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .post-title {
-  margin: 0 0 var(--space-5);
+  margin: 0 0 var(--space-4);
   color: hsl(var(--text));
   font-family: "Bricolage Grotesque", Inter, sans-serif;
-  font-size: clamp(36px, 4.2vw, 58px);
-  line-height: 1.04;
+  font-size: clamp(30px, 3.2vw, 44px);
+  line-height: 1.12;
   font-weight: 700;
 }
 
@@ -492,8 +501,8 @@ a:hover {
 
 .post-content {
   color: hsl(var(--text));
-  font-size: 18px;
-  line-height: 1.82;
+  font-size: 17px;
+  line-height: 1.78;
 }
 
 .post-content h1,
@@ -506,16 +515,16 @@ a:hover {
 }
 
 .post-content h1 {
-  margin: var(--space-12) 0 var(--space-5);
-  font-size: 34px;
-  line-height: 1.14;
+  margin: var(--space-9) 0 var(--space-4);
+  font-size: 28px;
+  line-height: 1.2;
 }
 
 .post-content h2 {
-  margin: var(--space-12) 0 var(--space-4);
+  margin: var(--space-10) 0 var(--space-4);
   padding-top: var(--space-2);
-  font-size: 31px;
-  line-height: 1.18;
+  font-size: 25px;
+  line-height: 1.22;
 }
 
 .post-content h3 {
@@ -759,11 +768,19 @@ a:hover {
   }
 
   .post-title {
-    font-size: clamp(30px, 9vw, 42px);
+    font-size: clamp(27px, 7.2vw, 36px);
   }
 
   .post-content {
     font-size: 16px;
+  }
+
+  .post-content h1 {
+    font-size: 25px;
+  }
+
+  .post-content h2 {
+    font-size: 22px;
   }
 
   .quick-links,

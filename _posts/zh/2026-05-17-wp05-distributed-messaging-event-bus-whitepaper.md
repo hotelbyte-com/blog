@@ -1,95 +1,84 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：分布式消息与事件总线白皮书"
+title: "分布式消息与事件总线白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp05-distributed-messaging-event-bus/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp05-distributed-messaging-event-bus/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp05-distributed-messaging-event-bus/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：分布式消息与事件总线白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Distributed Messaging & Event Bus Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte is a global hotel API distribution platform that connects online travel agencies (OTAs), travel management companies (TMCs), and enterprise customers to millions of hotel properties worldwide. The platform processes billions of API calls daily, requiring a messaging and scheduling infrastructure that is resilient, scalable, and operationally predictable.
+HotelByte 是一个全球酒店 API 分销平台，将在线旅行社 (OTA)、差旅管理公司 (TMC) 和企业客户与全球数百万家酒店物业连接起来。该平台每天处理数十亿个 API 调用，需要具有弹性、可扩展且操作可预测的消息传递和调度基础设施。
 
-This whitepaper documents HotelByte's unified distributed messaging and event bus architecture, comprising three core subsystems: the CQRS Message Bus (`common/cqrs/`), the Distributed Cron Manager (`common/cron/`), and the Quota Rate Limiting Engine (`common/quota/`). Together, these systems provide backend-agnostic message streaming, exactly-once scheduled job execution across clustered nodes, and adaptive rate limiting with graceful degradation under control plane partition.
+本白皮书记录了 HotelByte 的统一分布式消息与事件总线架构，包括三个核心子系统：CQRS 消息总线 (`common/cqrs/`)、分布式 Cron 管理器 (`common/cron/`) 和配额速率限制引擎 (`common/quota/`)。这些系统共同提供与后端无关的消息流、跨集群节点的一次性调度作业执行以及在控制平面分区下实现自适应速率限制和优雅降级。
 
-Unlike off-the-shelf integrations that force vendor lock-in or require application-level rework when infrastructure changes, HotelByte's design treats message queue backends, scheduling substrates, and rate limiter topologies as pluggable concerns. Business logic remains unchanged whether the platform routes events through Redis Stream, NSQ, or future transports; whether cron jobs execute on one node or fifty; and whether quota enforcement is local, distributed, or hybrid.
-
----
-
-## Scope
-
-This document covers the architectural design, operational semantics, and assurance properties of HotelByte's distributed messaging and scheduling infrastructure. Specifically:
-
-- **CQRS Message Bus**: Unified producer and consumer interfaces, adapter pattern for transport abstraction, and config-driven backend switching between Redis Stream and NSQ.
-- **Distributed Cron Manager**: Cluster-aware job scheduling with distributed locking, lock renewal, schedule-slot deduplication, overlap policies, and HTTP-based manual trigger support.
-- **Quota Rate Limiting Engine**: Local token bucket enforcement, distributed Want/Alloc protocol for cross-instance coordination, lock-free local quota deduction, and automatic fallback to local-only operation.
-
-This whitepaper does not cover HotelByte's search and trade engine, supplier aggregation layer, or AI data intelligence systems, which are described in companion documents.
+与在基础设施发生变化时强制供应商锁定或需要应用程序级返工的现成集成不同，HotelByte 的设计将消息队列后端、调度基底和速率限制器拓扑视为可插入的问题。无论平台通过 Redis Stream、NSQ 还是未来的传输来路由事件，业务逻辑都保持不变； cron 作业是在一个节点上执行还是在 50 个节点上执行；以及配额执行是本地的、分布式的还是混合的。
 
 ---
 
-## Objectives
+## 范围
 
-The infrastructure is designed to achieve the following objectives:
+本文档涵盖了 HotelByte 分布式消息传递和调度基础设施的架构设计、操作语义和保证属性。具体来说：
 
-1. **Backend Portability**: Eliminate transport lock-in by abstracting message queue semantics behind unified interfaces. Switching from Redis Stream to NSQ—or any future transport—requires configuration changes only.
+- **CQRS 消息总线**：统一的生产者和消费者接口、传输抽象的适配器模式以及 Redis Stream 和 NSQ 之间配置驱动的后端切换。
+- **分布式 Cron 管理器**：集群感知作业调度，具有分布式锁定、锁定更新、调度槽重复数据删除、重叠策略和基于 HTTP 的手动触发支持。
+- **配额速率限制引擎**：本地令牌桶强制执行、用于跨实例协调的分布式 Want/Alloc 协议、无锁本地配额扣除以及自动回退到仅本地操作。
 
-2. **Exactly-Once Scheduling**: Guarantee that scheduled jobs execute exactly once per interval across a cluster, even under process restarts, network partitions, or clock skew.
-
-3. **Adaptive Rate Limiting**: Enforce per-tenant and per-resource rate limits accurately under both single-node and multi-node deployments, without a hard dependency on a remote control plane.
-
-4. **Operational Observability**: Provide audit trails, execution metrics, and diagnostic hooks that allow operators to verify system behavior, trace message flow, and detect anomalies.
+本白皮书不涉及 HotelByte 的搜索和交易引擎、供应商聚合层或 AI 数据智能系统，这些系统在配套文档中进行了描述。
 
 ---
 
-## Design Principles
+## 目标
 
-### Backend Agnosticism
+该基础设施旨在实现以下目标：
 
-HotelByte's CQRS layer defines canonical `Producer` and `Consumer` interfaces that capture the essential verbs of event streaming—publish, subscribe, start, stop—while delegating transport specifics to adapter implementations. Application code speaks in domain events, not in Redis commands or NSQ protocol details.
+1. **后端可移植性**：通过抽象统一接口背后的消息队列语义来消除传输锁定。从 Redis Stream 切换到 NSQ（或任何未来的传输）仅需要更改配置。
 
-### Exactly-Once Scheduling
+2. **精确一次调度**：即使在进程重新启动、网络分区或时钟偏差的情况下，也保证调度的作业在集群中每个时间间隔精确执行一次。
 
-In distributed cron systems, the fundamental hazard is duplicate execution. HotelByte addresses this through a multi-layered defense: Redis-backed distributed locks with atomic acquisition, per-schedule slot markers generated from cron expression evaluation, and configurable overlap policies that either skip or permit concurrent executions.
+3. **自适应速率限制**：在单节点和多节点部署下准确实施每个租户和每个资源的速率限制，而无需硬依赖于远程控制平面。
 
-### Graceful Degradation
-
-All distributed systems partition. Rather than treating partition as catastrophic, HotelByte's quota engine degrades safely: when the remote control plane becomes unreachable, the distributed limiter falls back to a local token bucket with conservative defaults, continuing to protect downstream services.
-
-### Independent Timeout Boundaries
-
-Scheduled job handlers execute within timeout contexts derived from `context.Background()`, not from caller-inherited deadlines. This prevents transient caller timeouts from silently aborting long-running background tasks.
-
-### Lock-Free Local Coordination
-
-Where cross-node consensus is unnecessary, HotelByte avoids it. The distributed quota limiter uses `atomic.Value` with `CompareAndSwap` for local quota deduction, eliminating mutex contention and maintaining nanosecond-scale hot-path latency.
+4. **操作可观测性**：提供审计跟踪、执行指标和诊断挂钩，允许操作员验证系统行为、跟踪消息流和检测异常。
 
 ---
 
-## Layered Architecture
+## 设计原则
 
-HotelByte's messaging and event bus is organized into three vertically integrated layers, each abstracting a distinct operational concern:
+### 后端无关性
+
+HotelByte 的 CQRS 层定义了规范的 `Producer` 和 `Consumer` 接口，这些接口捕获事件流的基本动词（发布、订阅、启动、停止），同时将传输细节委托给适配器实现。应用程序代码在域事件中说话，而不是在 Redis 命令或 NSQ 协议细节中。
+
+### 一次性调度
+
+在分布式 cron 系统中，根本的危险是重复执行。 HotelByte 通过多层防御解决了这个问题：具有原子获取的 Redis 支持的分布式锁、从 cron 表达式求值生成的按计划槽标记以及跳过或允许并发执行的可配置重叠策略。
+
+### 优雅的降级
+
+所有分布式系统分区。 HotelByte 的配额引擎不会将分区视为灾难性的，而是会安全降级：当远程控制平面无法访问时，分布式限制器会回退到具有保守默认值的本地令牌桶，继续保护下游服务。
+
+### 独立的超时边界
+
+计划作业处理程序在从 `context.Background()` 派生的超时上下文中执行，而不是在调用者继承的截止日期中执行。这可以防止短暂的调用者超时以静默方式中止长时间运行的后台任务。
+
+### 无锁本地协调
+
+在不需要跨节点共识的情况下，HotelByte 会避免使用跨节点共识。分布式配额限制器使用 `atomic.Value` 和 `CompareAndSwap` 进行本地配额扣除，消除互斥争用并维持纳秒级热路径延迟。
+
+---
+
+## 分层架构
+
+HotelByte 的消息传递和事件总线分为三个垂直集成层，每个层抽象出一个不同的操作问题：
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -116,113 +105,113 @@ HotelByte's messaging and event bus is organized into three vertically integrate
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Messaging Layer (CQRS)
+### 消息传递层 (CQRS)
 
-The CQRS layer exposes `types.Producer` and `types.Consumer` interfaces. The producer supports typed publishing (`Publish`, `PublishWithOptions`), raw byte publishing (`PublishRaw`), and lifecycle management (`Close`). The consumer supports operational control (`Start`, `Stop`, `IsRunning`).
+CQRS 层公开 `types.Producer` 和 `types.Consumer` 接口。生产者支持类型化发布（`Publish`、`PublishWithOptions`）、原始字节发布（`PublishRaw`）和生命周期管理（`Close`）。消费者支持操作控制（`Start`、`Stop`、`IsRunning`）。
 
-Concrete adapters—`redisProducerAdapter`, `nsqProducerAdapter`, and their consumer counterparts—bridge transport-specific SDKs to these canonical interfaces. Backend selection is driven by `types.Config.Type` (`redis_stream` or `nsq`), enabling operations teams to migrate between brokers without service code changes.
+具体适配器（`redisProducerAdapter`、`nsqProducerAdapter` 及其消费者对应适配器）将特定于传输的 SDK 桥接到这些规范接口。后端选择由 `types.Config.Type`（`redis_stream` 或 `nsq`）驱动，使运营团队能够在代理之间进行迁移，而无需更改服务代码。
 
-Producer adapters handle serialization internally, supporting transparent JSON encoding and pass-through for raw payloads. Publish options include delay scheduling, priority hints, header injection, and TTL control—sufficient expressiveness for event-driven patterns without leaking transport specifics.
+生产者适配器在内部处理序列化，支持透明的 JSON 编码和原始有效负载的传递。发布选项包括延迟调度、优先级提示、标头注入和 TTL 控制 — 为事件驱动模式提供足够的表现力，而不会泄漏传输细节。
 
-### Scheduling Layer (Cron)
+### 调度层（Cron）
 
-The Distributed Cron Manager extends `robfig/cron/v3` with cluster-safe execution semantics. When a job is registered with `UseLock: true`, the manager acquires a Redis-backed distributed lock before invoking the handler. Lock acquisition uses `SETNX EX` for atomicity; release uses a Lua script verifying ownership before deletion, preventing the "stolen lock" hazard.
+分布式 Cron 管理器使用集群安全执行语义扩展了 `robfig/cron/v3`。当作业注册到 `UseLock: true` 时，管理器在调用处理程序之前会获取 Redis 支持的分布式锁。锁获取使用`SETNX EX`实现原子性；发布使用 Lua 脚本在删除之前验证所有权，防止“锁被盗”的危险。
 
-For jobs with `LockRenew: true`, a background goroutine renews the lock lease at half the TTL interval. If renewal fails, the goroutine cancels the job's execution context, triggering clean abort.
+对于使用 `LockRenew: true` 的作业，后台 goroutine 以 TTL 间隔的一半更新锁租约。如果更新失败，goroutine 会取消作业的执行上下文，从而触发干净中止。
 
-The `DedupPerSchedule` mechanism generates a deterministic slot marker from the job name, cron spec, and next execution time. A node acquires this marker via `SETNX EX` before the execution lock, preventing duplicate runs when multiple nodes race the same interval. Slot TTL auto-computes from the next scheduled execution plus a safety margin, ensuring automatic expiration.
+`DedupPerSchedule` 机制根据作业名称、cron 规范和下次执行时间生成确定性槽标记。节点在执行锁定之前通过 `SETNX EX` 获取此标记，从而防止多个节点在同一时间间隔内竞争时重复运行。插槽 TTL 从下一个计划执行加上安全裕度自动计算，确保自动过期。
 
-The overlap policy (`skip` or `run`) governs node-local concurrency. Under `skip`, a second trigger is discarded if a previous invocation is still running. Both policies are enforced locally before distributed lock acquisition, minimizing Redis traffic.
+重叠策略（`skip` 或 `run`）控制节点本地并发。在 `skip` 下，如果先前的调用仍在运行，则第二个触发器将被丢弃。这两种策略都在分布式锁获取之前在本地强制执行，从而最大限度地减少 Redis 流量。
 
-Job handlers execute within a timeout context derived from `context.Background()`, with per-job configurable duration. An HTTP manual trigger endpoint allows on-demand invocation with test-parameter injection through the request context, enabling safe diagnostic execution.
+作业处理程序在派生自 `context.Background()` 的超时上下文中执行，每个作业的持续时间可配置。 HTTP 手动触发端点允许通过请求上下文进行测试参数注入的按需调用，从而实现安全的诊断执行。
 
-### Rate Limiting Layer (Quota)
+### 速率限制层（配额）
 
-The Quota engine provides two limiter implementations behind the `QuotaLimiter` interface (`Wait`, `Allow`, `Close`).
+配额引擎在 `QuotaLimiter` 接口后面提供了两种限制器实现（`Wait`、`Allow`、`Close`）。
 
-The `LocalLimiter` wraps `golang.org/x/time/rate` to provide a standard token bucket with configurable rate and burst, supporting hot-reload through versioned updates without process restart.
+`LocalLimiter` 包装了 `golang.org/x/time/rate`，以提供具有可配置速率和突发的标准令牌桶，支持通过版本更新进行热重载，而无需重新启动进程。
 
-The `DistributedLimiter` implements a hybrid local-remote protocol. On the hot path, it satisfies quota requests from a locally cached permit using lock-free `CompareAndSwap` on an `atomic.Value`. When local permits are exhausted, the limiter issues a `Want` request to the control plane. On grant, it atomically stores the new permit and deducts the requested amount.
+`DistributedLimiter` 实施混合本地远程协议。在热路径上，它使用 `atomic.Value` 上的无锁 `CompareAndSwap` 来满足来自本地缓存许可的配额请求。当本地许可用完时，限制器向控制平面发出 `Want` 请求。授予后，它自动存储新许可证并扣除请求的金额。
 
-If the remote request fails—due to network partition, overload, or timeout—the limiter falls back to a `LocalLimiter` with conservative defaults. This ensures rate limiting remains active during partial outages. When the control plane recovers, subsequent `Want` requests resume normal distributed operation.
+如果远程请求由于网络分区、过载或超时而失败，限制器将回退到具有保守默认值的 `LocalLimiter`。这可确保速率限制在部分中断期间保持活动状态。当控制平面恢复时，后续的 `Want` 请求恢复正常的分布式操作。
 
-`Allow` provides a non-blocking check for fast-path filtering; `Wait` supports blocking acquisition with context cancellation, enabling both reactive and proactive backpressure.
-
----
-
-## Operational Flow / Lifecycle
-
-### Message Publishing Lifecycle
-
-1. **Configuration**: At service startup, the application loads a `types.Config` specifying the transport type (`redis_stream` or `nsq`) and connection parameters.
-2. **Factory Instantiation**: `NewProducer(config)` selects the appropriate adapter based on `Config.Type` and initializes the underlying transport client.
-3. **Event Emission**: Application code calls `producer.Publish(ctx, topic, event)`. The adapter serializes the event, applies any configured options, and delegates to the transport-specific producer.
-4. **Graceful Shutdown**: During service termination, `producer.Close()` drains in-flight messages and releases transport resources.
-
-### Scheduled Job Execution Lifecycle
-
-1. **Registration**: At startup, the application registers jobs with the `Manager`, specifying cron expression, timeout, overlap policy, and lock configuration.
-2. **Trigger Evaluation**: The cron engine evaluates the expression and fires at the scheduled time.
-3. **Overlap Check**: If `OverlapPolicy` is `skip` and the job is already running locally, the trigger is discarded.
-4. **Slot Deduplication**: If `DedupPerSchedule` is enabled, the manager computes a slot marker and attempts atomic acquisition. Failure indicates another node has already claimed this cycle.
-5. **Distributed Locking**: The manager acquires the execution lock via `SETNX EX`. Failure indicates another node owns the current execution.
-6. **Lock Renewal**: If configured, a background goroutine begins renewing the lock at half-TTL intervals.
-7. **Execution**: The handler runs within an isolated timeout context. Metrics and structured logs are emitted for observability.
-8. **Cleanup**: On completion or cancellation, the lock is released via owner-verified Lua script, and the renewal goroutine terminates.
-
-### Quota Enforcement Lifecycle
-
-1. **Initialization**: The application obtains a `QuotaLimiter` for a given `(service, resource, tenant)` key.
-2. **Local Check**: For `Allow`, the limiter checks the local token bucket. For `Wait`, it attempts local acquisition first.
-3. **Remote Negotiation**: If local permits are insufficient, the `DistributedLimiter` issues a `Want(n)` request to the control plane.
-4. **Permit Allocation**: On success, the limiter atomically stores the granted permit and deducts the requested amount.
-5. **Fallback**: On remote failure, the limiter transparently falls back to a local token bucket with conservative defaults.
-6. **Cleanup**: On service shutdown, `Close()` releases resources and cancels pending waiters.
+`Allow`为快速路径过滤提供非阻塞检查； `Wait` 支持通过上下文取消来阻止获取，从而实现被动式和主动式背压。
 
 ---
 
-## Implemented Control Summary
+## 操作流程/生命周期
 
-| Control | Customer Value |
+### 消息发布生命周期
+
+1. **配置**：在服务启动时，应用程序加载指定传输类型（`redis_stream` 或 `nsq`）和连接参数的 `types.Config`。
+2. **工厂实例化**：`NewProducer(config)`根据`Config.Type`选择合适的适配器并初始化底层传输客户端。
+3. **事件发射**：应用程序代码调用 `producer.Publish(ctx, topic, event)`。适配器序列化事件，应用任何配置的选项，并委托给特定于传输的生产者。
+4. **优雅关闭**：在服务终止期间，`producer.Close()` 耗尽传输中的消息并释放传输资源。
+
+### 预定作业执行生命周期
+
+1. **注册**：启动时，应用程序向 `Manager` 注册作业，指定 cron 表达式、超时、重叠策略和锁定配置。
+2. **触发评估**：cron 引擎评估表达式并在预定时间触发。
+3. **重叠检查**：如果`OverlapPolicy`是`skip`并且作业已经在本地运行，则丢弃触发器。
+4. **槽重复数据删除**：如果启用 `DedupPerSchedule`，管理器会计算槽标记并尝试原子获取。失败表明另一个节点已经声明了这个周期。
+5. **分布式锁**：管理器通过`SETNX EX`获取执行锁。失败表示另一个节点拥有当前执行。
+6. **锁更新**：如果配置，后台 goroutine 开始以半 TTL 间隔更新锁。
+7. **执行**：处理程序在隔离的超时上下文中运行。发出指标和结构化日志以实现可观测性。
+8. **清理**：完成或取消时，通过所有者验证的 Lua 脚本释放锁，并且更新 goroutine 终止。
+
+### 配额执行生命周期
+
+1. **初始化**：应用程序获取给定 `(service, resource, tenant)` 密钥的 `QuotaLimiter`。
+2. **本地检查**：对于`Allow`，限制器检查本地令牌桶。对于`Wait`，它首先尝试本地获取。
+3. **远程协商**：如果本地许可不足，`DistributedLimiter` 向控制平面发出 `Want(n)` 请求。
+4. **许可证分配**：成功后，限制器自动存储授予的许可证并扣除请求的金额。
+5. **回退**：在远程故障时，限制器会透明地回退到具有保守默认值的本地令牌桶。
+6. **清理**：服务关闭时，`Close()` 释放资源并取消待处理的等待者。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Backend-Agnostic Message Bus** | Switch between Redis Stream, NSQ, or future transports via configuration alone. No code changes, no deployment risk, no regression testing of business logic. |
-| **Exactly-Once Distributed Cron** | Scheduled jobs execute exactly once per interval across the entire cluster, eliminating duplicate invoicing, double-sync, or conflicting data mutations. |
-| **Automatic Lock Renewal** | Long-running jobs retain their execution lease without requiring artificially high TTLs, reducing the window for stale-lock false positives. |
-| **Schedule-Slot Deduplication** | Prevents multi-node duplicate execution at the schedule-cycle boundary, even under clock skew or Redis latency spikes. |
-| **Configurable Overlap Policy** | Operators choose per-job whether to skip or allow overlapping executions, matching business semantics rather than infrastructure constraints. |
-| **Isolated Timeout Contexts** | Background jobs receive deterministic, configuration-bound execution time regardless of external caller state, preventing silent mid-task cancellation. |
-| **Hybrid Local-Distributed Quota** | Rate limits remain accurate under cluster scaling while avoiding a hard dependency on control plane availability. |
-| **Lock-Free Local Quota Deduction** | Hot-path quota checks operate at nanosecond latency with zero mutex contention, preserving throughput under extreme load. |
-| **Graceful Quota Degradation** | During control plane partition, rate limiting continues to protect downstream services via local fallback, maintaining availability boundaries. |
-| **HTTP Manual Trigger** | Operators can execute and validate scheduled jobs on demand with test-parameter injection, reducing mean time to recovery for job-related incidents. |
+| **与后端无关的消息总线** |仅通过配置即可在 Redis Stream、NSQ 或未来传输之间切换。无需更改代码，无部署风险，无需对业务逻辑进行回归测试。 |
+| **一次性分布式 Cron** |计划作业在整个集群中每个时间间隔精确执行一次，从而消除了重复开票、双重同步或冲突的数据突变。 |
+| **自动锁更新** |长时间运行的作业保留其执行租约，无需人为设置较高的 TTL，从而减少了过时锁定误报的窗口。 |
+| **计划时隙重复数据删除** |即使在时钟偏差或 Redis 延迟峰值的情况下，也可以防止在调度周期边界处进行多节点重复执行。 |
+| **可配置的重叠策略** |操作员根据每个作业选择是跳过还是允许重叠执行，匹配业务语义而不是基础设施限制。 |
+| **隔离超时上下文** |无论外部调用者状态如何，后台作业都会接收确定性的、受配置限制的执行时间，从而防止无提示的中间任务取消。 |
+| **混合本地分布式配额** |速率限制在集群扩展下保持准确，同时避免对控制平面可用性的硬依赖。 |
+| **免锁本地配额抵扣** |热路径配额检查以纳秒延迟运行，互斥争用为零，从而在极端负载下保持吞吐量。 |
+| **配额优雅降级** |在控制平面分区期间，速率限制继续通过本地回退保护下游服务，维护可用性边界。 |
+| **HTTP 手动触发** |操作员可以通过测试参数注入按需执行和验证预定作业，从而缩短与作业相关的事件的平均恢复时间。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-HotelByte's messaging and scheduling infrastructure exposes multiple verification surfaces:
+HotelByte 的消息传递和调度基础设施公开了多个验证表面：
 
-**Structured Execution Logging**: Every cron job execution emits structured logs containing job name, start time, duration, outcome, lock owner identity, and slot marker state. Logs support distributed tracing via correlation IDs injected into the execution context.
+**结构化执行日志记录**：每个 cron 作业执行都会发出结构化日志，其中包含作业名称、开始时间、持续时间、结果、锁所有者身份和槽标记状态。日志通过注入执行上下文的相关 ID 支持分布式跟踪。
 
-**Metrics Exposure**: The cron manager records timing histograms (`BusinessCallTiming`) and error counters (`BusinessErrCount`) per job name. The quota layer exposes `QuotaStatus` snapshots containing available tokens, limit/burst, and configuration version. All metrics are compatible with Prometheus scraping conventions.
+**指标公开**：cron 管理器记录每个作业名称的计时直方图 (`BusinessCallTiming`) 和错误计数器 (`BusinessErrCount`)。配额层公开包含可用令牌、限制/突发和配置版本的 `QuotaStatus` 快照。所有指标都与 Prometheus 抓取约定​​兼容。
 
-**Lock State Inspection**: The cron manager provides `GetJobs()` and `GetJobConfigs()` APIs returning registered specifications and active configurations. Lock ownership and TTL can be queried directly against Redis for real-time debugging of distributed contention.
+**锁定状态检查**：cron 管理器提供 `GetJobs()` 和 `GetJobConfigs()` API，返回注册规范和活动配置。可以直接针对 Redis 查询锁所有权和 TTL，以便实时调试分布式争用。
 
-**Manual Trigger Audit Trail**: HTTP-triggered executions carry the same logging and metrics paths as scheduled executions, with additional annotation of test parameters. Manual interventions are fully observable alongside automated ones.
+**手动触发审计跟踪**：HTTP 触发的执行具有与计划执行相同的日志记录和指标路径，并带有测试参数的附加注释。手动干预与自动化干预一样是完全可以观察到的。
 
-**Quota Permit Visibility**: The `DistributedLimiter` maintains an introspectable local permit structure. `LocalLimiter.GetStatus()` returns the current token count, enabling runtime verification without external tooling.
+**配额许可可见性**：`DistributedLimiter` 维护可自省的本地许可结构。 `LocalLimiter.GetStatus()` 返回当前令牌计数，无需外部工具即可实现运行时验证。
 
-**Integration Test Coverage**: The CQRS layer verifies producer-consumer round-trips against both Redis Stream and NSQ. The cron layer tests lock acquisition, renewal, release, and slot deduplication. The quota layer tests local bucket semantics, distributed Want/Alloc negotiation, and fallback behavior.
+**集成测试覆盖率**：CQRS 层针对 Redis Stream 和 NSQ 验证生产者-消费者往返。 cron 层测试锁获取、更新、释放和槽重复数据删除。配额层测试本地存储桶语义、分布式 Want/Alloc 协商和回退行为。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Martin Fowler, "CQRS" (2011)** | "CQRS stands for Command Query Responsibility Segregation... The notion that you should use a different model to update information than the model you use to read information." | HotelByte's CQRS message bus separates command events (producer writes) from query reactions (consumer reads) through unified interfaces, enabling independent scaling and backend selection for each path. |
-| **Rob Pike, "Go Concurrency Patterns" (Google I/O 2012)** | "Don't communicate by sharing memory; share memory by communicating." | The CQRS producer-consumer abstraction replaces shared-state event dispatch with explicit message passing over stream transports, while the quota layer uses lock-free atomic operations (`atomic.Value` + `CompareAndSwap`) to avoid shared-memory contention. |
-| **Martin Kleppmann, "Designing Data-Intensive Applications" (O'Reilly, 2017)** | "Exactly-once processing requires either deduplication of messages or atomic commit of message processing and side effects." | HotelByte's cron `DedupPerSchedule` slot markers and Redis `SETNX EX` locks provide deduplication at the schedule-cycle boundary, achieving exactly-once execution semantics for scheduled jobs without requiring two-phase commit. |
-| **Redis Documentation, "Distributed locks with Redis"** | "Both the lock acquisition and the release must be atomic operations... The release of the lock must be done with a Lua script to avoid removing a lock acquired by another client." | The cron manager acquires locks via `SETNX EX` and releases them through a Lua script that verifies ownership before deletion, directly implementing the Redlock safety pattern for distributed cron coordination. |
-| **Netflix Tech Blog, "Rate Limiting" (2014)** | "A token bucket algorithm is used to enforce rate limits... The bucket has a fixed capacity and tokens are added at a fixed rate." | HotelByte's `LocalLimiter` implements the canonical token bucket via `golang.org/x/time/rate`, while the `DistributedLimiter` extends this pattern with a Want/Alloc protocol for cross-node coordination and local fallback. |
-| **NIST SP 800-204B, "Building Secure Microservices-based Applications Using Service-Mesh Architecture"** | "Graceful degradation ensures that if a component fails, the system continues to operate, albeit at a reduced level of functionality." | The quota engine's fallback from distributed to local rate limiting during control plane partition exemplifies graceful degradation: protection boundaries remain enforced even when full coordination is unavailable. |
+| **马丁·福勒，《CQRS》(2011)** | “CQRS 代表命令查询职责分离......这一概念是，您应该使用与读取信息的模型不同的模型来更新信息。” | HotelByte 的 CQRS 消息总线通过统一的接口将命令事件（生产者写入）与查询反应（消费者读取）分开，从而为每个路径实现独立的扩展和后端选择。 |
+| **Rob Pike，“Go 并发模式”（Google I/O 2012）** | “不要通过共享内存来交流；而是通过交流来共享内存。” | CQRS 生产者-消费者抽象使用通过流传输传递的显式消息来替换共享状态事件调度，而配额层使用无锁原子操作 (`atomic.Value` + `CompareAndSwap`) 来避免共享内存争用。 |
+| **Martin Kleppmann，“设计数据密集型应用程序”（O'Reilly，2017 年）** | “Exactly-once 处理需要消息的重复数据删除或消息处理的原子提交和副作用。” | HotelByte 的 cron `DedupPerSchedule` 槽标记和 Redis `SETNX EX` 锁在调度周期边界提供重复数据删除，为调度作业实现一次性执行语义，而无需两阶段提交。 |
+| **Redis 文档，“Redis 分布式锁”** | “锁的获取和释放都必须是原子操作……锁的释放必须使用Lua脚本来完成，以避免删除另一个客户端获取的锁。” | cron 管理器通过 `SETNX EX` 获取锁，并通过 Lua 脚本释放锁，该脚本在删除之前验证所有权，直接实现分布式 cron 协调的 Redlock 安全模式。 |
+| **Netflix 技术博客，“速率限制”(2014)** | “令牌桶算法用于强制执行速率限制……桶具有固定容量，并且令牌以固定速率添加。” | HotelByte 的 `LocalLimiter` 通过 `golang.org/x/time/rate` 实现规范令牌桶，而 `DistributedLimiter` 通过 Want/Alloc 协议扩展此模式，以实现跨节点协调和本地回退。 |
+| **NIST SP 800-204B，“使用服务网格架构构建安全的基于微服务的应用程序”** | “优雅的降级可确保如果某个组件出现故障，系统仍能继续运行，尽管功能水平有所下降。” |配额引擎在控制平面分区期间从分布式速率限制回退到本地速率限制体现了优雅的降级：即使在完全协调不可用时，保护边界仍然得到执行。 |

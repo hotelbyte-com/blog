@@ -44,6 +44,11 @@ layout: null
       <main class="content-wrapper">
     <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
       <header class="post-header">
+        {% if page.whitepaper_kind == 'original' %}
+          <p class="post-eyebrow">{% if page.lang == 'en' %}Whitepaper source{% else %}白皮书原文{% endif %}</p>
+        {% elsif page.whitepaper_kind == 'guide' %}
+          <p class="post-eyebrow">{% if page.lang == 'en' %}Reader guide{% else %}读者视角导读{% endif %}</p>
+        {% endif %}
         <h1 class="post-title" itemprop="name headline">{{ page.title | escape }}</h1>
         <p class="post-meta">
           <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">

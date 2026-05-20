@@ -1,213 +1,202 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：实时搜索聚合白皮书"
+title: "实时搜索聚合白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp11-real-time-search/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp11-real-time-search/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp11-real-time-search/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：实时搜索聚合白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Real-Time Search Aggregation Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte's search engine aggregates room inventory and pricing from more than 27 independent hotel suppliers in real time, returning a unified, ranked result set to the buyer within a strict latency budget. Each search query fans out concurrently across all eligible suppliers, which may internally parallelize requests across multiple credential sets. The platform then merges, normalizes, deduplicates, and ranks the collective response before applying buyer-specific business rules.
+HotelByte 的搜索引擎实时汇总超过 27 家独立酒店供应商的客房库存和定价，在严格的延迟预算内向买家返回统一的排名结果集。每个搜索查询同时在所有符合条件的供应商中散开，这可以在内部并行化跨多个凭证集的请求。然后，该平台会对集体响应进行合并、标准化、重复数据删除和排名，然后再应用特定于买方的业务规则。
 
-This whitepaper describes the architectural layers that make this aggregation possible: the concurrent fanout layer, the merge layer, the processing pipeline, and the caching layer. The intended audience includes enterprise customers, security auditors, integration partners, and technical evaluators who require transparency into how HotelByte presents multi-supplier search results under real-time constraints.
-
----
-
-## Scope
-
-This document covers the architectural design, operational behavior, and resilience posture of HotelByte's real-time search aggregation system. Specifically, it addresses:
-
-- The multi-supplier concurrent fanout strategy and its latency boundaries
-- The merge and normalization pipeline that unifies supplier responses into a canonical catalog
-- Room mapping integration, redundancy detection, and price-based ranking controls
-- Caching strategies that preserve search availability during downstream degradation
-- Configurable sorting policies and rule-engine transformations
-- Observability, auditability, and traceability of the aggregation lifecycle
-
-This whitepaper does not cover supplier-specific adapter implementations, booking transaction flows, or content management systems, which are documented separately.
+本白皮书描述了使这种聚合成为可能的架构层：并发扇出层、合并层、处理管道和缓存层。目标受众包括企业客户、安全审计员、集成合作伙伴和技术评估员，他们需要了解 HotelByte 如何在实时限制下呈现多供应商搜索结果。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Maximize Supplier Coverage Under Latency Constraints** — Issue concurrent requests to all eligible suppliers and return a merged result set within a bounded response window, ensuring that slow or unresponsive suppliers do not block the entire query.
+本文档涵盖了 HotelByte 实时搜索聚合系统的架构设计、操作行为和弹性状态。具体来说，它解决了：
 
-2. **Present a Unified, Deduplicated Catalog** — Normalize supplier-specific hotel and room identifiers into a canonical master catalog, removing duplicate offerings so that buyers see one coherent result per unique property and room type.
+- 多供应商并发扇出策略及其延迟边界
+- 将供应商响应统一到规范目录中的合并和标准化管道
+- 房型映射集成、冗余检测和基于价格的排名控制
+- 在下游降级期间保持搜索可用性的缓存策略
+- 可配置的排序策略和规则引擎转换
+- 聚合生命周期的可观测性、可审计性和可追溯性
 
-3. **Enforce Consistent Ranking and Quality Controls** — Sort and limit rate packages by configurable criteria (price, rating, distance) while detecting and marking redundant offerings that do not add buyer value.
-
-4. **Preserve Availability During Degradation** — Use tiered caching and session-based fallback mechanisms to maintain search responsiveness when content services or individual suppliers are temporarily unavailable.
-
-5. **Apply Buyer-Specific Business Rules Transparently** — Execute seller-out and buyer-out rule transformations as deterministic, auditable pipeline stages that do not obscure the underlying supplier data from authorized reviewers.
-
----
-
-## Design Principles
-
-### Maximize Concurrency
-
-Search latency is bounded by the slowest successful supplier response, not the sum of all requests. HotelByte issues all supplier queries concurrently using structured concurrency patterns, with per-supplier timeouts and cancellation propagation. Internally, each supplier may parallelize requests across its own credential boundaries. The result is that adding a new supplier to the network does not increase the customer's perceived latency.
-
-### Consistent Normalization
-
-Suppliers represent the same physical hotel with different identifiers, the same room type with different names, and the same rate with different fee structures. The platform applies a deterministic normalization pipeline—identifier mapping, room type integration, and price standardization—so that a buyer querying three suppliers for the same property receives a single merged entry with all compatible room and rate options consolidated.
-
-### Graceful Degradation
-
-Not every supplier responds to every query, and not every downstream service is available at all times. Rather than failing the entire search when a single component degrades, the platform continues with the subset of data it can retrieve. Missing supplier results are recorded as structured quality metrics; the customer receives a partial but valid catalog. Similarly, when content services are unreachable, the search engine falls back to cached session snapshots within a bounded time window.
-
-### Transparent Rule Application
-
-Business rules—such as seller filtering, buyer-specific transformations, and output formatting—are applied as explicit, named pipeline stages. Each stage is traceable, reversible in principle, and does not mutate the underlying canonical data. Authorized reviewers can inspect both the pre-rule and post-rule representation of any search result.
-
-### Defensive Caching
-
-Cache entries are treated as materialized views with bounded staleness, not as authoritative sources of truth. The platform caches derived results only after full normalization has been applied, ensuring that cached data is internally consistent. Cache misses and fallback paths are instrumented so that cache degradation is visible to operators without impacting the customer experience.
+本白皮书不涵盖供应商特定的适配器实施、预订交易流程或内容管理系统，这些系统均单独记录。
 
 ---
 
-## Search Aggregation Architecture
+## 目标
 
-The aggregation system is organized into four architectural layers, each with a distinct responsibility and failure domain.
+1. **在延迟限制下最大化供应商覆盖范围** — 向所有符合条件的供应商发出并发请求，并在有限的响应窗口内返回合并的结果集，确保缓慢或无响应的供应商不会阻止整个查询。
 
-### Fanout Layer: Multi-Supplier Concurrent Dispatch
+2. **呈现统一的、去重的目录** — 将特定于供应商的酒店和房间标识符规范化为规范的主目录，删除重复的产品，以便买家针对每种独特的房产和房间类型看到一个一致的结果。
 
-When a search request arrives, the fanout layer resolves the set of eligible suppliers for the buyer's context and dispatches availability queries to all of them simultaneously. Each supplier request operates within a shared parent context that enforces a global timeout and cancellation signal.
+3. **执行一致的排名和质量控制** — 按可配置标准（价格、评级、距离）对套餐进行排序和限制费率，同时检测和标记不会增加买家价值的冗余产品。
 
-The fanout layer applies the following controls:
+4. **在降级期间保持可用性** — 使用分层缓存和基于会话的后备机制，在内容服务或单个供应商暂时不可用时保持搜索响应能力。
 
-- **Concurrent dispatch:** All supplier queries are launched together; no supplier blocks another.
-- **Credential-level parallelism:** Suppliers with multiple active credentials may issue parallel sub-requests, further increasing coverage without adding latency.
-- **Timeout isolation:** Per-supplier timeouts prevent a single slow supplier from delaying the overall response.
-- **Structured cancellation:** If the buyer connection drops or the global deadline expires, all in-flight supplier requests receive a cancellation signal, preventing wasted work.
-
-### Merge Layer: Unified Catalog Construction
-
-Once supplier responses begin returning, the merge layer reconciles them into a single canonical catalog. The merge process is identity-driven: each supplier hotel identifier is mapped to a master hotel identifier through HotelByte's mapping layer. Rates and room types sharing the same master hotel and room mapping are coalesced into a single catalog entry.
-
-The merge layer applies the following controls:
-
-- **Identifier normalization:** Supplier-specific hotel IDs are resolved to master hotel IDs, ensuring that the same physical property is not listed multiple times under different supplier names.
-- **Room type consolidation:** Automatic and manual room mapping integration aligns supplier room descriptions into a standardized room taxonomy.
-- **Result accumulation:** Responses are accumulated as they arrive; the merge process does not wait for all suppliers before beginning normalization, reducing end-to-end latency.
-
-### Processing Layer: Ranking, Deduplication, and Rule Application
-
-After merge, the consolidated catalog enters a processing pipeline that enforces quality, ranking, and business-policy controls.
-
-**Redundancy Detection.** The platform analyzes rate packages within each hotel entry to identify redundant offerings—identical or near-identical room and rate combinations that provide no additional buyer value. Redundant packages are marked accordingly rather than removed, preserving transparency.
-
-**Price Sorting.** Rate packages are sorted by Customer Net Price in ascending order by default, ensuring the most economical option is presented first. Alternative sort orders (price-descending, rating-descending, distance-ascending) are available through configuration.
-
-**Rate Limiting per Hotel.** A configurable maximum number of rate packages per hotel prevents response bloat. The limit is applied after sorting, so the best-ranked options are retained.
-
-**Rule Engine Integration.** Two classes of business rules are applied:
-
-- **Seller Out Rules:** Filter or transform supplier-side data based on contractual or operational constraints before the response is finalized.
-- **Buyer Out Rules:** Adapt the response format and content to the specific buyer's integration contract as the final transformation.
-
-Both rule classes operate on the normalized canonical model, not on raw supplier responses, ensuring consistency across all buyers.
-
-### Caching Layer: Latency Protection and Session Resilience
-
-The caching layer protects both latency and availability through two complementary mechanisms.
-
-**Hotel Minimum Price Cache.** Derived minimum-price criteria are cached along dual dimensions—buyer key and seller key—allowing rapid retrieval of commonly queried price ranges without re-executing the full aggregation pipeline. Cache entries respect the platform's multi-level caching strategy with TTL jitter and active invalidation.
-
-**Session Fallback.** When the content service that provides hotel descriptive data is unavailable, the search engine falls back to a session snapshot captured within the preceding 30 seconds. This fallback preserves search functionality during transient content-service outages, ensuring that buyers continue to receive availability and pricing even when ancillary metadata is temporarily stale.
+5. **透明地应用买方特定的业务规则** — 将卖方和买方规则转换作为确定性、可审计的管道阶段执行，不会模糊授权审核者的底层供应商数据。
 
 ---
 
-## Search Request Lifecycle
+## 设计原则
 
-A typical search request traverses the following lifecycle:
+### 最大化并发
 
-1. **Request Admission.** The gateway validates the incoming query, resolves the buyer context, and identifies the set of eligible suppliers and credentials.
+搜索延迟取决于最慢的成功供应商响应，而不是所有请求的总和。 HotelByte 使用结构化并发模式同时发出所有供应商查询，并具有每个供应商的超时和取消传播。在内部，每个供应商可以跨其自己的凭证边界并行化请求。结果是，向网络添加新供应商不会增加客户感知到的延迟。
 
-2. **Concurrent Fanout.** The platform dispatches availability queries to all eligible suppliers simultaneously, each with its own timeout and cancellation context.
+### 一致标准化
 
-3. **Response Streaming.** As supplier responses arrive, they are parsed and normalized into the internal canonical model. Early arrivals begin the merge process immediately; late arrivals are incorporated as they complete.
+供应商用不同的标识符代表同一家实体酒店，用不同的名称代表相同的房型，用不同的费用结构代表相同的价格。该平台应用确定性标准化管道（标识符映射、房间类型集成和价格标准化），以便买家向同一房产查询三个供应商时会收到一个合并条目，其中包含所有兼容的房间和价格选项。
 
-4. **Catalog Merge.** Supplier hotel identifiers are mapped to master hotel IDs. Room types are integrated through automatic and manual mapping. Compatible rates are coalesced under unified entries.
+### 优雅的降级
 
-5. **Processing Pipeline.** The merged catalog undergoes redundancy detection, price-based sorting, per-hotel rate limiting, and rule-engine transformation.
+并非每个供应商都会响应每个查询，也并非所有下游服务都始终可用。当单个组件降级时，平台不会使整个搜索失败，而是继续检索它可以检索的数据子集。缺失的供应商结果被记录为结构化质量指标；客户收到部分但有效的目录。类似地，当内容服务无法访问时，搜索引擎会在有限的时间窗口内回退到缓存的会话快照。
 
-6. **Response Assembly.** The final catalog is serialized according to the buyer's output contract and returned to the caller. Structured quality metrics and trace metadata are emitted to observability systems.
+### 透明规则应用
+
+业务规则（例如卖方过滤、买方特定的转换和输出格式）作为显式的命名管道阶段应用。每个阶段原则上都是可追溯、可逆的，并且不会改变底层规范数据。授权审阅者可以检查任何搜索结果的规则前和规则后表示。
+
+### 防御性缓存
+
+缓存条目被视为具有有限陈旧性的物化视图，而不是权威的事实来源。平台仅在应用完全标准化后才缓存派生结果，确保缓存数据内部一致。缓存未命中和回退路径经过检测，以便操作员可以看到缓存降级，而不会影响客户体验。
 
 ---
 
-## Implemented Control Summary
+## 搜索聚合架构
 
-| Control | Customer Value |
+聚合系统分为四个架构层，每个架构层都有不同的责任和故障域。
+
+### 扇出层：多供应商并发调度
+
+当搜索请求到达时，扇出层会根据买方的上下文解析一组合格的供应商，并同时向所有供应商发送可用性查询。每个供应商请求在共享父上下文中运行，该父上下文强制执行全局超时和取消信号。
+
+扇出层应用以下控制：
+
+- **并发调度：** 所有供应商查询一起发起；没有一个供应商会阻止另一个供应商。
+- **凭证级并行性：** 具有多个活动凭证的供应商可以发出并行子请求，进一步增加覆盖范围而不增加延迟。
+- **超时隔离：** 每个供应商的超时可防止单个缓慢的供应商延迟整体响应。
+- **结构化取消：** 如果买家连接断开或全局截止日期到期，所有正在进行的供应商请求都会收到取消信号，从而防止浪费工作。
+
+### 合并层：统一目录构建
+
+一旦供应商响应开始返回，合并层就会将它们协调成一个规范目录。合并过程是身份驱动的：每个供应商酒店标识符都通过 HotelByte 的映射层映射到主酒店标识符。共享同一主酒店的价格和房间类型以及房型映射将合并到单个目录条目中。
+
+合并层应用以下控件：
+
+- **标识符规范化：** 供应商特定的酒店 ID 被解析为主酒店 ID，确保相同的物理财产不会在不同的供应商名称下多次列出。
+- **房间类型整合：** 自动和手动房型映射集成将供应商房间描述调整为标准化房间分类法。
+- **结果累积：** 响应到达时进行累积；合并过程不会等待所有供应商才开始标准化，从而减少了端到端延迟。
+
+###处理层：排序、去重、规则应用
+
+合并后，合并后的目录进入处理管道，强制执行质量、排名和业务策略控制。
+
+**冗余检测。** 该平台分析每个酒店条目内的房价套餐，以识别冗余产品 - 相同或接近相同的房间和价格组合，不提供额外的买家价值。冗余的包会被相应地标记而不是被删除，从而保持透明度。
+
+**价格排序。** 费率套餐默认按照客户净价升序排序，确保首先呈现最经济的选项。可通过配置使用替代排序顺序（价格降序、评级降序、距离升序）。
+
+**每家酒店的价格限制。** 每家酒店可配置的最大价格套餐数量可防止响应膨胀。该限制在排序后应用，因此保留排名最好的选项。
+
+**规则引擎集成。** 应用两类业务规则：
+
+- **卖方出局规则：** 在响应最终确定之前，根据合同或运营限制过滤或转换供应商方数据。
+- **买方出局规则：** 将响应格式和内容调整为特定买方的集成合同，作为最终转换。
+
+这两个规则类都在标准化规范模型上运行，而不是在原始供应商响应上运行，从而确保所有买家的一致性。
+
+### 缓存层：延迟保护和会话弹性
+
+缓存层通过两种互补机制来保护延迟和可用性。
+
+**酒店最低价格缓存。** 派生的最低价格标准沿着双重维度（买方密钥和卖方密钥）进行缓存，从而可以快速检索常用查询的价格范围，而无需重新执行完整的聚合管道。缓存条目遵循平台的多级缓存策略，具有 TTL 抖动和主动失效功能。
+
+**会话回退。** 当提供酒店描述数据的内容服务不可用时，搜索引擎回退到前 30 秒内捕获的会话快照。这种后备措施在短暂的内容服务中断期间保留了搜索功能，确保即使辅助元数据暂时过时，买家也能继续收到可用性和定价信息。
+
+---
+
+## 搜索请求生命周期
+
+典型的搜索请求会经历以下生命周期：
+
+1. **请求准入。** 网关验证传入的查询，解析买家上下文，并识别一组合格的供应商和凭证。
+
+2. **并发扇出。** 平台同时向所有符合条件的供应商发送可用性查询，每个供应商都有自己的超时和取消上下文。
+
+3. **响应流。** 当供应商响应到达时，它们将被解析并规范化为内部规范模型。早到者立即开始合并过程；迟到者将在完成时纳入其中。
+
+4. **目录合并。** 供应商酒店标识符映射到主酒店 ID。房间类型通过自动和手动映射进行集成。兼容费率合并在统一条目下。
+
+5. **处理管道。** 合并后的目录经过冗余检测、基于价格的排序、每家酒店的速率限制和规则引擎转换。
+
+6. **响应组装。** 最终的目录根据买方的输出合同进行序列化并返回给调用者。结构化质量指标和跟踪元数据被发送到可观测系统。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Multi-Supplier Concurrent Fanout** | All eligible suppliers are queried simultaneously; response latency is bounded by the slowest successful supplier, not the sum of requests. |
-| **Credential-Level Parallelism** | Suppliers with multiple credentials parallelize internal requests, maximizing inventory coverage without increasing perceived latency. |
-| **Structured Timeout and Cancellation** | Per-supplier timeouts and global cancellation prevent slow or orphaned requests from degrading the overall search experience. |
-| **Supplier-to-Master Hotel ID Mapping** | Disparate supplier identifiers for the same physical property are resolved into a single canonical entry, eliminating duplicate listings. |
-| **Automatic and Manual Room Mapping Integration** | Supplier room descriptions are aligned into a standardized taxonomy, presenting buyers with consistent room types across all suppliers. |
-| **Redundant Rate Package Detection** | Identical or near-identical room and rate combinations are flagged as redundant, reducing catalog noise without hiding underlying data. |
-| **Customer Net Price Sorting** | Rate packages are ranked by net price in ascending order by default, surfacing the most economical options first. |
-| **Configurable Multi-Dimension Sorting** | Buyers may select alternative sort orders (price-desc, rating-desc, distance-asc) to match their specific use case. |
-| **Per-Hotel Rate Package Limit** | A configurable cap on rate packages per hotel prevents response bloat and maintains payload discipline while preserving the best-ranked options. |
-| **Seller Out Rule Application** | Supplier-side business rules are applied to the normalized catalog before finalization, enforcing contractual and operational constraints consistently. |
-| **Buyer Out Rule Application** | Final output transformations adapt the response to each buyer's integration contract without mutating the underlying canonical data. |
-| **Dual-Dimension Minimum Price Caching** | Cached price criteria by buyer and seller key accelerate repeated queries, reducing aggregation overhead for common search patterns. |
-| **Session Snapshot Fallback** | When content services are unavailable, the platform falls back to recent session snapshots, preserving search availability during downstream outages. |
-| **Structured Quality Metrics** | Supplier timeouts, mapping failures, and cache fallback events are emitted as labeled metrics, enabling continuous quality monitoring. |
+| **多供应商并发扇出** |所有符合条件的供应商同时查询；响应延迟取决于最慢的成功供应商，而不是请求的总和。 |
+| **凭证级并行性** |拥有多个凭证的供应商可以并行处理内部请求，从而在不增加感知延迟的情况下最大化库存覆盖范围。 |
+| **结构化超时和取消** |每个供应商的超时和全局取消可以防止缓慢或孤立的请求降低整体搜索体验。 |
+| **供应商到主酒店 ID 映射** |同一物理财产的不同供应商标识符被解析为单个规范条目，从而消除了重复列表。 |
+| **自动和手动房型映射集成** |供应商房间描述符合标准化分类法，为买家提供所有供应商一致的房间类型。 |
+| **冗余速率包检测** |相同或接近相同的房间和房价组合被标记为冗余，从而减少目录噪音而不隐藏基础数据。 |
+| **客户净价排序** |默认情况下，费率套餐按净价升序排列，首先显示最经济的选项。 |
+| **可配置的多维排序** |买家可以选择替代排序顺序（价格-降序、评级-降序、距离-升序）来匹配他们的特定用例。 |
+| **每家酒店房价套餐限额** |每个酒店的可配置价格套餐上限可防止响应膨胀并保持有效负载纪律，同时保留排名最佳的选项。 |
+| **卖家售出规则申请** |供应商方业务规则在最终确定之前应用于标准化目录，一致地执行合同和运营约束。 |
+| **买方出局规则申请** |最终输出转换使响应适应每个买方的集成合同，而不改变底层规范数据。 |
+| **双维最低价格缓存** |按买家和卖家密钥缓存的价格标准可加速重复查询，减少常见搜索模式的聚合开销。 |
+| **会话快照回退** |当内容服务不可用时，平台会回退到最近的会话快照，从而在下游中断期间保持搜索可用性。 |
+| **结构化质量指标** |供应商超时、映射失败和缓存回退事件作为标记指标发出，从而实现持续的质量监控。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte's search aggregation controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证HotelByte 的搜索聚合控制：
 
-1. **Distributed Trace Correlation.** Every search request carries a unique trace identifier through the fanout, merge, processing, and caching layers. Reviewers can correlate logs to reconstruct the complete lifecycle of any query.
+1. **分布式跟踪关联。** 每个搜索请求都通过扇出、合并、处理和缓存层携带唯一的跟踪标识符。审阅者可以关联日志以重建任何查询的完整生命周期。
 
-2. **Structured Quality Metrics.** The platform exposes Prometheus-compatible counters and histograms covering supplier response times, timeout rates, mapping success rates, cache hit ratios, and rule-engine execution counts. These metrics support independent monitoring and SLA verification.
+2. **结构化质量指标。** 该平台公开了与 Prometheus 兼容的计数器和直方图，涵盖供应商响应时间、超时率、映射成功率、缓存命中率和规则引擎执行计数。这些指标支持独立监控和 SLA 验证。
 
-3. **Session and Cache Instrumentation.** Cache hits, misses, and fallback events are logged with trace correlation and timestamp data. Session snapshot usage is explicitly tagged, enabling reviewers to verify whether a response included fallback data.
+3. **会话和缓存检测。** 缓存命中、未命中和回退事件均通过跟踪相关性和时间戳数据进行记录。会话快照的使用情况被显式标记，使审阅者能够验证响应是否包含后备数据。
 
-4. **Rule Engine Execution Logs.** Seller-out and buyer-out rule applications are recorded in structured logs with rule name, execution order, and affected record counts, confirming deterministic application without silent suppression.
+4. **规则引擎执行日志。** 卖方和买方规则应用程序记录在结构化日志中，其中包含规则名称、执行顺序和受影响的记录计数，从而确认确定性应用程序而无需静默抑制。
 
-5. **Source Code Verification.** The aggregation pipeline is implemented in the platform's core search layer, subject to the same code review, static analysis, and integration test coverage as the rest of the platform.
+5. **源代码验证。** 聚合管道在平台的核心搜索层中实现，与平台的其他部分一样接受相同的代码审查、静态分析和集成测试覆盖率。
 
-6. **Integration Tests.** The search layer includes tests covering concurrent fanout behavior, merge deduplication, room mapping integration, sorting and limiting logic, rule engine application, and cache fallback paths.
+6. **集成测试。** 搜索层包括涵盖并发扇出行为、合并重复数据删除、房型映射集成、排序和限制逻辑、规则引擎应用程序和缓存回退路径的测试。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Dean, J. & Ghemawat, S. — "MapReduce: Simplified Data Processing on Large Clusters" (OSDI 2004)** | "The MapReduce library in the user program first splits the input files into M pieces... then starts up many copies of the program on a cluster of machines." | HotelByte's fanout layer applies the same divide-and-conquer parallelism principle: a single search query is decomposed into concurrent supplier sub-queries that are executed in parallel and then merged into a unified result. |
-| **Gamma, E. et al. — "Design Patterns: Elements of Reusable Object-Oriented Software" (GoF, 1994) — Adapter Pattern** | "Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces." | The merge and room mapping layers act as adapter pipelines, converting heterogeneous supplier data models and identifier schemes into a single canonical interface that buyers can consume uniformly. |
-| **Fowler, M. — "Patterns of Enterprise Application Architecture" — Repository Pattern** | "Mediates between the domain and data mapping layers using a collection-like interface for accessing domain objects." | HotelByte's dual-dimension caching and session fallback mechanisms provide a collection-like abstraction over distributed supplier data, shielding buyers from the complexity of multi-source retrieval and transient unavailability. |
-| **NIST SP 800-53 Rev. 5 — SC-5 (Denial of Service Protection)** | "The information system protects against or limits the effects of... denial of service attacks." | Per-supplier timeouts, concurrent request isolation, and caching fallback mechanisms collectively limit the impact of slow or unresponsive suppliers, preventing a single dependency failure from denying service to the buyer. |
-| **Brewer, E. — "CAP Twelve Years Later: How the 'Rules' Have Changed" (IEEE Computer, 2012)** | "The CAP theorem prohibits only a tiny part of the design space: perfect availability and consistency in the presence of partitions, which are rare." | HotelByte's search aggregation prioritizes availability and partition tolerance during supplier degradation: partial results are returned with quality metadata rather than failing the entire query, aligning with the operational reality that transient supplier partitions are common. |
-| **OWASP Cheat Sheet Series — Denial of Service** | "Implement rate limiting to prevent abuse and ensure fair resource allocation." | The per-hotel rate package limit and concurrent fanout with timeout controls enforce bounded resource consumption per query, preventing any single request from generating unbounded downstream load or response payload size. |
+| **Dean, J. 和 Ghemawat, S. —“MapReduce：大型集群上的简化数据处理”(OSDI 2004)** | “用户程序中的 MapReduce 库首先将输入文件分割成 M 个部分……然后在机器集群上启动程序的许多副本。” | HotelByte 的扇出层应用相同的分治并行原则：单个搜索查询被分解为并行执行的并发供应商子查询，然后合并为统一结果。 |
+| **Gamma，E. 等人。 — “设计模式：可重用的面向对象软件的元素”（GoF，1994） — 适配器模式** | “将一个类的接口转换为客户期望的另一个接口。适配器让类能够一起工作，否则由于接口不兼容而无法一起工作。” |合并和房型映射层充当适配器管道，将异构供应商数据模型和标识符方案转换为买家可以统一使用的单一规范接口。 |
+| **Fowler, M. —“企业应用程序架构模式”— 存储库模式** | “使用类似集合的接口来访问域对象，在域和数据映射层之间进行中介。” | HotelByte 的二维缓存和会话回退机制提供了对分布式供应商数据的类似集合的抽象，使买家免受多源检索和暂时不可用的复杂性的影响。 |
+| **NIST SP 800-53 Rev. 5 — SC-5（拒绝服务保护）** | “信息系统可以防止或限制……拒绝服务攻击的影响。” |每个供应商的超时、并发请求隔离和缓存回退机制共同限制了缓慢或无响应的供应商的影响，防止单个依赖项故障拒绝向买方提供服务。 |
+| **Brewer, E. —“CAP 十二年后：‘规则’如何变化”（IEEE 计算机，2012 年）** | “CAP 定理只禁止设计空间的一小部分：在存在分区的情况下实现完美的可用性和一致性，这是罕见的。” | HotelByte 的搜索聚合在供应商降级期间优先考虑可用性和分区容错性：部分结果随高质量元数据一起返回，而不是整个查询失败，这与临时供应商分区很常见的操作现实保持一致。 |
+| **OWASP 备忘单系列 — 拒绝服务** | “实施速率限制以防止滥用并确保公平的资源分配。” |每个酒店的费率包限制和具有超时控制的并发扇出强制每个查询的资源消耗有限，从而防止任何单个请求生成无限的下游负载或响应负载大小。 |
 
 ---
 
-*This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+*本白皮书由 HotelByte Engineering 发布。如果对本文所述的技术控制有疑问，请联系 HotelByte 技术支持或您指定的客户成功工程师。*

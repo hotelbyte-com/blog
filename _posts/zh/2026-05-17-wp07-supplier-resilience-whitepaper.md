@@ -1,210 +1,199 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：供应商韧性工程白皮书"
+title: "供应商韧性工程白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp07-supplier-resilience/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp07-supplier-resilience/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp07-supplier-resilience/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：供应商韧性工程白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Supplier Resilience Engineering Whitepaper
-
-**Document Version:** 2.0
-**Classification:** External — Technical Whitepaper
-**Scope:** HotelByte Supplier Integration Platform
+**文档版本：** 2.0
+**分类：** 外部 — 技术白皮书
+**范围：** HotelByte 供应商集成平台
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte operates a global hotel API distribution platform that aggregates inventory from 27+ heterogeneous supplier APIs. These suppliers exhibit wide variance in reliability, latency characteristics, rate-limiting policies, and failure modes. A single supplier degradation can cascade into platform-wide instability without engineered containment boundaries.
+HotelByte 运营着一个全球酒店 API 分销平台，该平台聚合来自 27 多个异构供应商 API 的库存。这些供应商在可靠性、延迟特性、速率限制策略和故障模式方面表现出很大的差异。如果没有设计遏制边界，单个供应商的降级可能会导致整个平台的不稳定。
 
-This whitepaper describes the Supplier Resilience Engineering layer built into the HotelByte platform — a multi-layered control system that isolates supplier failures, adapts to runtime conditions, and preserves customer-facing availability even when upstream dependencies are under stress. The system combines adaptive rate limiting, per-supplier circuit breakers, traffic recording and replay capabilities, and unified middleware instrumentation into a cohesive defense architecture.
+本白皮书介绍了 HotelByte 平台中内置的供应商韧性工程层，这是一个多层控制系统，可以隔离供应商故障、适应运行时条件，并在上游依赖项面临压力时保持面向客户的可用性。该系统将自适应速率限制、每个供应商的断路器、流量记录和重放功能以及统一的中间件仪器结合到一个紧密结合的防御架构中。
 
-The result is a platform where supplier outages are contained, rate-limit violations are prevented rather than reacted to, and operational teams have full observability into every resilience decision.
-
----
-
-## Scope
-
-This document covers the technical controls that govern outbound supplier traffic within the HotelByte platform. It addresses:
-
-- **Rate limiting and traffic shaping** for supplier API credentials
-- **Circuit breaker isolation** for supplier endpoint failures
-- **Traffic recording and replay** for incident analysis and regression validation
-- **Middleware integration** that unifies resilience controls across the request lifecycle
-- **Observability and auditability** of all resilience decisions
-
-This whitepaper does not cover general platform infrastructure resilience (e.g., compute autoscaling, database replication) or customer-facing API rate limiting, which are addressed in separate documents.
+其结果是建立了一个平台，其中供应商中断得到控制，速率限制违规得到预防而不是做出反应，并且运营团队可以完全观察每个弹性决策。
 
 ---
 
-## Objectives
+## 范围
 
-The Supplier Resilience Engineering program is designed to achieve the following operational objectives:
+本文档涵盖了管理 HotelByte 平台内出站供应商流量的技术控制措施。它涉及：
 
-1. **Isolation:** Prevent failure in one supplier integration from affecting traffic to other suppliers or degrading the overall platform.
-2. **Adaptation:** Automatically adjust traffic rates in response to supplier feedback (HTTP 429, latency spikes) without manual intervention.
-3. **Prevention:** Stop requests from reaching suppliers that are already exhibiting failure symptoms, reducing wasted capacity and improving response times.
-4. **Observability:** Record every resilience decision and supplier interaction with sufficient fidelity to support post-incident analysis and compliance verification.
-5. **Recoverability:** Enable deterministic replay of supplier interactions to validate fixes and reproduce issues without live traffic exposure.
+- **供应商 API 凭证的速率限制和流量整形**
+- 针对供应商端点故障的**断路器隔离**
+- **流量记录和重播**用于事件分析和回归验证
+- **中间件集成**，统一整个请求生命周期的弹性控制
+- 所有弹性决策的**可观测性和可审计性**
 
----
-
-## Design Principles
-
-The resilience layer is built on five core design principles that guide architectural decisions and implementation tradeoffs:
-
-### Fail Fast and Recover Gracefully
-
-When a supplier is experiencing degradation, the platform detects the condition quickly and returns a controlled response rather than holding requests in long queues or retry loops. This preserves downstream capacity and improves perceived responsiveness. Recovery is gradual and evidence-based, ensuring a supplier is not re-admitted to full traffic until it demonstrates sustained health.
-
-### Learning from Feedback
-
-Suppliers communicate their operational state through response codes, latency distributions, and rate-limit headers. The platform treats this feedback as a control signal rather than an error condition. HTTP 429 responses, for example, are used to compute a safe operating threshold that is persisted and applied to future traffic automatically.
-
-### Defense in Depth
-
-No single control is relied upon exclusively. Rate limiting prevents overload; circuit breakers isolate failures; traffic recording provides forensic capability; middleware instrumentation ensures consistent application across all integration paths. Each layer is independently replaceable and testable.
-
-### Interface-First Design
-
-All resilience components are defined by interfaces (e.g., `BoundaryDetector`, `SamplingStrategy`, `RecordingStore`) rather than concrete implementations. This allows components to be extended, replaced, or mocked for testing without changing the consuming code.
-
-### Dimension Isolation
-
-Controls are scoped to the finest practical dimension. Rate limits operate at the credential level and can be further scoped by API name. Circuit breakers are isolated per `supplier:apiName` pair. This prevents a single misbehaving endpoint from consuming the failure budget of an entire supplier or credential.
+本白皮书不涵盖一般平台基础设施弹性（例如，计算自动扩展、数据库复制）或面向客户的 API 速率限制，这些内容将在单独的文档中解决。
 
 ---
 
-## Layered Architecture
+## 目标
 
-The resilience layer is organized into four functional layers, each addressing a distinct class of risk:
+供应商韧性工程计划旨在实现以下运营目标：
 
-### Rate Limiting Layer
+1. **隔离：** 防止一个供应商集成失败影响其他供应商的流量或降低整个平台的性能。
+2. **适应：** 根据供应商反馈（HTTP 429、延迟峰值）自动调整流量速率，无需人工干预。
+3. **预防：** 停止向已经出现故障症状的供应商发出请求，减少容量浪费并缩短响应时间。
+4. **可观测性：** 以足够的保真度记录每个弹性决策和供应商互动，以支持事件后分析和合规性验证。
+5. **可恢复性：** 实现供应商交互的确定性重播，以验证修复并重现问题，而无需暴露实时流量。
 
-The rate limiting layer enforces controlled traffic flow to supplier APIs through a dual-engine architecture that can be selected via feature flag.
+---
 
-The **config-driven engine** applies static rate limits defined per API credential. Limits can be specified globally or scoped to individual API names (`byApi`), allowing fine-grained control over high-cost operations versus lightweight queries.
+## 设计原则
 
-The **adaptive learning engine** responds to runtime feedback. When an HTTP 429 (Too Many Requests) response is detected, the system calculates a safe threshold from the recent request window (`learnedLimit = count × 0.8`) and persists this value to a distributed cache. Subsequent traffic is throttled to this learned limit until the supplier demonstrates capacity to absorb more load. This eliminates the need for manual limit tuning when supplier quotas change.
+韧性层基于五个核心设计原则构建，指导架构决策和实施权衡：
 
-A **strict QPM (queries per minute) scheduler** provides smooth request queuing rather than bursty admission, ensuring that rate limits are respected continuously rather than at interval boundaries.
+### 快速失败并优雅恢复
 
-All rate-limiting decisions emit timing metrics (`SupplierRateLimitWaitTiming`) for operational visibility.
+当供应商遇到降级情况时，平台会快速检测到情况并返回受控响应，而不是将请求保留在长队列或重试循环中。这保留了下游容量并提高了感知响应能力。恢复是渐进的、基于证据的，确保供应商在表现出持续的健康状况之前不会重新进入满载状态。
 
-### Circuit Breaker Layer
+### 从反馈中学习
 
-Circuit breakers provide failure-state isolation at the `supplier:apiName` dimension. Each isolated breaker monitors its own failure rate independently.
+供应商通过响应代码、延迟分布和速率限制标头传达其操作状态。该平台将此反馈视为控制信号而不是错误条件。例如，HTTP 429 响应用于计算安全操作阈值，该阈值会自动保留并应用于未来的流量。
 
-The breaker distinguishes between **transient infrastructure failures** and **business-level errors**. Network timeouts, connection failures, and HTTP 5xx responses count toward the failure threshold and can trigger breaker opening. HTTP 4xx business errors (e.g., invalid destination code, room unavailable) are treated as expected application outcomes and do not contribute to breaker state.
+### 纵深防御
 
-When a breaker opens, requests to that supplier endpoint are rejected immediately without consuming network resources or adding latency. The breaker periodically allows a probe request through to test recovery. Once the supplier demonstrates success, the breaker closes and normal traffic resumes.
+没有一个单独的控制是完全依赖的。速率限制可防止过载；断路器隔离故障；交通记录提供取证能力；中间件工具确保所有集成路径中应用程序的一致性。每层都可以独立更换和测试。
 
-All breaker rejections are counted by the `SupplierCircuitBreakerRejected` metric for alerting and capacity planning.
+### 界面优先设计
 
-### Recording Layer
+所有弹性组件均由接口（例如 `BoundaryDetector`、`SamplingStrategy`、`RecordingStore`）定义，而不是具体实现。这允许扩展、替换或模拟组件以进行测试，而无需更改使用的代码。
 
-The traffic recording layer captures supplier interactions for post-incident analysis, compliance evidence, and regression testing.
+### 维度隔离
 
-A **boundary detector** classifies requests into boundary-triggered (HTTP 400+, timeouts, rate-limit headers) or normal traffic based on configurable rules.
+控制范围已达到最精细的实际尺寸。速率限制在凭证级别运行，并且可以通过 API 名称进一步限定范围。每个 `supplier:apiName` 对的断路器都是隔离的。这可以防止单个行为不当的端点消耗整个供应商或凭证的故障预算。
 
-A **sampling strategy** ensures high-value traffic is retained: boundary-triggered requests are recorded at 100%, while normal traffic is sampled proportionally. This optimizes storage without losing incident-critical data.
+---
 
-A **sanitizer** applies static regex-based desensitization to remove sensitive data (credit card numbers, email addresses, authentication tokens) before storage, ensuring that recorded traffic does not create a compliance liability.
+## 分层架构
 
-Recorded data is stored in the existing operational log infrastructure, reusing established retention, backup, and access-control policies.
+韧性层分为四个功能层，每个功能层处理不同类别的风险：
 
-A **replay system** supports three query patterns: find by request signature, find by boundary type, and list by time range. The **replay player** executes stored requests against the current supplier implementation and reports success, duration, and error state, enabling deterministic validation of fixes and supplier behavior changes.
+### 速率限制层
 
-### Middleware Integration Layer
+速率限制层通过双引擎架构强制控制供应商 API 的流量，可以通过功能标志进行选择。
 
-All resilience controls are applied through a unified middleware chain that executes consistently for every supplier request:
+**配置驱动引擎**应用每个 API 凭证定义的静态速率限制。可以全局指定限制，也可以将范围限制为单个 API 名称 (`byApi`)，从而允许对高成本操作与轻量级查询进行细粒度控制。
+
+**自适应学习引擎**响应运行时反馈。当检测到 HTTP 429（请求过多）响应时，系统会根据最近的请求窗口 (`learnedLimit = count × 0.8`) 计算安全阈值，并将该值保留到分布式缓存中。随后的流量将被限制到这个已知的限制，直到供应商展示出吸收更多负载的能力。这样就无需在供应商配额发生变化时进行手动限制调整。
+
+**严格的 QPM（每分钟查询数）调度程序** 提供平滑的请求排队而不是突发准入，确保连续而不是在间隔边界遵守速率限制。
+
+所有速率限制决策都会发出计时指标 (`SupplierRateLimitWaitTiming`) 以实现操作可见性。
+
+### 断路器层
+
+断路器在 `supplier:apiName` 维度上提供故障状态隔离。每个隔离断路器独立监控自己的故障率。
+
+断路器区分**暂时性基础设施故障**和**业务级错误**。网络超时、连接失败和 HTTP 5xx 响应均计入故障阈值，并可能触发断路器打开。 HTTP 4xx 业务错误（例如，无效的目标代码、房间不可用）被视为预期的应用程序结果，不会影响断路器状态。
+
+当断路器打开时，对该供应商端点的请求将立即被拒绝，而不会消耗网络资源或增加延迟。断路器定期允许探测请求通过以测试恢复。一旦供应商证明成功，断路器就会关闭并恢复正常交通。
+
+所有断路器拒绝均按 `SupplierCircuitBreakerRejected` 指标进行计数，以用于警报和容量规划。
+
+### 记录层
+
+流量记录层捕获供应商交互，以进行事件后分析、合规证据和回归测试。
+
+**边界检测器**根据可配置的规则将请求分类为边界触发的（HTTP 400+、超时、速率限制标头）或正常流量。
+
+**采样策略**确保保留高价值流量：边界触发的请求以 100% 记录，而正常流量按比例采样。这可以优化存储，而不会丢失事件关键数据。
+
+**清理程序**应用基于静态正则表达式的脱敏，在存储之前删除敏感数据（信用卡号、电子邮件地址、身份验证令牌），确保记录的流量不会产生合规责任。
+
+记录的数据存储在现有的操作日志基础设施中，重复使用已建立的保留、备份和访问控制策略。
+
+**重播系统**支持三种查询模式：按请求签名查找、按边界类型查找和按时间范围列出。 **重放播放器**针对当前供应商实施执行存储的请求，并报告成功、持续时间和错误状态，从而实现修复和供应商行为更改的确定性验证。
+
+### 中间件集成层
+
+所有弹性控制均通过统一的中间件链应用，该中间件链针对每个供应商请求一致执行：
 
 ```
 cache → rate limit → circuit breaker → proxy → HTTP → error mapping → write cache
 ```
 
-This ordering is deliberate: cache lookups bypass all downstream controls for efficiency; rate limiting is applied before circuit breaker evaluation so that queued requests are not prematurely rejected; the circuit breaker protects the actual HTTP transport; error mapping translates supplier-specific responses into platform-standard outcomes; and cache writes populate the result cache for subsequent identical requests.
+这种排序是经过深思熟虑的：缓存查找绕过所有下游控制以提高效率；在断路器评估之前应用速率限制，以便排队的请求不会被过早拒绝；断路器保护实际的 HTTP 传输；错误映射将供应商特定的响应转化为平台标准的结果；缓存写入会填充结果缓存以供后续相同的请求使用。
 
-Request and response logging middleware captures structured logs for every interaction. An `OnError` hook ensures that error paths are logged with the same fidelity as success paths. All logs are automatically populated with HBLog identifiers, and credential information is desensitized before emission.
+请求和响应日志记录中间件捕获每次交互的结构化日志。 `OnError` 挂钩可确保以与成功路径相同的保真度记录错误路径。所有日志都会自动填充 HBLog 标识符，凭证信息在发送前会被脱敏。
 
 ---
 
-## Implemented Control Summary
+## 实施的控制摘要
 
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **Adaptive Rate Limiting** | Prevents supplier quota exhaustion and HTTP 429 rejections by automatically learning and enforcing safe traffic thresholds. Ensures consistent API availability for hotel search and booking operations. |
-| **Credential-Level Rate Limits** | Isolates traffic by API credential and API name, preventing one customer or integration pattern from consuming another's capacity. |
-| **Per-Supplier Circuit Breakers** | Contains supplier outages and degradations so that a single failing supplier does not slow down or fail entire search or booking requests. Customers receive faster fallback responses. |
-| **4xx vs. 5xx Failure Classification** | Distinguishes business-level unavailability (e.g., no rooms) from infrastructure failure. Circuit breakers do not trip on business errors, ensuring legitimate searches are not blocked. |
-| **Traffic Recording & Sampling** | Enables HotelByte to investigate supplier issues with full request/response fidelity. Customers benefit from faster root-cause analysis and resolution times. |
-| **Data Sanitization** | Removes PII and credentials from recorded traffic. Customers' sensitive data is never persisted in operational logs or replay stores. |
-| **Traffic Replay** | Allows supplier behavior changes and fixes to be validated against historical traffic without live exposure. Customers receive higher-quality integrations as regressions are caught pre-deployment. |
-| **Unified Middleware Chain** | Guarantees that every supplier request passes through the same resilience controls in the same order. Customers experience consistent reliability regardless of which supplier serves their request. |
-| **Structured Observability** | All resilience decisions emit metrics and structured logs. Customers benefit from transparent SLI/SLO reporting and incident communication grounded in data. |
+| **自适应速率限制** |通过自动学习和强制执行安全流量阈值，防止供应商配额耗尽和 HTTP 429 拒绝。确保酒店搜索和预订操作的 API 可用性一致。 |
+| **证书级别速率限制** |通过 API 凭证和 API 名称隔离流量，防止一个客户或集成模式消耗另一个客户或集成模式的容量。 |
+| **每个供应商断路器** |包含供应商中断和降级，以便单个失败的供应商不会减慢或失败整个搜索或预订请求。客户会收到更快的后备响应。 |
+| **4xx 与 5xx 故障分类** |区分业务级不可用性（例如，没有房间）和基础设施故障。断路器不会因业务错误而触发，确保合法搜索不会被阻止。 |
+| **交通记录和采样** |使 HotelByte 能够以完整的请求/响应保真度调查供应商问题。客户受益于更快的根本原因分析和解决时间。 |
+| **数据清理** |从记录的流量中删除 PII 和凭据。客户的敏感数据永远不会保留在操作日志或重播存储中。 |
+| **交通重播** |允许根据历史流量验证供应商行为的更改和修复，而无需实时曝光。由于在部署前发现了回归问题，因此客户可以获得更高质量的集成。 |
+| **统一中间件链** |确保每个供应商请求以相同的顺序通过相同的弹性控制。无论哪个供应商满足他们的要求，客户都会体验到一致的可靠性。 |
+| **结构化可观测性** |所有弹性决策都会发出指标和结构化日志。客户受益于基于数据的透明 SLI/SLO 报告和事件通信。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-The resilience layer is designed for continuous verification through the following mechanisms:
+韧性层旨在通过以下机制进行持续验证：
 
-### Metrics
+### 指标
 
-Every control emits operational metrics that are consumed by dashboards and alerting systems:
+每个控件都会发出由仪表板和警报系统使用的操作指标：
 
-- `SupplierRateLimitWaitTiming` — latency introduced by rate-limit queuing, per supplier and API
-- `SupplierCircuitBreakerRejected` — count of requests rejected by open circuit breakers, per supplier and API
+- `SupplierRateLimitWaitTiming` — 每个供应商和 API 的速率限制队列引入的延迟
+- `SupplierCircuitBreakerRejected` — 每个供应商和 API 被打开的断路器拒绝的请求计数
 
-These metrics enable SRE teams to verify that controls are active and quantify their impact on traffic flow.
+这些指标使 SRE 团队能够验证控制措施是否处于活动状态并量化其对流量的影响。
 
-### Structured Logging
+### 结构化日志记录
 
-All supplier interactions are logged with consistent structure via `HBLog` records. Logs include request identifiers, supplier names, API names, response status, duration, and resilience control outcomes. Credential data is desensitized before logging to prevent credential leakage in log stores.
+所有供应商交互均通过 `HBLog` 记录以一致的结构记录。日志包括请求标识符、供应商名称、API 名称、响应状态、持续时间和弹性控制结果。在记录之前对凭证数据进行脱敏处理，以防止日志存储中的凭证泄漏。
 
-### Traffic Recording
+### 交通记录
 
-The recording layer provides an independent audit trail of supplier interactions. Recorded traffic can be queried by time range, request signature, or boundary type to reconstruct incident timelines or verify control behavior.
+记录层提供供应商交互的独立审计跟踪。可以按时间范围、请求签名或边界类型查询记录的流量，以重建事件时间线或验证控制行为。
 
-### Replay Validation
+### 重播验证
 
-The replay system enables deterministic re-execution of historical requests against current supplier implementations. This supports:
+重播系统能够根据当前供应商实施确定性地重新执行历史请求。这支持：
 
-- **Regression testing** after supplier-side changes or platform updates
-- **Control verification** by replaying traffic that previously triggered rate limits or breakers
-- **Compliance evidence** by demonstrating that recorded requests produce expected outcomes
+- **供应商方变更或平台更新后的回归测试**
+- **通过重放之前触发速率限制或断路器的流量来控制验证**
+- **合规证据**通过证明记录的请求产生预期结果
 
-### Feature Flag Governance
+### 功能标志治理
 
-The dual-engine rate limiter and other configurable behaviors are controlled by feature flags. Changes to resilience behavior can be rolled out gradually, audited per flag state, and reverted without deployment.
+双引擎速率限制器和其他可配置行为由功能标志控制。对弹性行为的更改可以逐步推出，按标志状态进行审核，并且无需部署即可恢复。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Netflix Hystrix** — Circuit Breaker Pattern | "When we began using Hystrix, we found that it forced us to confront the reality of failures in our distributed system and build resilience patterns around them." | HotelByte implements per-supplier circuit breakers using the same fault-isolation philosophy, scoped to `supplier:apiName` dimensions to contain failures without cross-contamination. |
-| **Google SRE Book** — Chapter 22: Addressing Cascading Failures | "Serving traffic very slowly is worse than refusing to serve it at all... Shed load as close to the beginning of the request path as possible." | The middleware chain places rate limiting and circuit breakers before the HTTP transport, ensuring degraded suppliers are rejected early rather than consuming resources in slow queues. |
-| **Google SRE Book** — Error Budgets | "Error budgets protect customers from repeated SLO violations and cover the product team from over-prioritizing reliability work." | Per-supplier circuit breakers act as automatic error-budget enforcers: once a supplier exceeds its acceptable failure rate, traffic is shed until it recovers. |
-| **OWASP API Security Top 10 (2023)** — API4:2023 Unrestricted Resource Consumption | "APIs do not always impose restrictions on the size or number of resources that can be requested by the client/user... The lack of, or misconfigured, rate limiting can allow attackers to perform Denial of Service (DoS) attacks." | HotelByte's credential-level and adaptive rate limiting directly addresses this risk by enforcing consumption boundaries on all outbound supplier traffic. |
-| **OWASP API Security Top 10 (2023)** — API10:2023 Unsafe Consumption of APIs | "Developers tend to trust data received from third-party APIs... Attackers can identify third-party service providers and try to compromise them to compromise the target API." | Traffic recording with sanitization and circuit breaker isolation limits exposure to compromised or misbehaving supplier endpoints by detecting anomalies and preventing sensitive data leakage. |
-| **OWASP Cheat Sheet Series** — Logging | "Log entries should include timestamps, user context, event descriptions, and outcomes... Sensitive data should never be logged." | HotelByte's HBLog structured logging includes all required fields, and credential desensitization ensures that secrets are not persisted in logs or replay stores. |
-| **Martin Fowler — Circuit Breaker Pattern** | "The basic idea behind the circuit breaker is very simple. You wrap a protected function call in a circuit breaker object, which monitors for failures. Once the failures reach a certain threshold, the circuit breaker trips." | HotelByte circuit breakers follow this exact pattern, with the addition of 4xx/5xx classification to avoid tripping on expected business errors. |
-| **AWS Well-Architected Framework** — Reliability Pillar | "Control and limit retry calls to prevent additional load on an already stressed system. Use jittered exponential backoff to space out retry attempts." | HotelByte's strict QPM scheduler and adaptive rate limiting provide equivalent load-spreading behavior, with the added benefit of automatic threshold learning. |
+| **Netflix Hystrix** — 断路器模式 | “当我们开始使用 Hystrix 时，我们发现它迫使我们面对分布式系统中的故障现实，并围绕它们构建弹性模式。” | HotelByte 使用相同的故障隔离原理实现每个供应商的断路器，其范围限定为 `supplier:apiName` 维度，以包含故障而不会交叉污染。 |
+| **Google SRE 书籍** — 第 22 章：解决级联故障 | “非常缓慢地提供流量比完全拒绝提供流量更糟糕......将负载尽可能靠近请求路径的开头。” |中间件链在 HTTP 传输之前放置速率限制和断路器，确保降级的供应商被尽早拒绝，而不是在缓慢的队列中消耗资源。 |
+| **Google SRE 书籍** — 错误预算 | “错误预算可以保护客户免受重复违反 SLO 的影响，并避免产品团队过度优先考虑可靠性工作。” |每个供应商的断路器充当自动错误预算执行器：一旦供应商超过其可接受的故障率，流量就会被切断，直到其恢复。 |
+| **OWASP API 安全性前 10 名 (2023)** — API4:2023 不受限制的资源消耗 | “API 并不总是对客户端/用户可以请求的资源的大小或数量施加限制......缺乏或配置错误的速率限制可能允许攻击者执行拒绝服务 (DoS) 攻击。” | HotelByte 的凭证级别和自适应速率限制通过对所有出站供应商流量强制执行消耗边界来直接解决此风险。 |
+| **OWASP API 安全性前 10 名 (2023)** — API10:2023 API 的不安全使用 | “开发人员倾向于信任从第三方 API 收到的数据……攻击者可以识别第三方服务提供商，并尝试破坏他们以破坏目标 API。” |通过清理和断路器隔离进行流量记录，通过检测异常并防止敏感数据泄漏，限制暴露于受损或行为不当的供应商端点。 |
+| **OWASP 备忘单系列** — 日志 | “日志条目应包括时间戳、用户上下文、事件描述和结果......敏感数据不应被记录。” | HotelByte 的 HBLog 结构化日志记录包括所有必需字段，并且凭证脱敏可确保机密不会保留在日志或重播存储中。 |
+| **Martin Fowler — 断路器模式** | “断路器背后的基本思想非常简单。您将受保护的函数调用包装在断路器对象中，该对象监视故障。一旦故障达到特定阈值，断路器就会跳闸。” | HotelByte 断路器遵循这一确切模式，并添加了 4xx/5xx 分类，以避免因预期业务错误而跳闸。 |
+| **AWS 架构完善的框架** — 可靠性支柱 | “控制和限制重试调用，以防止已经紧张的系统上出现额外负载。使用抖动指数退避来间隔重试尝试。” | HotelByte 严格的 QPM 调度程序和自适应速率限制提供等效的负载分散行为，并具有自动阈值学习的附加优势。 |

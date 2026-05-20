@@ -1,235 +1,224 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：动态定价与业务规则引擎白皮书"
+title: "动态定价与业务规则引擎白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp15-pricing-rules/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp15-pricing-rules/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp15-pricing-rules/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：动态定价与业务规则引擎白皮书
+HotelByte 的动态定价与业务规则引擎是一个可配置的多租户策略层，可在整个酒店分销管道中实现实时价格转换和请求级业务控制。该引擎将商业政策与应用程序代码分离，允许平台运营商、供应商和买家通过声明性配置界面而不是软件发布来定义、模拟和执行定价规则。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+该引擎建立在三层架构（因素、条件和操作）之上，根据来自五个不同范围的 30 多个上下文维度来评估规则。规则分两个阶段执行：请求前操作控制供应商选择和请求调整，而请求后操作在结果到达买方之前应用动态标记或阻止结果。每个价格变化都可以通过全面的加价遥测流进行跟踪和审核。
 
-# Dynamic Pricing & Business Rules Engine Whitepaper
+本白皮书描述了设计原则、架构层、评估生命周期和操作控制，使 HotelByte 规则引擎适合全球范围内的大容量、多方酒店分销。
 
-## Executive Summary
+## 范围
 
-HotelByte's Dynamic Pricing & Business Rules Engine is a configurable, multi-tenant policy layer that enables real-time price transformation and request-level business control across the entire hotel distribution pipeline. The engine decouples commercial policy from application code, allowing platform operators, suppliers, and buyers to define, simulate, and enforce pricing rules through a declarative configuration interface rather than software releases.
+本文档涵盖：
 
-Built on a three-layer architecture—factors, conditions, and actions—the engine evaluates rules against more than 30 contextual dimensions drawn from five distinct scopes. Rules execute in two phases: pre-request actions govern supplier selection and request shaping, while post-request actions apply dynamic markups or block results before they reach the buyer. Every price change is traced and auditable through a comprehensive markup telemetry stream.
+- 因素登记及其五个评估范围
+- 条件层和支持的运算符语义
+- 操作注册表，包括请求前和请求后操作类型
+- 搜索和贸易流中的规则评估生命周期
+- 动态定价模型：百分比、固定金额、乘数和分级加价
+- 可审核性、可追溯性和模拟能力
+- 安全边界和多租户规则隔离
 
-This whitepaper describes the design principles, architectural layers, evaluation lifecycle, and operational controls that make the HotelByte rules engine suitable for high-volume, multi-party hotel distribution at global scale.
+本文档不涵盖供应商适配器内部结构、预订引擎事务语义或通用平台缓存策略，这些内容将在单独的白皮书中讨论。
 
-## Scope
+## 目标
 
-This document covers:
+规则引擎旨在实现五个目标：
 
-- The factor registry and its five evaluation scopes
-- The condition layer and supported operator semantics
-- The action registry, including pre-request and post-request action types
-- The rule evaluation lifecycle within search and trade flows
-- Dynamic pricing models: percentage, fixed-amount, multiplier, and tiered markups
-- Auditability, traceability, and simulation capabilities
-- Security boundaries and multi-tenant rule isolation
+1. **政策敏捷性** — 使商业团队能够在几分钟内更改定价和可用性政策，而无需工程干预。
+2. **多方治理**——支持平台运营商、供应商和买家的独立规则集，每个规则集都有不同的评估时间和权限边界。
+3. **确定性定价** — 保证相同的请求在相同的规则配置下产生相同的价格结果。
+4. **完全可追溯性** — 记录每个价格变化的原始值、最终值、应用策略和负责任的规则标识。
+5. **安全模拟** — 允许在生产激活之前根据合成请求配置文件测试规则。
 
-This document does not cover supplier adapter internals, booking engine transaction semantics, or general platform caching strategy, which are addressed in separate whitepapers.
+## 设计原则
 
-## Objectives
+### 通过代码进行配置
 
-The rules engine was designed to achieve five objectives:
+业务规则表示为结构化配置而不是命令式代码。这消除了策略定义和执行之间的逻辑偏差，缩短了新商业策略的上市时间，并使非工程利益相关者能够通过受管理的自助服务界面编写和审查规则。
 
-1. **Policy Agility** — Enable commercial teams to change pricing and availability policies within minutes, without engineering intervention.
-2. **Multi-Party Governance** — Support independent rule sets for platform operators, suppliers, and buyers, each with distinct evaluation timing and authority boundaries.
-3. **Deterministic Pricing** — Guarantee that identical requests, under identical rule configurations, produce identical price outcomes.
-4. **Full Traceability** — Record every price transformation with original value, final value, applied strategy, and responsible rule identity.
-5. **Safe Simulation** — Allow rules to be tested against synthetic request profiles before production activation.
+### 确定性评估
 
-## Design Principles
+规则结果仅取决于从请求导出的因子图和规则配置本身。该引擎不包含隐藏状态、随机性或时间副作用。相同的输入总是产生相同的输出，确保冗余搜索调用、缓存层和下游协调之间的价格一致性。
 
-### Configuration Over Code
+### 审计每一次价格变化
 
-Business rules are expressed as structured configuration rather than imperative code. This eliminates logic drift between policy definition and execution, reduces time-to-market for new commercial strategies, and enables non-engineering stakeholders to author and review rules through a governed self-service interface.
+通过引擎的每个房价都带有 `MarkupProcess` 跟踪，其中包含原始价格、最终价格、总加价金额、加价百分比以及应用策略的时间顺序列表。此跟踪在 API 响应中返回，可用于下游报告、争议解决和收入保证。
 
-### Deterministic Evaluation
+### 定价深度防御
 
-Rule outcomes depend solely on the factor map derived from the request and the rule configuration itself. The engine contains no hidden state, randomness, or temporal side effects. Identical inputs always yield identical outputs, ensuring price consistency across redundant search calls, caching layers, and downstream reconciliation.
+标记参数在规则创建时、规则模拟时和执行时进行验证。百分比标记是有界的，乘数范围是有上限的，并且层定义经过单调性和间隔一致性的验证。这种分层验证可以防止格式错误或过多的规则影响生产价格。
 
-### Audit Every Price Change
+### 范围隔离
 
-Every room rate that passes through the engine carries a `MarkupProcess` trace containing the original price, final price, total markup amount, markup percentage, and a chronological list of applied strategies. This trace is returned in API responses and is available for downstream reporting, dispute resolution, and revenue assurance.
+因素分为五个范围：请求、用户、项目、租户和环境，每个范围都有明确定义的数据源和操作员支持。此范围界定可防止规则作者无意中创建跨租户或跨用户条件，并且使引擎能够预先过滤每个评估上下文的因子集。
 
-### Defense in Depth for Pricing
+## 规则引擎架构
 
-Markup parameters are validated at rule creation time, at rule simulation time, and at execution time. Percentage markups are bounded, multiplier ranges are capped, and tier definitions are validated for monotonicity and interval consistency. This layered validation prevents malformed or excessive rules from affecting production prices.
+该引擎由三个正交层组成，将“正在评估的内容”与“何时应该触发”和“接下来应该发生什么”分开。
 
-### Scope Isolation
+### 因子层
 
-Factors are organized into five scopes—Request, User, Item, Tenant, and Environment—each with explicitly defined data sources and operator support. This scoping prevents rule authors from inadvertently creating cross-tenant or cross-user conditions, and it enables the engine to pre-filter the factor set for each evaluation context.
+因子层定义了规则条件的词汇表。每个因子都有一个强类型键、一个数据类型（日期、数字、字符串、枚举、布尔）、范围、支持的运算符列表以及可选的数据源引用。
 
-## Rules Engine Architecture
+因素来自五个范围：
 
-The engine is structured into three orthogonal layers that separate "what is being evaluated" from "when it should trigger" and "what should happen next."
-
-### Factor Layer
-
-The factor layer defines the vocabulary of rule conditions. Each factor has a strongly typed key, a data type (Date, Number, String, Enum, Boolean), a scope, a list of supported operators, and an optional data source reference.
-
-Factors are drawn from five scopes:
-
-| Scope | Examples | Data Types |
+|范围 |示例 |数据类型 |
 |---|---|---|
-| Request | checkInDate, stayLength, nationality, currency | Date, Number, Enum |
-| User | userId, customerEntityId, appKey | Number, String |
-| Item | hotelId, supplierId, netRate, breakfastIncluded | Number, Enum, Boolean |
-| Tenant | tenantId, tenantType | Number, Enum |
-| Environment | requestHour, dayOfWeek, isWeekend | Number, Enum, Boolean |
+|请求|入住日期、入住时间、国籍、货币 |日期、数字、枚举 |
+|用户|用户 ID、客户实体 ID、应用程序密钥 |数字、字符串 |
+|项目 |酒店 ID、供应商 ID、净价、含早餐 |数字、枚举、布尔值 |
+|租户|租户 ID、租户类型 |数字、枚举 |
+|环境 | requestHour、dayOfWeek、isWeekend |数字、枚举、布尔值 |
 
-Dynamic factor values are resolved through three data source types: API-backed lookups (e.g., country or city lists), static enumerations (e.g., currency codes or tenant types), and asynchronous search-backed resolution (e.g., hotel metadata). This hybrid approach ensures that rapidly changing reference data is always current, while stable enumerations are cached locally for performance.
+动态因子值通过三种数据源类型解析：API支持的查找（例如国家或城市列表）、静态枚举（例如货币代码或租户类型）和异步搜索支持的解析（例如酒店元数据）。这种混合方法可确保快速变化的参考数据始终是最新的，同时在本地缓存稳定的枚举以提高性能。
 
-The `FactorBuilder` component assembles factor maps from request context, user identity, occupancy details, and inventory items. It uses a pooled object pattern to minimize allocation overhead during high-throughput search evaluation.
+`FactorBuilder` 组件根据请求上下文、用户身份、占用详细信息和库存项目组装因子图。它使用池化对象模式来最大限度地减少高吞吐量搜索评估期间的分配开销。
 
-### Condition Layer
+### 条件层
 
-The condition layer evaluates Boolean expressions over the factor map. Conditions are expressed as composite predicates with an outer logical operator (`AND`/`OR`) and a list of atomic comparisons. Each comparison specifies a left-hand side factor, an operator, and a right-hand side constant or factor reference.
+条件层评估因子图上的布尔表达式。条件表示为具有外部逻辑运算符 (`AND`/`OR`) 和原子比较列表的复合谓词。每个比较指定左侧因子、运算符和右侧常量或因子引用。
 
-Supported operators include:
+支持的运营商包括：
 
-| Operator | Semantics | Applicable Types |
+|操作员|语义|适用类型 |
 |---|---|---|
-| Eq / Neq | Equality / inequality | All |
-| Gt / Gte | Greater than / greater-or-equal | Number, Date |
-| Lt / Lte | Less than / less-or-equal | Number, Date |
-| In / NotIn | Membership / exclusion | Enum, String |
-| Contains | Substring match | String |
+|等式 / 不等式 |平等/不平等|全部 |
+| GT / Gte |大于/大于或等于 |编号、日期 |
+| LT / LTE |小于/小于或等于 |编号、日期 |
+|在/不在 |会员/排除 |枚举、字符串 |
+|包含 |子串匹配 |字符串|
 
-The condition layer applies floating-point boundary precision handling for numeric comparisons involving integer-valued thresholds, ensuring that comparisons such as `netRate > 100` behave correctly when the underlying value is represented as a decimal currency type.
+条件层对涉及整数值阈值的数字比较应用浮点边界精度处理，确保当基础值表示为十进制货币类型时，`netRate > 100` 等比较行为正确。
 
-### Action Layer
+### 动作层
 
-The action layer defines the consequences of a matched rule. Actions are registered in a global registry and are categorized by execution phase:
+操作层定义匹配规则的结果。操作在全局注册表中注册，并按执行阶段进行分类：
 
-**Pre-request actions** (`ActionPhasePreRequest`) execute before supplier calls are dispatched:
-- `block_request` — prevents the request from reaching a specific supplier
-- `select_supplier` — overrides the supplier routing decision
-- `select_credential` — selects an alternative supplier credential
-- `override_country_option` — modifies nationality, residency, or country code parameters
+**预请求操作** (`ActionPhasePreRequest`) 在调度供应商呼叫之前执行：
+- `block_request` — 阻止请求到达特定供应商
+- `select_supplier` — 覆盖供应商路由决策
+- `select_credential` — 选择替代供应商凭证
+- `override_country_option` — 修改国籍、居住地或国家/地区代码参数
 
-**Post-request actions** (`ActionPhasePostRequest`) execute after supplier responses are received:
-- `block` — removes an item from the result set
-- `markup` — applies a dynamic price transformation
+**请求后操作** (`ActionPhasePostRequest`) 在收到供应商响应后执行：
+- `block` — 从结果集中删除一个项目
+- `markup` — 应用动态价格转换
 
-The markup action supports four pricing models:
+加价操作支持四种定价模型：
 
-| Model | Parameter | Description |
+|型号|参数|描述 |
 |---|---|---|
-| Percentage | `percentage` | Adds a percentage of the net rate (range: -99% to +1000%) |
-| Fixed Amount | `fixedMarkupAmount` | Adds a flat monetary amount, distributed per room |
-| Multiplier | `multiplier` | Multiplies the net rate by a scalar (range: 0× to 10×) |
-| Tiered | `tiers` | Applies a multiplier based on price band intervals |
+|百分比 | `percentage` |添加净利率的百分比（范围：-99% 到 +1000%）|
+|固定金额 | `fixedMarkupAmount` |添加固定金额，分配给每个房间 |
+|乘数| `multiplier` |将净速率乘以标量（范围：0× 到 10×）|
+|分层| `tiers` |根据价格区间区间应用乘数 |
 
-Markup actors apply transformations to net rate, commissionable rate, and final rate, while preserving gross rate ceilings where contractually required. Cancellation fee structures are proportionally adjusted when the underlying room total changes.
+加价参与者对净费率、佣金费率和最终费率进行转换，同时根据合同要求保留毛费率上限。当基本客房总数发生变化时，取消费用结构会按比例调整。
 
-## Rule Evaluation Lifecycle
+## 规则评估生命周期
 
-The rules engine is integrated into the HotelByte search pipeline at four distinct touchpoints, forming a complete evaluation lifecycle:
+规则引擎在四个不同的接触点集成到 HotelByte 搜索管道中，形成完整的评估生命周期：
 
-### 1. Request Ingestion & Factor Extraction
+### 1.请求摄取和因子提取
 
-When a search request arrives, the `FactorBuilder` extracts contextual dimensions from:
-- The HTTP request itself (check-in/out dates, room count, occupancy, nationality, currency)
-- The authenticated user (user ID, customer entity, API key)
-- The runtime environment (current hour, day of week, weekend flag)
-- The tenant context (tenant ID, tenant type)
+当搜索请求到达时，`FactorBuilder` 从以下位置提取上下文维度：
+- HTTP 请求本身（入住/退房日期、房间数、入住率、国籍、货币）
+- 经过身份验证的用户（用户 ID、客户实体、API 密钥）
+- 运行时环境（当前时间、星期几、周末标志）
+- 租户上下文（租户 ID、租户类型）
 
-These dimensions are assembled into a canonical factor map that serves as the input for all downstream rule evaluations.
+这些维度被组装成规范因子图，作为所有下游规则评估的输入。
 
-### 2. Seller-In Rule Evaluation (Pre-Request)
+### 2. 卖家规则评估（预先请求）
 
-Before dispatching requests to supplier adapters, the engine evaluates **Seller-In Rules** attached to each seller participant. These rules can block requests, override country options (nationality, residency, country code), or redirect the request to an alternative supplier or credential. This phase ensures that supplier-side business constraints—such as market restrictions or credential-specific routing—are enforced before any external call is made.
+在将请求发送给供应商适配器之前，引擎会评估附加到每个卖家参与者的**卖家规则**。这些规则可以阻止请求、覆盖国家/地区选项（国籍、居住地、国家/地区代码）或将请求重定向到替代供应商或凭证。此阶段确保在进行任何外部调用之前强制执行供应商方业务约束（例如市场限制或特定于凭证的路由）。
 
-### 3. Supplier Response & Seller-Out Rule Evaluation (Post-Request)
+### 3. 供应商响应和售出规则评估（请求后）
 
-After supplier responses are received and normalized, **Seller-Out Rules** are evaluated per room. These rules apply supplier-side markup or filtering policies. For each room, the engine builds an item-enriched factor map (including hotel ID, supplier ID, net rate, star rating, breakfast inclusion) and evaluates the seller's outgoing rule set. Matched markup actions transform the room's rate structure, while block actions remove the room from the result stream.
+收到供应商回复并规范化后，将对每个房间进行**卖家出局规则**评估。这些规则应用供应商方标记或过滤策略。对于每个房间，引擎都会构建一个项目丰富的因素图（包括酒店ID、供应商ID、净价、星级、早餐包含）并评估卖家的出库规则集。匹配的标记操作会改变房间的费率结构，而阻止操作会从结果流中删除房间。
 
-### 4. Buyer-Out Rule Evaluation & Final Price Transformation
+### 4. 买断规则评估和最终价格转换
 
-Before results are returned to the API client, **Buyer-Out Rules** are evaluated. These rules represent the buyer's final pricing layer—often a commission markup, volume discount, or promotional adjustment. Because buyer-out rules execute after all supplier-side processing, they operate on fully materialized prices and can perform cross-supplier comparisons if needed.
+在结果返回到 API 客户端之前，将评估**买方规则**。这些规则代表了买方的最终定价层——通常是佣金加价、批量折扣或促销调整。由于买断规则在所有供应商方处理之后执行，因此它们以完全物化的价格运行，并且可以在需要时执行跨供应商比较。
 
-### 5. Trace Population
+### 5. 追踪人口
 
-Throughout post-request evaluation, the engine populates the `MarkupProcess` trace on every rate package:
-- `OriginalPrice` is captured before any rule actions execute
-- `FinalPrice` is recorded after all actions complete
-- `TotalMarkup` and `MarkupPercentage` summarize the net change
-- `MarkupStrategies` records each intermediate transformation with type, value, scene label, localized description, and the responsible rule ID
+在整个请求后评估过程中，引擎会在每个速率包上填充 `MarkupProcess` 跟踪：
+- `OriginalPrice` 在任何规则操作执行之前被捕获
+- 所有操作完成后记录`FinalPrice`
+- `TotalMarkup` 和 `MarkupPercentage` 总结净变化
+- `MarkupStrategies` 记录每个中间转换的类型、值、场景标签、本地化描述和负责的规则 ID
 
-This trace is emitted in API responses and is retained for operational analytics.
+此跟踪在 API 响应中发出，并保留用于操作分析。
 
-## Implemented Control Summary
+## 实施的控制摘要
 
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **Factor Registry with 5 Scopes** | Rules can target any combination of request context, user identity, inventory attributes, tenant classification, and runtime environment, enabling granular commercial policies. |
-| **Dynamic Data Source Resolution** | Factor values backed by API, static, or async sources ensure that reference data (countries, cities, hotels, currencies) is always accurate without manual enumeration maintenance. |
-| **Two-Phase Action Execution** | Pre-request actions control supplier selection and request shaping; post-request actions control pricing and filtering. This separation prevents wasteful supplier calls and enables precise output control. |
-| **Four Markup Models** | Percentage, fixed-amount, multiplier, and tiered pricing models cover the full spectrum of distribution contracts, from simple commissions to complex volume-based rate cards. |
-| **Gross Rate Ceiling Preservation** | Markup actors respect contractual gross rate ceilings where applicable, ensuring that recommended selling prices are never exceeded. |
-| **Floating-Point Boundary Precision** | Numeric condition evaluation applies precision-safe boundary handling, preventing misclassification due to decimal representation in currency values. |
-| **Markup Parameter Validation** | Percentage, multiplier, and tier parameters are bounded and validated at rule creation, simulation, and execution time, preventing accidental or malicious price distortion. |
-| **Real-Time Price Preview** | The simulation endpoint computes exact price outcomes before a rule is activated, enabling safe policy testing against synthetic or historical requests. |
-| **Multi-Tenant Rule Isolation** | Platform users can manage global rules; non-platform users are restricted to rules within their own entity boundary, enforced at persistence and retrieval layers. |
-| **Markup Traceability** | Every rate carries an immutable audit trail of original price, applied strategies, intermediate prices, final price, and responsible rule IDs. |
+| **具有 5 个范围的因子注册表** |规则可以针对请求上下文、用户身份、库存属性、租户分类和运行时环境的任意组合，从而实现精细的商业策略。 |
+| **动态数据源解析** |由 API、静态或异步源支持的因子值可确保参考数据（国家、城市、酒店、货币）始终准确，无需手动枚举维护。 |
+| **两阶段行动执行** |预先请求行动控制供应商选择和请求形成；请求后操作控制定价和过滤。这种分离可以防止浪费的供应商呼叫，并实现精确的输出控制。 |
+| **四种标记模型** |百分比、固定金额、乘数和分级定价模型涵盖了分销合同的全部范围，从简单的佣金到复杂的基于数量的价目表。 |
+| **毛利率上限保持** |加价行为者尊重适用的合同毛利率上限，确保永远不会超过建议的销售价格。 |
+| **浮点边界精度** |数字条件评估应用精确安全的边界处理，防止由于货币值的小数表示而导致错误分类。 |
+| **标记参数验证** |百分比、乘数和层级参数在规则创建、模拟和执行时受到限制和验证，防止意外或恶意的价格扭曲。 |
+| **实时价格预览** |模拟端点在激活规则之前计算准确的价格结果，从而能够针对综合或历史请求进行安全策略测试。 |
+| **多租户规则隔离** |平台用户可以管理全局规则；非平台用户仅限于其自己的实体边界内的规则，并在持久层和检索层强制执行。 |
+| **标记可追溯性** |每个费率都带有原始价格、应用策略、中间价格、最终价格和负责任的规则 ID 的不可变审计跟踪。 |
 
-## Auditability
+## 可审计性
 
-The rules engine provides multiple independent mechanisms for verifying that pricing policies are applied correctly and consistently.
+规则引擎提供了多种独立的机制来验证定价策略是否正确且一致地应用。
 
-### Response-Level Tracing
+### 响应级别跟踪
 
-Every `RoomRatePkg` returned by the search API includes a `MarkupProcess` object. This object contains:
-- The original supplier net rate (`OriginalPrice`)
-- The final buyer-facing net rate (`FinalPrice`)
-- The absolute difference (`TotalMarkup`)
-- The percentage change (`MarkupPercentage`)
-- A detailed list of `MarkupStrategies`, each annotated with the rule ID, scene (e.g., `seller-out-rule`, `buyer-out-rule`), strategy type, and a human-readable description in multiple languages
+搜索 API 返回的每个 `RoomRatePkg` 都包含一个 `MarkupProcess` 对象。该对象包含：
+- 原始供应商净费率（`OriginalPrice`）
+- 最终面向买家的净汇率（`FinalPrice`）
+- 绝对差（`TotalMarkup`）
+- 百分比变化 (`MarkupPercentage`)
+- `MarkupStrategies` 的详细列表，每个列表都注释有规则 ID、场景（例如 `seller-out-rule`、`buyer-out-rule`）、策略类型以及多种语言的人类可读描述
 
-API consumers and internal operations teams can inspect this trace to reconcile any price discrepancy without accessing internal execution logs.
+API 使用者和内部运营团队可以检查此跟踪以协调任何价格差异，而无需访问内部执行日志。
 
-### Rule Simulation
+### 规则模拟
 
-The `/simulateRule` endpoint allows authorized users to evaluate a rule against arbitrary factor parameters and a base price. The response includes:
-- Whether the rule passed or failed
-- The list of actions that would have fired
-- A `PricePreview` showing the exact adjusted price, price difference, and percentage change
+`/simulateRule` 端点允许授权用户根据任意因素参数和基本价格评估规则。响应内容包括：
+- 规则是否通过或失败
+- 将会触发的操作列表
+- `PricePreview` 显示精确调整后的价格、价格差异和百分比变化
 
-This capability supports pre-deployment validation, regression testing during rule updates, and training scenarios for commercial teams.
+此功能支持部署前验证、规则更新期间的回归测试以及商业团队的培训场景。
 
-### Execution Metrics
+### 执行指标
 
-The engine emits business-level metrics for rule hit/miss rates per scene (`applySellerOutRuleOnRooms`, `applyBuyerOutRule`, etc.), enabling operational dashboards that track policy effectiveness and supplier participation rates.
+该引擎针对每个场景的规则命中/未命中率发出业务级指标（`applySellerOutRuleOnRooms`、`applyBuyerOutRule` 等），从而启用可跟踪策略有效性和供应商参与率的操作仪表板。
 
-### Change Logging
+### 更改日志记录
 
-All rule mutations—creation, update, deletion, and toggle—are attributed to the authenticated operator and persisted with full rule content. The normalization layer logs any condition transformations (e.g., precision adjustments) for diagnostic review.
+所有规则变更（创建、更新、删除和切换）均归因于经过身份验证的操作员，并保留完整的规则内容。标准化层记录任何条件转换（例如，精度调整）以进行诊断审查。
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **OMG Decision Model and Notation (DMN) v1.5** | "A decision is the act of determining an output value from a number of input values, using logic defining how the output is determined from the inputs." | The HotelByte condition layer maps directly to DMN decision logic: factors are inputs, conditions are decision tables, and actions are outputs. The explicit separation of inputs (factors), logic (conditions), and outputs (actions) mirrors DMN's separation of data, decision logic, and knowledge sources. |
-| **Business Rules Group, "The Business Rules Manifesto"** | "Rules should be expressed declaratively in natural-language sentences for the business audience… Rules should be managed and controlled outside the code." | HotelByte rules are authored as declarative JSON configurations (conditions and aims) rather than code. The rules engine enforces this separation by compiling configurations into an executable rule graph at runtime, enabling business stakeholders to read and validate policy without engineering involvement. |
-| **Gartner, "Market Guide for Business Rules Management Systems"** | "BRMS platforms must support versioning, testing, simulation, and governance of business rules across multiple channels and user groups." | The HotelByte engine implements simulation via `/simulateRule`, governance via entity-scoped access control (platform vs. tenant users), and multi-channel consistency by evaluating the same rule configuration across hotel list, hotel rates, check availability, and streaming search paths. |
-| **IEEE Software, "Rule-Based Systems: A Taxonomy"** | "A rule engine should provide traceability of rule firing, explainability of conclusions, and support for forward and backward chaining." | The engine provides traceability through `MarkupProcess` and `MarkupStrategies`. Explainability is supported via simulation responses that show exactly which conditions passed and which actions fired. Forward chaining is implemented through sequential action execution within a matched rule. |
-| **ISO 4217 (Currency Codes)** | "ISO 4217 provides standard three-letter alphabetic codes for currencies." | The currency factor in the Request scope uses ISO 4217 standard codes (USD, EUR, CNY, AED, etc.) as static enumerated values, ensuring that currency-based rules are expressed in an internationally recognized vocabulary. |
-| **OWASP, "Input Validation Cheat Sheet"** | "All input should be validated against a strict specification… Numeric inputs should have defined minimum and maximum bounds." | The markup validation layer enforces strict bounds: percentage markups are constrained between -99% and +1000%, multipliers between 0× and 10×, fixed amounts must be non-negative, and tier intervals must be well-formed. All parameters are validated at rule persistence time, simulation time, and execution time. |
+| **OMG 决策模型和符号 (DMN) v1.5** | “决策是使用定义如何根据输入确定输出的逻辑，根据多个输入值确定输出值的行为。” | HotelByte 条件层直接映射到 DMN 决策逻辑：因素是输入，条件是决策表，操作是输出。输入（因素）、逻辑（条件）和输出（动作）的显式分离反映了DMN对数据、决策逻辑和知识源的分离。 |
+| **业务规则组，“业务规则宣言”** | “规则应该用自然语言句子向业务受众声明性地表达……规则应该在代码之外进行管理和控制。” | HotelByte 规则被编写为声明性 JSON 配置（条件和目标）而不是代码。规则引擎通过在运行时将配置编译成可执行规则图来强制执行这种分离，使业务利益相关者无需工程参与即可读取和验证策略。 |
+| **Gartner，“业务规则管理系统市场指南”** | “BRMS 平台必须支持跨多个渠道和用户组的业务规则的版本控制、测试、模拟和治理。” | HotelByte 引擎通过 `/simulateRule` 实现模拟，通过实体范围的访问控制（平台与租户用户）进行治理，并通过评估跨酒店列表、酒店价格、检查可用性和流式搜索路径的相同规则配置来实现多渠道一致性。 |
+| **IEEE 软件，“基于规则的系统：分类法”** | “规则引擎应该提供规则触发的可追溯性、结论的可解释性以及对前向和后向链接的支持。” |该引擎通过 `MarkupProcess` 和 `MarkupStrategies` 提供可追溯性。可解释性是通过模拟响应来支持的，模拟响应准确地显示了哪些条件已通过以及哪些操作被触发。前向链接是通过匹配规则内的顺序操作执行来实现的。 |
+| **ISO 4217（货币代码）** | “ISO 4217 为货币提供了标准的三字母字母代码。” | Request范围中的货币因素使用ISO 4217标准代码（USD、EUR、CNY、AED等）作为静态枚举值，确保基于货币的规则以国际认可的词汇表达。 |
+| **OWASP，“输入验证备忘单”** | “所有输入都应根据严格的规范进行验证......数字输入应定义最小和最大界限。” |标记验证层强制执行严格的界限：百分比标记限制在 -99% 和 +1000% 之间，乘数在 0× 和 10× 之间，固定金额必须为非负数，并且层间隔必须格式正确。所有参数均在规则持续时间、模拟时间和执行时间进行验证。 |

@@ -1,194 +1,183 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：全球内容管理与分发白皮书"
+title: "全球内容管理与分发白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp20-content-distribution/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp20-content-distribution/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp20-content-distribution/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：全球内容管理与分发白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Global Content Management & Distribution Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte is a global hotel API distribution platform that manages millions of static content records—hotel base information, amenities, images, ratings, and custom property data—on behalf of Online Travel Agencies (OTAs), Travel Management Companies (TMCs), and enterprise travel programs. In addition to real-time pricing and availability, the platform operates a comprehensive content management and distribution pipeline that ingests supplier bulk feeds, hosts customer-defined hotel collections (BYOC — Bring Your Own Content), and delivers filtered content via secure file transfer and API interfaces.
+HotelByte 是一个全球酒店 API 分销平台，代表在线旅行社 (OTA)、差旅管理公司 (TMC) 和企业差旅计划管理数百万条静态内容记录，包括酒店基本信息、设施、图像、评级和自定义酒店数据。除了实时定价和可用性之外，该平台还运营着全面的内容管理和分发管道，可接收供应商批量源、托管客户定义的酒店系列（BYOC - 自带内容），并通过安全文件传输和 API 接口提供经过过滤的内容。
 
-This whitepaper describes HotelByte's global content management architecture, covering three primary technical domains: the ingestion layer that normalizes and imports data from multiple supplier sources and customer uploads; the caching layer that guarantees high-availability access to customer-specific content catalogs through soft-expiry semantics and proactive cache warming; and the distribution layer that provides secure, permission-filtered SFTP export with filesystem isolation and multi-format delivery. The result is a content pipeline that maintains data sovereignty per customer, sustains sub-second read latency for catalog queries, and enables secure downstream distribution without exposing one customer's curated dataset to another.
-
----
-
-## Scope
-
-This document covers the architectural design, operational behavior, and security posture of HotelByte's content management and distribution systems. It is intended for enterprise customers, security auditors, and integration partners who require a technical understanding of how hotel static content is ingested, cached, and distributed within the platform.
-
-Specifically, this whitepaper addresses:
-
-- The ingestion layer architecture: supplier bulk imports, BYOC uploads, and geographic normalization
-- The caching layer for BYOC catalogs: soft-expiry retrieval, anti-stampede protection, and cache warming
-- The distribution layer: embedded secure file transfer, customer filesystem isolation, and permission-filtered export
-- Multilingual content management via structured translation service integration
-- Graceful degradation strategies for geographic expansion and downstream failures
-- Observability, auditability, and control mappings to industry standards
-
-This whitepaper does not cover real-time pricing, availability, booking transaction flows, or supplier dynamic API integrations, which are documented separately.
+本白皮书描述了 HotelByte 的全球内容管理架构，涵盖三个主要技术领域： 摄取层，用于标准化和导入来自多个供应商来源和客户上传的数据；缓存层通过软过期语义和主动缓存预热来保证对客户特定内容目录的高可用性访问；分发层提供安全、经过权限过滤的 SFTP 导出，具有文件系统隔离和多格式传输功能。其结果是一个内容管道，可以维护每个客户的数据主权，维持目录查询的亚秒级读取延迟，并实现安全的下游分发，而无需将一个客户策划的数据集暴露给另一个客户。
 
 ---
 
-## Objectives
+## 范围
 
-The content management and distribution architecture was designed to meet five primary objectives:
+本文档涵盖了 HotelByte 内容管理和分发系统的架构设计、操作行为和安全状况。它适用于需要从技术上了解如何在平台内摄取、缓存和分发酒店静态内容的企业客户、安全审核员和集成合作伙伴。
 
-1. **Content Sovereignty and Tenant Isolation.** Each customer maintains full control over its curated hotel collections. BYOC catalogs are isolated at the data layer, and all distribution endpoints enforce customer-scoped permission filtering so that no tenant can access another tenant's proprietary content.
+具体来说，本白皮书涉及：
 
-2. **High Availability for Catalog Reads.** Static content queries must remain available even when backend import pipelines or geographic enrichment services experience transient degradation. The cache layer serves previously ingested content during upstream interruptions.
+- 摄取层架构：供应商批量导入、BYOC 上传和地理标准化
+- BYOC 目录的缓存层：软过期检索、防踩踏保护和缓存预热
+- 分发层：嵌入式安全文件传输、客户文件系统隔离和权限过滤导出
+- 通过结构化翻译服务集成进行多语言内容管理
+- 针对地理扩张和下游故障的优雅降级策略
+- 可观测性、可审计性和与行业标准的控制映射
 
-3. **Low-Latency Custom Content Delivery.** Customer-specific catalogs are served from an optimized cache tier with soft-expiry semantics and asynchronous background refresh, ensuring that repeated lookups do not trigger redundant database queries.
-
-4. **Secure and Configurable Distribution.** Content can be exported on demand via authenticated SFTP sessions with per-customer filesystem isolation, configurable cipher suites, connection rate limits, and dual-factor authentication support (password and public key).
-
-5. **Global Multilingual Consistency.** Static content supports multilingual property descriptions, amenity labels, and geographic names through a structured translation management system, ensuring that end travelers receive localized content aligned with the customer's configured language preferences.
-
----
-
-## Design Principles
-
-### 1. Content Sovereignty
-
-HotelByte treats each customer's curated content as a distinct data domain. BYOC catalogs are owned by a specific customer entity and isolated at the database and cache layers. Export and distribution operations filter the result set against the requesting customer's permission boundary before serialization, ensuring that proprietary collections, custom mappings, and private annotations never leak across tenant boundaries.
-
-### 2. Soft Expiry for Availability
-
-Rather than relying solely on hard time-to-live (TTL) boundaries that can trigger synchronous cache rebuilds under load, HotelByte employs a dual-expiry model. Each cached entry carries a soft expiry (triggering asynchronous background refresh) and a hard expiry (triggering synchronous refresh only when data is truly stale). This pattern ensures that read paths remain fast and available: callers receive the existing cached value immediately while refresh occurs out of band.
-
-### 3. Secure Distribution
-
-All file-based distribution traverses an embedded SFTP server with SSH-based transport security. The server enforces per-IP connection limits, active session tracking, configurable cryptographic parameters (ciphers, MACs, key exchange algorithms), and customer-scoped filesystem chrooting. Authentication supports both password and public-key methods, with usernames bound to validated customer entity identities.
-
-### 4. Graceful Degradation
-
-Content ingestion pipelines interact with external geographic lookup and enrichment services. When geographic expansion or fuzzy resolution fails, the system falls back to original region identifiers rather than failing the import. Similarly, cache refreshes that encounter transient errors retain the previous cached value until the hard expiry boundary, preventing upstream hiccups from propagating to customer-facing queries.
-
-### 5. Concurrent Import Safety
-
-Bulk supplier imports and BYOC uploads process large datasets using bounded concurrency. Worker pools throttle CPU utilization through runtime-proportional goroutine limits, while mutex-protected shared result sets ensure that concurrent write operations to aggregation structures remain consistent without serialization bottlenecks.
+本白皮书不涵盖实时定价、可用性、预订交易流程或供应商动态 API 集成，这些内容均单独记录。
 
 ---
 
-## Content Architecture
+## 目标
 
-The content management system is organized into three architectural layers: ingestion, cache, and distribution.
+内容管理和分发架构旨在满足五个主要目标：
 
-### Ingestion Layer
+1. **内容主权和租户隔离。** 每个客户都对其精选的酒店系列保持完全控制。 BYOC 目录在数据层进行隔离，所有分发端点都强制执行客户范围的权限过滤，以便任何租户都无法访问其他租户的专有内容。
 
-The ingestion layer accepts hotel static content from three primary channels:
+2. **目录读取的高可用性。** 即使后端导入管道或地理丰富服务经历短暂降级，静态内容查询也必须保持可用。缓存层在上游中断期间提供先前摄取的内容。
 
-- **Supplier Bulk Imports.** HotelByte ingests bulk property files from major supplier partners. Imports support batched processing, configurable batch sizes, and validation pipelines that compute data quality scores and emit structured error reports per record.
-- **BYOC Uploads.** Customers can upload their own hotel collections via JSON or CSV payloads, or by referencing a remote file URL (HTTP/HTTPS/FTP). Uploads support overwrite semantics, index rebuild triggers, and optional callback notifications on completion.
-- **Manual Operations.** Authorized operators can create, update, and curate individual property records, hotel catalogs, and supplier reference mappings through authenticated management interfaces.
+3. **低延迟自定义内容交付。** 特定于客户的目录由优化的缓存层提供，具有软过期语义和异步后台刷新，确保重复查找不会触发冗余数据库查询。
 
-During ingestion, geographic data is normalized through enrichment lookups. When enrichment services are unreachable or return ambiguous results, the pipeline gracefully falls back to the original geographic identifiers, ensuring that import jobs complete without blocking on external dependencies.
+4. **安全且可配置的分发。** 可以通过经过身份验证的 SFTP 会话按需导出内容，并具有每个客户的文件系统隔离、可配置的密码套件、连接速率限制和双因素身份验证支持（密码和公钥）。
 
-### Cache Layer
-
-The BYOC cache tier is designed for read-heavy, customer-scoped catalog queries. It implements three complementary mechanisms:
-
-- **Soft-Expiry Retrieval.** The `GetWithSoftExpiry` path distinguishes between fresh data (returned directly), soft-stale data (returned immediately plus asynchronous refresh), and hard-stale or missing data (synchronous refresh before return). This guarantees that customer catalog lookups never block on backend regeneration.
-- **Anti-Stampede Protection.** A cache guard layer uses single-flight request deduplication to collapse concurrent identical queries into a single backend call. This prevents cache stampede scenarios when a popular catalog key expires and multiple goroutines attempt simultaneous refresh.
-- **Proactive Cache Warming.** A dedicated cache warmer maintains a worker pool that processes background warmup tasks from a bounded queue. Catalogs can be pre-populated into the cache tier after import completion, ensuring that the first customer query hits a warm cache rather than triggering a cold read.
-
-### Distribution Layer
-
-The distribution layer provides both API and file-based access to content:
-
-- **API Access.** Content is queryable through REST and streaming interfaces with pagination, destination filtering, and supplier-scoped metadata retrieval.
-- **SFTP Export.** HotelByte operates an embedded SFTP server that supports authenticated customer sessions. Each customer receives an isolated filesystem rooted under a tenant-specific directory (`data`, `archive`, `temp`). Exports support three modes: by supplier hotel ID list, by reference mapping file, or by original content file enrichment. Output formats include CSV and XLSX.
-- **Permission Filtering.** Before any export is serialized, the result set is intersected with the requesting customer's hotel permissions. If a customer's scope does not overlap with the requested dataset, the operation returns an explicit permission-denied response rather than a partial or unfiltered result.
+5. **全球多语言一致性。** 静态内容通过结构化翻译管理系统支持多语言酒店描述、设施标签和地理名称，确保最终旅行者收到符合客户配置的语言偏好的本地化内容。
 
 ---
 
-## Content Lifecycle and Distribution Flow
+## 设计原则
 
-A typical content record progresses through the following lifecycle stages:
+### 1. 内容主权
 
-1. **Ingest.** Content enters the platform via supplier bulk sync, BYOC upload, or manual curation. Geographic enrichment attempts resolution to canonical destination identifiers; if enrichment fails, the record retains its original geographic references.
+HotelByte 将每个客户的精选内容视为一个独特的数据域。 BYOC 目录由特定客户实体拥有，并在数据库和缓存层隔离。导出和分发操作在序列化之前根据请求客户的权限边界过滤结果集，确保专有集合、自定义映射和私有注释永远不会跨租户边界泄漏。
 
-2. **Validate and Normalize.** Records are validated for mandatory fields, star rating ranges, coordinate sanity, and duplicate detection. Supplier reference mappings (e.g., Giata, Trip) are attached to establish cross-supplier identity.
+### 2. 可用性软过期
 
-3. **Index and Cache.** Validated records are written to the persistent store. For BYOC catalogs, a cache warmup task may be submitted to the background worker pool, pre-populating the cache tier before the first customer query.
+HotelByte 采用双到期模型，而不是仅仅依赖可在负载下触发同步缓存重建的硬生存时间 (TTL) 边界。每个缓存条目都带有一个软过期（触发异步后台刷新）和一个硬过期（仅当数据真正过时时触发同步刷新）。此模式可确保读取路径保持快速且可用：调用者立即接收现有的缓存值，同时刷新发生在带外。
 
-4. **Serve.** API queries hit the soft-expiry cache first. Fresh entries return directly; soft-stale entries return immediately with a background refresh dispatched; hard-stale or missing entries trigger synchronous population.
+### 3. 安全分发
 
-5. **Distribute.** On demand, authorized customers can export curated subsets via SFTP. The export pipeline batches supplier ID lookups, applies customer permission filtering, serializes to the requested format (CSV or XLSX), and delivers the file to the customer's isolated SFTP directory.
+所有基于文件的分发都通过具有基于 SSH 传输安全性的嵌入式 SFTP 服务器。服务器强制执行每个 IP 连接限制、活动会话跟踪、可配置的加密参数（密码、MAC、密钥交换算法）以及客户范围的文件系统 chroot。身份验证支持密码和公钥方法，用户名绑定到经过验证的客户实体身份。
+
+### 4. 优雅降级
+
+内容摄取管道与外部地理查找和丰富服务交互。当地理扩展或模糊解析失败时，系统会回退到原始区域标识符，而不是使导入失败。同样，遇到暂时性错误的缓存刷新会保留之前的缓存值，直到硬过期边界为止，从而防止上游问题传播到面向客户的查询。
+
+### 5. 并行进口安全
+
+批量供应商导入和 BYOC 上传使用有限并发处理大型数据集。工作池通过与运行时成比例的 goroutine 限制来限制 CPU 利用率，而受互斥锁保护的共享结果集可确保对聚合结构的并发写入操作保持一致，而不会出现序列化瓶颈。
 
 ---
 
-## Implemented Control Summary
+## 内容架构
 
-| Control | Customer Value |
+内容管理系统分为三个架构层：摄取、缓存和分发。
+
+### 摄取层
+
+摄取层从三个主要渠道接受酒店静态内容：
+
+- **供应商批量导入。** HotelByte 从主要供应商合作伙伴处获取批量属性文件。导入支持批量处理、可配置的批量大小以及计算数据质量分数并针对每条记录发出结构化错误报告的验证管道。
+- **BYOC 上传。** 客户可以通过 JSON 或 CSV 负载或引用远程文件 URL (HTTP/HTTPS/FTP) 上传自己的酒店系列。上传支持覆盖语义、索引重建触发器和可选的完成时回调通知。
+- **手动操作。** 授权操作员可以通过经过身份验证的管理界面创建、更新和管理个人财产记录、酒店目录和供应商参考映射。
+
+在摄取过程中，地理数据通过丰富查找进行标准化。当丰富服务无法访问或返回不明确的结果时，管道会优雅地回退到原始地理标识符，确保导入作业完成而不会阻塞外部依赖项。
+
+### 缓存层
+
+BYOC 缓存层专为读取密集型、客户范围的目录查询而设计。它实现了三个补充机制：
+
+- **软过期检索。** `GetWithSoftExpiry` 路径区分新鲜数据（直接返回）、软过时数据（立即返回并异步刷新）以及硬过时或丢失数据（返回前同步刷新）。这保证了客户目录查找永远不会阻塞后端再生。
+- **防踩踏保护。** 缓存保护层使用单次请求重复数据删除将并发的相同查询折叠到单个后端调用中。当流行的目录键过期并且多个 goroutine 尝试同时刷新时，这可以防止缓存踩踏情况。
+- **主动缓存预热。** 专用缓存预热器维护一个工作池，用于处理来自有界队列的后台预热任务。导入完成后，可以将目录预先填充到缓存层中，确保第一个客户查询命中热缓存而不是触发冷读。
+
+### 分布层
+
+分发层提供 API 和基于文件的内容访问：
+
+- **API 访问。** 内容可通过 REST 和流接口进行查询，包括分页、目标过滤和供应商范围的元数据检索。
+- **SFTP 导出。** HotelByte 运行嵌入式 SFTP 服务器，支持经过身份验证的客户会话。每个客户都会收到一个植根于特定于租户的目录（`data`、`archive`、`temp`）下的隔离文件系统。导出支持三种模式：按供应商酒店 ID 列表、按参考映射文件或按原始内容文件丰富。输出格式包括 CSV 和 XLSX。
+- **权限过滤。** 在序列化任何导出之前，结果集与请求客户的酒店权限相交。如果客户的范围与请求的数据集不重叠，则操作将返回明确的权限拒绝响应，而不是部分或未经过滤的结果。
+
+---
+
+## 内容生命周期和分发流程
+
+典型的内容记录会经历以下生命周期阶段：
+
+1. **摄取。** 内容通过供应商批量同步、BYOC 上传或手动管理进入平台。地理丰富尝试解析规范的目的地标识符；如果浓缩失败，记录将保留其原始地理参考。
+
+2. **验证和标准化。** 验证记录的必填字段、星级范围、坐标健全性和重复检测。附加供应商参考映射（例如 Giata、Trip）以建立跨供应商身份。
+
+3. **索引和缓存。** 验证的记录将写入持久存储。对于 BYOC 目录，可以将缓存预热任务提交到后台工作池，在第一个客户查询之前预填充缓存层。
+
+4. **Serve.** API 查询首先命中软过期缓存。新鲜条目直接返回；软陈旧条目立即返回并调度后台刷新；硬过时或丢失的条目会触发同步填充。
+
+5. **分发。** 根据需要，授权客户可以通过 SFTP 导出精选的子集。导出管道批量供应商 ID 查找、应用客户权限过滤、序列化为请求的格式（CSV 或 XLSX），并将文件传送到客户的隔离 SFTP 目录。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Dual-Expiry Cache Semantics (Soft + Hard TTL)** | Ensures catalog queries remain fast and available even when background refresh is delayed; customers never wait on cache rebuilds. |
-| **Single-Flight Anti-Stampede Guard** | Collapses concurrent identical catalog lookups into one backend call, preventing load spikes when popular content expires. |
-| **Background Cache Warmer with Worker Pool** | Proactively pre-populates cache after import operations, eliminating cold-start latency for newly uploaded catalogs. |
-| **Tenant-Isolated SFTP Filesystem** | Each customer operates within a dedicated directory root (`data`, `archive`, `temp`), ensuring content files are never co-mingled or exposed to other tenants. |
-| **Per-Customer Permission Filtering on Export** | Exported datasets are intersected with the customer's hotel permission scope, preventing accidental leakage of unauthorized properties. |
-| **SSH Transport with Configurable Cryptography** | SFTP sessions use SSH encryption with admin-configurable cipher suites, MAC algorithms, and key exchange protocols, aligning with organizational cryptographic policies. |
-| **Dual-Factor Authentication (Password + Public Key)** | Customers can authenticate via password or SSH public key, with usernames bound to validated entity identities, reducing credential compromise risk. |
-| **Per-IP Connection Limits and Session Tracking** | Limits the number of concurrent connections per source IP and exposes active session telemetry for anomaly detection and capacity planning. |
-| **Graceful Geographic Enrichment Fallback** | When geographic expansion services fail, imports fall back to original region IDs, ensuring batch jobs complete without data loss. |
-| **Structured Import Error Reporting** | BYOC and supplier imports emit per-record error and warning summaries with severity levels, enabling customers to diagnose and remediate data quality issues. |
-| **Multilingual Content via Structured Translation Service** | Hotel names, descriptions, and amenity labels are served in the traveler's locale through a centralized translation management system, improving booking conversion. |
-| **Concurrent Import Throttling via Worker Pools** | Bulk imports bound CPU parallelism to runtime-proportional limits, protecting platform stability during large ingestion jobs. |
-| **Config Hot-Update without Downtime** | SFTP server configuration can be updated dynamically without terminating active sessions, supporting operational changes during business hours. |
+| **双过期缓存语义（软 + 硬 TTL）** |即使后台刷新延迟，也确保目录查询保持快速且可用；客户永远不会等待缓存重建。 |
+| **单次飞行防踩踏防护装置** |将并发的相同目录查找合并到一个后端调用中，从而防止流行内容过期时出现负载峰值。 |
+| **带有工作池的后台缓存预热器** |导入操作后主动预填充缓存，消除新上传目录的冷启动延迟。 |
+| **租户隔离的 SFTP 文件系统** |每个客户都在专用目录根（`data`、`archive`、`temp`）中操作，确保内容文件永远不会混合或暴露给其他租户。 |
+| **导出时按客户进行权限过滤** |导出的数据集与客户的酒店权限范围相交叉，防止未经授权的财产意外泄露。 |
+| **具有可配置加密技术的 SSH 传输** | SFTP 会话使用 SSH 加密以及管理员可配置的密码套件、MAC 算法和密钥交换协议，与组织加密策略保持一致。 |
+| **双因素身份验证（密码+公钥）** |客户可以通过密码或 SSH 公钥进行身份验证，并将用户名绑定到经过验证的实体身份，从而降低凭证泄露风险。 |
+| **每 IP 连接限制和会话跟踪** |限制每个源 IP 的并发连接数，并公开活动会话遥测以进行异常检测和容量规划。 |
+| **优美的地理丰富后备** |当地理扩展服务失败时，导入会回退到原始区域 ID，确保批处理作业完成而不会丢失数据。 |
+| **结构化导入错误报告** | BYOC 和供应商导入会按严重级别发出每条记录的错误和警告摘要，使客户能够诊断和修复数据质量问题。 |
+| **通过结构化翻译服务提供多语言内容** |酒店名称、描述和便利设施标签通过集中翻译管理系统在旅行者所在地提供，从而提高预订转化率。 |
+| **通过工作池进行并发导入限制** |批量导入将 CPU 并行性限制为运行时比例限制，从而在大型摄取作业期间保护平台稳定性。 |
+| **配置热更新无需停机** | SFTP 服务器配置可以动态更新，无需终止活动会话，支持工作时间内的操作更改。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-HotelByte's content management layer is designed to be fully auditable through a combination of structured logging, metrics, and trace correlation.
+HotelByte 的内容管理层旨在通过结构化日志记录、指标和跟踪关联的组合进行完全可审计。
 
-**Distributed Tracing Correlation.** Every content operation—from import request to cache lookup to SFTP file delivery—carries the request trace identifier. This enables end-to-end tracking of a content record from ingestion through to customer delivery.
+**分布式跟踪关联。** 每个内容操作（从导入请求到缓存查找再到 SFTP 文件传输）都带有请求跟踪标识符。这使得能够对内容记录从摄取到客户交付进行端到端跟踪。
 
-**Structured Event Logs.** Cache hits, misses, refresh events, import completions, SFTP authentication attempts, session creations, and file exports are emitted as structured logs with contextual fields including customer entity ID, catalog identifier, operation type, latency, and node identity. These logs support real-time alerting and post-incident forensic reconstruction.
+**结构化事件日志。** 缓存命中、未命中、刷新事件、导入完成、SFTP 身份验证尝试、会话创建和文件导出作为结构化日志发出，其中包含客户实体 ID、目录标识符、操作类型、延迟和节点身份等上下文字段。这些日志支持实时警报和事件后取证重建。
 
-**Metrics Retention.** Prometheus-compatible counters and histograms are exported for cache hit rates, refresh latency, import throughput, SFTP session counts, connection rates per IP, and export volume. Metrics are retained in accordance with the platform's observability policies and are available for customer-facing SLA reporting.
+**指标保留。** 导出与 Prometheus 兼容的计数器和直方图，包括缓存命中率、刷新延迟、导入吞吐量、SFTP 会话计数、每个 IP 的连接速率和导出量。指标根据平台的可观测性策略保留，并可用于面向客户的 SLA 报告。
 
-**SFTP Session Audit Trail.** The SFTP server maintains an active session registry capturing customer ID, authentication method, remote address, connection time, last activity, bytes transferred, and file operation counts. This registry supports both operational monitoring and security incident review.
+**SFTP 会话审计跟踪。** SFTP 服务器维护一个活动会话注册表，捕获客户 ID、身份验证方法、远程地址、连接时间、上次活动、传输的字节数和文件操作计数。该注册表支持操作监控和安全事件审查。
 
-**Import Audit Trail.** Every BYOC and supplier import records its total processing time, average record time, data quality score, top errors, and completion status. Customers can query import history by date range, catalog, and status to verify data freshness and quality over time.
+**导入审核跟踪。** 每个 BYOC 和供应商导入都会记录其总处理时间、平均记录时间、数据质量评分、最高错误和完成状态。客户可以按日期范围、目录和状态查询导入历史记录，以验证数据的新鲜度和质量。
 
-**Operational Verification.** The platform exposes health and statistics endpoints for cache population status, SFTP active client counts, and import queue depth. These endpoints can be integrated into automated monitoring and alerting pipelines.
+**操作验证。** 该平台公开缓存填充状态、SFTP 活动客户端计数和导入队列深度的运行状况和统计端点。这些端点可以集成到自动监控和警报管道中。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **NIST SP 800-53 Rev. 5 — AC-3 (Access Enforcement)** | "The information system enforces approved authorizations for logical access to information and system resources in accordance with applicable access control policies." | HotelByte enforces customer-scoped permission filtering on every export operation, ensuring that SFTP-delivered datasets contain only hotels authorized to the requesting tenant. |
-| **ISO/IEC 27001:2022 — A.8.1 (User Endpoint Devices)** | "Information stored on, processed by or accessible via user endpoint devices shall be protected." | The embedded SFTP server isolates each customer to a dedicated filesystem root with standard directory structures (`data`, `archive`, `temp`), preventing cross-tenant file access. |
-| **OWASP Cheat Sheet Series — Transport Layer Protection** | "Use strong TLS/SSL configurations with modern cipher suites and disable weak protocols." | HotelByte's SFTP server uses SSH transport with admin-configurable allowed ciphers, MACs, and key exchange algorithms, and supports both password and public-key authentication. |
-| **RFC 7234 — HTTP/1.1 Caching** | "A cache MUST update the headers of a cached entity with the corresponding header fields received in a successful validation response." | While not an HTTP cache, HotelByte's soft-expiry cache implements an equivalent semantic: entries past soft expiry are returned immediately while an asynchronous validation refresh updates the stored value, ensuring freshness without blocking readers. |
-| **NIST SP 800-207 — Zero Trust Architecture** | "Assume a breach and verify explicitly. Use least privilege access and continuous monitoring." | The SFTP layer enforces per-IP connection limits, active session tracking, and entity-bound authentication. Export operations explicitly verify customer permissions before data serialization, applying least-privilege access to content distribution. |
-| **Facebook (Meta) Research — "Scaling Memcache at Facebook" (NSDI 2013)** | "We use lease tokens to coordinate concurrent writes and prevent thundering herds." | HotelByte's cache guard uses single-flight request coalescing to collapse concurrent identical lookups into a single backend query, eliminating thundering-herd amplification on popular catalog keys. |
+| **NIST SP 800-53 Rev. 5 — AC-3（访问强制）** | “信息系统根据适用的访问控制策略强制执行对信息和系统资源的逻辑访问的批准授权。” | HotelByte 对每个导出操作强制实施客户范围的权限过滤，确保 SFTP 交付的数据集仅包含授权给请求租户的酒店。 |
+| **ISO/IEC 27001:2022 — A.8.1（用户端点设备）** | “存储在用户端点设备上、由用户端点设备处理或通过用户端点设备访问的信息应受到保护。” |嵌入式 SFTP 服务器将每个客户隔离到具有标准目录结构（`data`、`archive`、`temp`）的专用文件系统根，从而防止跨租户文件访问。 |
+| **OWASP 备忘单系列 — 传输层保护** | “使用具有现代密码套件的强 TLS/SSL 配置并禁用弱协议。” | HotelByte 的 SFTP 服务器使用 SSH 传输以及管理员可配置的允许密码、MAC 和密钥交换算法，并支持密码和公钥身份验证。 |
+| **RFC 7234 — HTTP/1.1 缓存** | “缓存必须使用成功验证响应中收到的相应标头字段来更新缓存实体的标头。” |虽然不是 HTTP 缓存，但 HotelByte 的软过期缓存实现了等效的语义：立即返回软过期后的条目，同时异步验证刷新更新存储的值，确保新鲜度而不阻塞读取器。 |
+| **NIST SP 800-207 — 零信任架构** | “假设违规并明确验证。使用最小权限访问和持续监控。” | SFTP 层强制执行每个 IP 连接限制、活动会话跟踪和实体绑定身份验证。导出操作在数据序列化之前显式验证客户权限，对内容分发应用最小权限访问。 |
+| **Facebook（元）研究 —“在 Facebook 上扩展 Memcache”（NSDI 2013）** | “我们使用租赁代币来协调并发写入并防止惊群。” | HotelByte 的缓存防护使用单次请求合并将并发的相同查找折叠到单个后端查询中，从而消除了流行目录键上的惊群放大。 |
 
 ---
 
-*This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+*本白皮书由 HotelByte Engineering 发布。如果对本文所述的技术控制有疑问，请联系 HotelByte 技术支持或您指定的客户成功工程师。*

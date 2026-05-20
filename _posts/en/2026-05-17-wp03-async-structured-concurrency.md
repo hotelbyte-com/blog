@@ -8,7 +8,7 @@ tags: [Go, Concurrency, Hotel API, Reliability]
 author: "HotelByte Team"
 description: "A guide to HotelByte's structured concurrency approach for supplier-heavy workloads."
 lang: en
-permalink: /whitepapers/wp03-async-structured-concurrency/
+permalink: /en/whitepapers/wp03-async-structured-concurrency/
 source_asset: hotel-be/docs/en/whitepapers/03-async-task-and-structured-concurrency.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp03-async-structured-concurrency/original/

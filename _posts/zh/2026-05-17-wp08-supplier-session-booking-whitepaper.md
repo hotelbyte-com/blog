@@ -1,193 +1,182 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：供应商会话与有状态预订白皮书"
+title: "供应商会话与有状态预订白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp08-supplier-session-booking/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp08-supplier-session-booking/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp08-supplier-session-booking/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：供应商会话与有状态预订白皮书
+HotelByte 是一个酒店 API 分销平台，可在超过 27 个供应商集成的多元化网络中协调复杂的多步骤预订交易。每个预订过程都跨越四个关键阶段：搜索、价格检索、可用性验证和最终确认，通常会遍历具有不同协议、身份验证方案和状态表示的多个供应商系统。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+为了确保交易完整性和无缝的客户体验，HotelByte 实施了严格的分层会话管理架构。该系统在每个预订阶段维护不可变的、凭证隔离的状态快照，从而实现分布式服务之间的可靠切换，同时防止数据损坏、跨租户泄漏或状态不同步。
 
-# Supplier Session & Stateful Booking Whitepaper
+本白皮书详细介绍了管理 HotelByte 平台上有状态预订操作的架构原则、会话生命周期和实施的控制。它旨在供技术利益相关者评估平台的可靠性、安全状况和运营成熟度。
 
-## Executive Summary
+## 范围
 
-HotelByte is a hotel API distribution platform that orchestrates complex, multi-step booking transactions across a diverse network of 27+ supplier integrations. Each booking journey spans four critical phases—search, rate retrieval, availability validation, and final confirmation—often traversing multiple supplier systems with disparate protocols, authentication schemes, and state representations.
+本文档涵盖了 HotelByte 供应商集成层内的会话管理和状态持久机制。具体来说，它解决了：
 
-To ensure transactional integrity and a seamless customer experience, HotelByte implements a rigorous, layered session management architecture. This system maintains immutable, credential-isolated state snapshots at every booking phase, enabling reliable handoffs between distributed services while preventing data corruption, cross-tenant leakage, or state desynchronization.
+- 代理层（负责请求参数持久化）和供应商集成层（负责供应商特定的元数据管理）之间的架构分离
+- 管理 `HotelList`、`HotelRates`、`CheckAvail` 和 `Book` 操作的会话生命周期
+- 会话密钥规则、凭证隔离和环境分离控制
+- 审核机制和权威设计参考
 
-This whitepaper details the architectural principles, session lifecycle, and implemented controls that govern stateful booking operations on the HotelByte platform. It is intended for technical stakeholders evaluating the platform's reliability, security posture, and operational maturity.
+本白皮书不涵盖一般 API 网关行为、支付处理状态或非预订交易流程。
 
-## Scope
+## 目标
 
-This document covers the session management and state persistence mechanisms within HotelByte's supplier integration layer. Specifically, it addresses:
+会话管理系统旨在实现四个主要目标：
 
-- The architectural separation between the proxy layer (responsible for request parameter persistence) and the supplier integration layer (responsible for supplier-specific metadata management)
-- The session lifecycle governing `HotelList`, `HotelRates`, `CheckAvail`, and `Book` operations
-- Session key discipline, credential isolation, and environment separation controls
-- Auditability mechanisms and authoritative design references
+1. **事务完整性**：确保预订状态在预订工作流程的所有四个阶段中得到一致维护和准确传输，防止多步骤操作期间状态丢失或损坏。
 
-This whitepaper does not cover general API gateway behavior, payment processing state, or non-booking transactional flows.
+2. **凭证隔离**：保证会话数据的范围严格限于创建它所依据的凭证，防止跨租户或跨环境数据泄露。
 
-## Objectives
+3. **可审计性**：提供会话突变的完整可追溯性，从而实现操作诊断、合规性验证和事件调查。
 
-The session management system is designed to achieve four primary objectives:
+4. **供应商无关性**：维护统一的会话抽象，以适应 27 个以上供应商的不同状态表示，而不影响架构一致性或安全边界。
 
-1. **Transactional Integrity**: Ensure that booking state is consistently maintained and accurately transferred across all four phases of the reservation workflow, preventing state loss or corruption during multi-step operations.
+## 设计原则
 
-2. **Credential Isolation**: Guarantee that session data is strictly scoped to the credential under which it was created, preventing cross-tenant or cross-environment data exposure.
+HotelByte 会话架构遵循以下核心设计原则：
 
-3. **Auditability**: Provide complete traceability of session mutations, enabling operational diagnostics, compliance verification, and incident investigation.
+### 关注点分离
 
-4. **Supplier Agnosticism**: Maintain a uniform session abstraction that accommodates the diverse state representations of 27+ suppliers without compromising architectural consistency or security boundaries.
+会话持久性职责在架构层之间严格划分。代理层拥有跨 `HotelList`、`HotelRates` 和 `CheckAvail` 操作的规范请求参数的持久性，例如房间配置、房价套餐标识符和占用详细信息。供应商集成层仅管理供应商特定的元数据，例如费率密钥、身份验证令牌和供应商参考号。这种分离可以防止供应商实施无意中破坏核心预订参数，同时允许每一层独立发展。
 
-## Design Principles
+### 不可变会话合约
 
-The HotelByte session architecture is guided by the following core design principles:
+会话参数被视为仅附加的版本化快照，而不是可变状态包。一旦将参数写入会话密钥，就永远不会对其进行修改。相反，后续阶段会使用新密钥或快照条目来丰富会话。这种不变性保证了预订工作流程的任何阶段都可以从其会话状态准确地重建，提供可靠的审计跟踪并消除并发突变引起的竞争条件。
 
-### Separation of Concerns
+### 凭证隔离
 
-Session persistence responsibilities are strictly partitioned between architectural layers. The proxy layer owns the persistence of canonical request parameters—such as room configurations, rate package identifiers, and occupancy details—across `HotelList`, `HotelRates`, and `CheckAvail` operations. The supplier integration layer manages only supplier-specific metadata, such as rate keys, authentication tokens, and supplier reference numbers. This separation prevents supplier implementations from inadvertently corrupting core booking parameters while allowing each layer to evolve independently.
+所有会话密钥都会自动添加执行请求所依据的凭证的唯一标识符作为前缀。这确保了属于不同 API 凭证的会话之间完全逻辑分离，即使在相同的环境或供应商配置中操作时也是如此。在线和离线凭证上下文通过不同的密钥命名空间进一步隔离，防止测试或暂存操作干扰生产会话状态。
 
-### Immutable Session Contracts
+### 显式读写合约
 
-Session parameters are treated as append-only, versioned snapshots rather than mutable state bags. Once a parameter is written to a session key, it is never modified in place. Instead, subsequent phases enrich the session with new keys or snapshot entries. This immutability guarantees that any phase of the booking workflow can be accurately reconstructed from its session state, providing a reliable audit trail and eliminating race conditions arising from concurrent mutations.
+平台内使用的每个会话密钥都由严格的读写函数对定义。体系结构约定禁止直接字符串密钥访问、运行时密钥串联或临时密钥构造。所有密钥都集中在供应商特定的会话定义文件中，确保完整的会话表面区域是静态可发现和可审查的。
 
-### Credential Isolation
+### 按约定自动持久化
 
-All session keys are automatically prefixed with the unique identifier of the credential under which the request is executing. This ensures complete logical separation between sessions belonging to different API credentials, even when operating within the same environment or supplier configuration. Online and offline credential contexts are further isolated through distinct key namespaces, preventing test or staging operations from interfering with production session state.
+代理层自动从响应元数据回填会话参数并构造结构化快照条目，而不需要来自供应商实现的显式持久性调用。这种约定驱动的方法减少了实施错误，强制供应商之间的一致性，并保证始终捕获关键的预订上下文。
 
-### Explicit Read-Write Contracts
+## 分层架构
 
-Every session key used within the platform is defined with a strict read-write function pair. Direct string key access, runtime key concatenation, or ad-hoc key construction is prohibited by architectural convention. All keys are centralized within supplier-specific session definition files, ensuring that the complete session surface area is statically discoverable and reviewable.
+HotelByte 的会话管理分为两个不同的层，每个层都有明确定义的所有权边界和交互契约。
 
-### Auto-Persistence by Convention
+### 代理层：请求参数权限
 
-The proxy layer automatically backfills session parameters from response metadata and constructs structured snapshot entries without requiring explicit persistence calls from supplier implementations. This convention-driven approach reduces implementation errors, enforces uniformity across suppliers, and guarantees that critical booking context is always captured.
+代理层充当规范预订请求参数的单一事实来源。它负责：
 
-## Layered Architecture
+- 将 `HotelList`、`HotelRates` 和 `CheckAvail` 请求参数保留到会话存储中
+- 收到供应商响应后自动从 `response.SessionParams` 回填会话参数
+- 构建和存储代理级房价快照，以捕获查询时房价产品的完整状态
+- 通过确保所有参数更新都通过集中式凭证前缀更新机制来执行会话密钥规则
 
-HotelByte's session management is organized into two distinct layers, each with well-defined ownership boundaries and interaction contracts.
+代理层通过 `persistRoomRateSessionParams` 等函数公开受控持久性表面，该表面自动更新参数映射并写入快照条目。从架构上来说，供应商代码被禁止直接写入代理管理的会话密钥或调用代理会话更新方法。
 
-### Proxy Layer: Request Parameter Authority
+### 供应商层：元数据丰富
 
-The proxy layer serves as the single source of truth for canonical booking request parameters. It is responsible for:
+供应商集成层作为元数据丰富表面运行，将供应商特定的上下文附加到响应，而不直接改变持久会话状态。其职责包括：
 
-- Persisting `HotelList`, `HotelRates`, and `CheckAvail` request parameters into the session store
-- Automatically backfilling session parameters from `response.SessionParams` upon receiving supplier responses
-- Constructing and storing proxy-level room rate snapshots that capture the complete state of a rate offering at the time of query
-- Enforcing the session key discipline by ensuring all parameter updates flow through centralized, credential-prefixed update mechanisms
+- 从上游响应中提取供应商令牌、费率键、预订参考和其他供应商特定标识符
+- 将此元数据附加到 `response.SessionParams` 以实现代理级别自动持久性
+- 管理不需要交叉请求持久性的供应商内部瞬态
+- 在集中的、可审查的会话模式文件中实施供应商特定的会话密钥定义
 
-The proxy layer exposes a controlled persistence surface through functions such as `persistRoomRateSessionParams`, which atomically updates parameter maps and writes snapshot entries. Supplier code is architecturally forbidden from directly writing to proxy-managed session keys or invoking proxy session update methods.
+关键的架构契约是供应商实现绝不能直接写入 `ctxPl.Session` 或调用 `ctxPl.UpdateSessionParams`。相反，所有用于跨阶段持久性的元数据都必须附加到响应对象，从而允许代理层承担持久性的全部责任。
 
-### Supplier Layer: Metadata Enrichment
+### 跨层交互模型
 
-The supplier integration layer operates as a metadata enrichment surface, attaching supplier-specific context to responses without directly mutating persistent session state. Its responsibilities include:
+供应商层和代理层之间的通信遵循严格的生产者-消费者模式。供应商生产包含`SessionParams`的丰富响应对象；代理使用这些参数，应用凭据隔离的密钥前缀，并保留生成的快照。这种单向数据流消除了循环依赖性，防止意外的状态损坏，并确保代理层始终维护预订上下文的完整、权威的视图。
 
-- Extracting supplier tokens, rate keys, booking references, and other supplier-specific identifiers from upstream responses
-- Attaching this metadata to `response.SessionParams` for proxy-level auto-persistence
-- Managing supplier-internal transient state that does not require cross-request durability
-- Implementing supplier-specific session key definitions in centralized, reviewable session schema files
+## 会话生命周期
 
-The critical architectural contract is that supplier implementations must never write directly to `ctxPl.Session` or invoke `ctxPl.UpdateSessionParams`. Instead, all metadata intended for cross-phase durability must be attached to the response object, allowing the proxy layer to assume full responsibility for persistence.
+HotelByte 预订会话通过四个明确定义的阶段进行，每个阶段对应于一个主要的 API 操作，并且每个阶段都建立在之前阶段捕获的状态之上。
 
-### Cross-Layer Interaction Model
+### 第 1 阶段：创建 — HotelList
 
-Communication between the supplier and proxy layers follows a strict producer-consumer pattern. The supplier produces enriched response objects containing `SessionParams`; the proxy consumes these parameters, applies credential-isolated key prefixes, and persists the resulting snapshot. This unidirectional data flow eliminates circular dependencies, prevents accidental state corruption, and ensures that the proxy layer maintains a complete, authoritative view of the booking context at all times.
+会话生命周期从 `HotelList` 操作开始，该操作启动对与旅行者条件匹配的可用属性的搜索。在此阶段：
 
-## Session Lifecycle
+- 建立一个新的会话上下文，其范围仅限于请求的 API 凭证
+- 核心搜索参数（包括目的地、入住/退房日期、入住率和过滤条件）由代理层保留
+- 会话接收捕获完整搜索上下文的初始快照条目
+- 如果需要，供应商特定的搜索令牌或会话标识符将附加到响应并由代理自动保留
 
-The HotelByte booking session progresses through four well-defined phases, each corresponding to a major API operation and each building upon the state captured in previous phases.
+此阶段建立了所有后续预订操作所依赖的基础上下文。
 
-### Phase 1: Create — HotelList
+### 第 2 阶段：丰富 — 酒店价格
 
-The session lifecycle begins with the `HotelList` operation, which initiates a search for available properties matching traveler criteria. During this phase:
+`HotelRates` 操作通过搜索阶段确定的特定属性的详细房价和房间信息丰富了会话。浓缩期间：
 
-- A new session context is established, scoped to the requesting API credential
-- Core search parameters—including destination, check-in/check-out dates, occupancy, and filter criteria—are persisted by the proxy layer
-- The session receives an initial snapshot entry capturing the complete search context
-- Supplier-specific search tokens or session identifiers, if required, are attached to the response and auto-persisted by the proxy
+- 代理层从`HotelList`阶段检索现有的会话上下文
+- 房价详细信息（包括房价套餐标识符、取消政策和定价细目）作为新的快照条目保留
+- 供应商特定的费率密钥或报价令牌附加到响应中并回填到会话中
+- 每个速率快照都存储在唯一的、以凭证为前缀的密钥下，确保隔离和不变性
 
-This phase establishes the foundational context upon which all subsequent booking operations depend.
+在此阶段结束时，会话包含所选酒店所有可用房价选项的全面、时间点记录。
 
-### Phase 2: Enrich — HotelRates
+### 第 3 阶段：验证 — CheckAvail
 
-The `HotelRates` operation enriches the session with detailed rate and room information for a specific property identified in the search phase. During enrichment:
+`CheckAvail` 操作验证所选费率套餐的实时可用性和最终定价。验证期间：
 
-- The proxy layer retrieves the existing session context from the `HotelList` phase
-- Room rate details—including rate package identifiers, cancellation policies, and pricing breakdowns—are persisted as new snapshot entries
-- Supplier-specific rate keys or offer tokens are attached to the response and backfilled into the session
-- Each rate snapshot is stored under a unique, credential-prefixed key, ensuring isolation and immutability
+- 代理层从`HotelRates`阶段检索相关速率快照
+- 保留可用性请求参数，创建新的验证上下文
+- 供应商确认令牌、保留参考或预订标识符通过 `response.SessionParams` 捕获并自动保留
+- 会话现在包含链接原始搜索、所选价格和供应商可用性确认的验证状态
 
-At the conclusion of this phase, the session contains a comprehensive, point-in-time record of all available rate options for the selected property.
+此阶段充当关键网关，确保只有经过验证、供应商确认的状态才能进入最终承诺阶段。
 
-### Phase 3: Validate — CheckAvail
+### 第 4 阶段：提交 — 预订
 
-The `CheckAvail` operation validates the real-time availability and final pricing of a selected rate package. During validation:
+`Book` 操作执行最终的预订承诺，将验证的会话状态转换为确认的预订。承诺期间：
 
-- The proxy layer retrieves the relevant rate snapshot from the `HotelRates` phase
-- Availability request parameters are persisted, creating a new validation context
-- Supplier confirmation tokens, hold references, or pre-booking identifiers are captured via `response.SessionParams` and auto-persisted
-- The session now contains validated state linking the original search, selected rate, and supplier availability confirmation
+- 代理层从 `CheckAvail` 阶段检索完整的经过验证的上下文
+- 预订请求参数与先前阶段的不可变快照相关
+- 供应商集成层管理供应商特定的预订参考和确认号码
+- 成功完成后，会话将捕获最终预订状态，提供从初始搜索到确认预订的完整端到端审核跟踪
 
-This phase serves as a critical gateway, ensuring that only validated, supplier-confirmed state may proceed to the final commitment phase.
+这种分阶段、快照驱动的生命周期确保每个预订决策都基于先前阶段的不可变、可验证状态。
 
-### Phase 4: Commit — Book
+## 实施的控制摘要
 
-The `Book` operation executes the final reservation commitment, transforming validated session state into a confirmed booking. During commitment:
-
-- The proxy layer retrieves the complete validated context from the `CheckAvail` phase
-- Booking request parameters are correlated against the immutable snapshots from prior phases
-- The supplier integration layer manages supplier-specific booking references and confirmation numbers
-- Upon successful completion, the session captures the final booking state, providing a complete end-to-end audit trail from initial search to confirmed reservation
-
-This phased, snapshot-driven lifecycle ensures that every booking decision is grounded in immutable, verifiable state from preceding phases.
-
-## Implemented Control Summary
-
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **Proxy-Layer Session Ownership** | Guarantees that core booking parameters are persisted by a single, authoritative layer, preventing supplier-specific bugs from corrupting cross-phase state. |
-| **Response-Mediated Persistence** | Supplier metadata is attached to responses rather than written directly to session, ensuring all persistent state flows through validated proxy persistence paths. |
-| **Credential-Prefixed Session Keys** | Prevents cross-tenant data leakage by isolating all session data within per-credential namespaces, even in multi-tenant deployment scenarios. |
-| **Function-Pair Key Discipline** | Every session key has explicit read-write functions, eliminating ad-hoc key access and enabling comprehensive static review of the session surface area. |
-| **Immutable Snapshot Entries** | Room rate and availability snapshots are written once and never modified, providing reliable point-in-time reconstruction of booking state for audit and debugging. |
-| **Online/Offline Environment Isolation** | Session keys are further namespaced by environment context, ensuring that staging, test, and production operations never share persistent state. |
-| **Centralized Key Definitions** | All session keys are defined in supplier-specific schema files, making the complete session contract discoverable and reviewable during integration onboarding. |
-| **Auto-Persistence Conventions** | Proxy-layer auto-backfill of `SessionParams` removes the need for supplier code to invoke persistence logic, reducing implementation error rates and ensuring uniformity. |
+| **代理层会话所有权** |确保核心预订参数由单个权威层保存，防止供应商特定的错误破坏跨阶段状态。 |
+| **响应介导的持久性** |供应商元数据附加到响应而不是直接写入会话，确保所有持久状态流经经过验证的代理持久路径。 |
+| **以凭证为前缀的会话密钥** |通过隔离每个凭据命名空间内的所有会话数据，防止跨租户数据泄漏，即使在多租户部署场景中也是如此。 |
+| **功能对键规则** |每个会话密钥都具有明确的读写功能，消除了临时密钥访问并支持对会话表面区域进行全面的静态检查。 |
+| **不可变的快照条目** |房价和空房情况快照写入一次，永不修改，为审计和调试提供可靠的预订状态重建。 |
+| **线上线下环境隔离** |会话密钥进一步按环境上下文命名，确保登台、测试和生产操作永远不会共享持久状态。 |
+| **集中键定义** |所有会话密钥均在特定于供应商的模式文件中定义，从而使完整的会话合同在集成启动过程中可发现和可审查。 |
+| **自动持久性约定** | `SessionParams` 的代理层自动回填消除了供应商代码调用持久性逻辑的需要，从而降低了实施错误率并确保一致性。 |
 
-## Auditability
+## 可审计性
 
-HotelByte's session architecture provides comprehensive auditability through multiple complementary mechanisms.
+HotelByte 的会话架构通过多种补充机制提供全面的可审计性。
 
-**Immutable Snapshot Chain**: Because each phase of the booking lifecycle writes append-only snapshot entries rather than mutating existing state, the complete evolution of a booking from search to confirmation can be reconstructed at any time. Each snapshot captures the exact state of the booking context at the moment it was created, including the credential scope, timestamp, and upstream supplier identifiers.
+**不可变快照链**：由于预订生命周期的每个阶段都会写入仅附加快照条目，而不是改变现有状态，因此可以随时重建预订从搜索到确认的完整演变。每个快照都会捕获预订上下文在创建时的确切状态，包括凭证范围、时间戳和上游供应商标识符。
 
-**Credential-Scoped Traceability**: The automatic prefixing of all session keys with credential identifiers ensures that every session mutation is unambiguously attributable to a specific API consumer. This scoping supports both operational debugging and compliance investigations by providing clear isolation boundaries.
+**凭证范围的可追溯性**：使用凭证标识符自动为所有会话密钥添加前缀，确保每个会话突变都明确归因于特定的 API 使用者。此范围界定通过提供清晰的隔离边界来支持操作调试和合规性调查。
 
-**Centralized Schema Reviewability**: By requiring all session keys to be defined in centralized supplier session schema files, HotelByte enables automated and manual review of the complete session surface area. New integrations and modifications undergo static review to verify that key definitions include proper read-write pairs and adhere to naming conventions.
+**集中式架构可审查性**：通过要求在集中式供应商会话架构文件中定义所有会话密钥，HotelByte 可以自动和手动审查整个会话表面区域。新的集成和修改经过静态审查，以验证关键定义是否包含正确的读写对并遵守命名约定。
 
-**Response-Driven Persistence Logging**: Because all persistent metadata flows through the `response.SessionParams` path before being written by the proxy layer, the platform can consistently log the complete set of parameters being persisted at each phase. This creates a uniform audit trail across all 27+ supplier integrations, regardless of supplier-specific implementation differences.
+**响应驱动的持久性日志记录**：由于所有持久性元数据在被代理层写入之前都流经 `response.SessionParams` 路径，因此平台可以一致地记录每个阶段保留的完整参数集。这会在所有 27 个以上供应商集成中创建统一的审计跟踪，而不管供应商特定的实施差异如何。
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| OWASP Session Management Cheat Sheet | "Session identifiers should be unique, random, and resistant to tampering. Session data must be stored server-side with proper access controls." | HotelByte implements credential-prefixed, server-side session storage with strict layer-based access controls, ensuring session data is never client-manageable and always isolated by credential scope. |
-| OAuth 2.0 Security Best Current Practice (RFC 6819 / BCP) | "Access tokens should be scoped to specific resources and contexts. Token isolation prevents cross-context privilege escalation and unintended data exposure." | The platform's credential-isolated session keys enforce the same principle of context-scoped access, preventing cross-tenant or cross-environment session leakage. |
-| Martin Fowler — Patterns of Enterprise Application Architecture, "Unit of Work" | "Maintains a list of objects affected by a business transaction and coordinates the writing out of changes and the resolution of concurrency problems." | HotelByte's proxy-layer auto-persistence acts as a coordinated Unit of Work for session snapshots, ensuring atomic, ordered persistence of booking state across the multi-step transaction. |
-| NIST SP 800-53 Rev. 5 — AU-6 (Audit Review) | "The organization reviews and analyzes information system audit records for indications of inappropriate or unusual activity." | Immutable snapshot entries and centralized key definitions provide structured audit records that enable automated anomaly detection and manual forensic review of booking state transitions. |
-| Hohpe & Woolf — Enterprise Integration Patterns, "Claim Check" | "Store message data in a persistent store and pass a reference to subsequent processing steps, reducing payload size while maintaining state accessibility." | HotelByte's session snapshot pattern applies the Claim Check principle: rate and availability snapshots are stored centrally, and subsequent phases reference them through credential-scoped keys rather than carrying full payload state. |
-| OWASP Application Security Verification Standard (ASVS) V3.1 | "Verify that session tokens are generated using approved cryptographic algorithms and that session management is handled server-side." | While ASVS focuses on authentication tokens, HotelByte extends the same server-side authority principle to booking session state: the proxy layer is the sole server-side authority for session persistence, with supplier layers prohibited from direct session mutation. |
+| OWASP 会话管理备忘单 | “会话标识符应该是唯一的、随机的并且防篡改。会话数据必须存储在服务器端并具有适当的访问控制。” | HotelByte 实现了带有凭据前缀的服务器端会话存储，并具有严格的基于层的访问控制，确保会话数据永远不是客户端可管理的，并且始终由凭据范围隔离。 |
+| OAuth 2.0 安全当前最佳实践 (RFC 6819 / BCP) | “访问令牌的范围应限于特定的资源和上下文。令牌隔离可以防止跨上下文权限升级和意外的数据泄露。” |该平台的凭证隔离会话密钥强制执行上下文范围访问的相同原则，从而防止跨租户或跨环境会话泄漏。 |
+| Martin Fowler — 企业应用程序架构模式，“工作单元” | “维护受业务事务影响的对象列表，并协调更改的写入和并发问题的解决。” | HotelByte 的代理层自动持久性充当会话快照的协调工作单元，确保跨多步骤事务的预订状态原子、有序的持久性。 |
+| NIST SP 800-53 Rev. 5 — AU-6（审核审查）| “该组织审查和分析信息系统审计记录，以发现不当或异常活动的迹象。” |不可变的快照条目和集中式密钥定义提供结构化审计记录，支持自动异常检测和对预订状态转换的手动取证审查。 |
+| Hohpe & Woolf — 企业集成模式，“索赔检查”| “将消息数据存储在持久存储中，并将引用传递给后续处理步骤，减少有效负载大小，同时保持状态可访问性。” | HotelByte 的会话快照模式应用了声明检查原则：费率和可用性快照集中存储，后续阶段通过凭证范围的密钥引用它们，而不是携带完整的有效负载状态。 |
+| OWASP 应用程序安全验证标准 (ASVS) V3.1 | “验证会话令牌是使用批准的加密算法生成的，并且会话管理是在服务器端处理的。” |虽然 ASVS 专注于身份验证令牌，但 HotelByte 将相同的服务器端权限原则扩展到预订会话状态：代理层是会话持久性的唯一服务器端权限，供应商层禁止直接会话突变。 |

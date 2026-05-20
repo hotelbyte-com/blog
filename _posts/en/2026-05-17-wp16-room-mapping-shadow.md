@@ -8,7 +8,7 @@ tags: [Room Mapping, Shadow Mode, Data Quality]
 author: "HotelByte Team"
 description: "A guide to HotelByte's shadow-mode room mapping validation."
 lang: en
-permalink: /whitepapers/wp16-room-mapping-shadow/
+permalink: /en/whitepapers/wp16-room-mapping-shadow/
 source_asset: hotel-be/docs/en/whitepapers/16-room-mapping-with-shadow-mode.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp16-room-mapping-shadow/original/

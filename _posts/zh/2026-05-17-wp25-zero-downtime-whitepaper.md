@@ -1,195 +1,184 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：零停机运行时与部署白皮书"
+title: "零停机运行时与部署白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp25-zero-downtime/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp25-zero-downtime/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp25-zero-downtime/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：零停机运行时与部署白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Zero-Downtime Runtime & Deployment Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte is a global hotel API distribution platform that processes search, availability, booking, and financial transactions across multiple continents. Any service interruption—whether planned deployment or unplanned failure—directly impacts revenue for integration partners and end travelers. To eliminate this risk, HotelByte implements a custom Master/Worker process model with signal-driven graceful restart, automated health validation, and a gated deployment pipeline that enforces verification at every stage.
+HotelByte 是一个全球酒店 API 分销平台，可处理跨多个大陆的搜索、可用性、预订和金融交易。任何服务中断（无论是计划内部署还是计划外故障）都会直接影响集成合作伙伴和最终旅行者的收入。为了消除这种风险，HotelByte 实施了一个自定义的 Master/Worker 流程​​模型，该模型具有信号驱动的平稳重启、自动运行状况验证以及在每个阶段强制执行验证的门控部署管道。
 
-This whitepaper describes the runtime architecture, deployment lifecycle, and operational controls that ensure platform updates and process recoveries occur without dropping in-flight requests or breaking active supplier sessions. It is intended for enterprise customers, security auditors, and integration partners who require transparency into HotelByte's operational resilience and change-management posture.
-
----
-
-## Scope
-
-This document covers the HotelByte zero-downtime runtime and deployment system:
-
-- Master/Worker process orchestration (`api/master.go`, `api/process_mode.go`)
-- Signal-driven graceful restart protocol (SIGUSR1, SIGTERM)
-- Periodic health checking and crash recovery with port reconciliation
-- Cross-platform process mode adaptation
-- Production deployment automation (`build/deploy/prod.sh`)
-- Nginx active health checks and upstream traffic management
-- Network adaptation and infrastructure resilience
-- CI/CD quality gates and canary validation
-
-It does not cover application-level error handling, supplier adapter resilience, or data-layer failover strategies, which are addressed in separate whitepapers.
+本白皮书描述了运行时架构、部署生命周期和操作控制，以确保平台更新和流程恢复不会丢失正在进行的请求或中断活动的供应商会话。它适用于需要了解 HotelByte 运营弹性和变更管理状况的透明度的企业客户、安全审计员和集成合作伙伴。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Zero-Downtime Deployments** — Replace running service instances with updated binaries without terminating active TCP connections or in-progress API requests.
-2. **Self-Healing Runtime** — Detect unexpected worker process failure and automatically recover with bounded retry, port availability verification, and state reconciliation.
-3. **Verified Change Promotion** — Require passing health checks, E2E validation, and version parity between staging and production before any production deployment proceeds.
-4. **Platform-Agnostic Development** — Maintain identical business logic across Linux production hosts and macOS/Windows developer workstations without code branching.
-5. **Observable and Reversible** — Emit structured deployment logs, maintain versioned backups, and support automated rollback when post-deployment validation fails.
+本文档涵盖了 HotelByte 零停机运行时与部署系统：
 
----
+- Master/Worker流程编排（`api/master.go`、`api/process_mode.go`）
+- 信号驱动的优雅重启协议（SIGUSR1、SIGTERM）
+- 通过端口协调进行定期健康检查和崩溃恢复
+- 跨平台流程模式适配
+- 生产部署自动化（`build/deploy/prod.sh`）
+- Nginx主动健康检查和上游流量管理
+- 网络适应和基础设施弹性
+- CI/CD 质量门和金丝雀验证
 
-## Design Principles
-
-### Graceful Transitions
-
-Every process lifecycle transition—start, restart, shutdown—is treated as a coordinated handoff rather than an abrupt state change. When a new worker process starts, the platform waits until it positively reports readiness before routing traffic to it. When an old worker is retired, it receives a termination signal with a generous grace period to complete in-flight requests. This principle ensures that transient state—open HTTP connections, active supplier sessions, in-progress bookings—never experiences hard interruption.
-
-### Fail-Safe Defaults
-
-All safety-critical timeouts have conservative defaults. New worker readiness polling expires at 120 seconds to prevent indefinite blocking. Old worker graceful shutdown is capped at 30 seconds, after which force-termination ensures the port is released. Port availability checks after unexpected exit wait up to 30 seconds before permitting restart. These bounds guarantee that the system always converges to a known state, even under adverse conditions.
-
-### Verification at Every Gate
-
-No change reaches production without traversing multiple independent verification layers. Static analysis (`golangci-lint`), change-size limits, incremental test coverage thresholds, blocking E2E tests, and UAT canary validation each act as a gate. A failure at any layer halts promotion, preventing defective code from entering the production runtime.
-
-### Platform Abstraction
-
-The Master/Worker model is a Linux production primitive, but developers on macOS and Windows should not be burdened with emulation complexity. The platform auto-detects the operating system and defaults to Worker mode on non-Linux hosts, enabling local development with the same binary that runs in production. Explicit flags override the default when testing Master behavior locally.
+它不涵盖应用程序级错误处理、供应商适配器弹性或数据层故障转移策略，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Runtime Architecture
+## 目标
 
-The HotelByte runtime is organized into three layers: the Master/Worker process layer, the health check layer, and the deployment layer.
-
-### Layer 1 — Master/Worker Process Layer
-
-On Linux production hosts, the service binary starts in **Master mode**. The Master process is a lightweight supervisor with four responsibilities:
-
-1. **Worker Lifecycle Management** — The Master starts the initial worker process, forwards startup arguments (including configuration overrides), and sets environment variables that identify the worker's parent relationship.
-2. **Signal Coordination** — The Master listens for `SIGUSR1` (graceful restart), `SIGTERM`, and `SIGINT` (shutdown). Signal handling is platform-specific: Unix systems support the full protocol; Windows receives graceful degradation.
-3. **Graceful Restart Orchestration** — Upon receiving `SIGUSR1`, the Master atomically starts a new worker, polls its `/ready` endpoint at 1-second intervals for up to 120 seconds, and only then signals the old worker to exit. This overlap ensures at least one healthy worker is always listening on the service port.
-4. **Crash Recovery** — If the worker exits unexpectedly, the Master classifies the exit reason (graceful, unexpected exit code, signal kill, or wait error), waits for TCP cleanup and port release, and starts a replacement worker. Port availability is verified with active probing before binding is attempted.
-
-The **Worker process** executes the full business HTTP service. It is unaware of the Master except through standard environment variables. This separation of concerns keeps the business runtime simple while the Master handles operational complexity.
-
-### Layer 2 — Health Check Layer
-
-Health verification operates at two frequencies:
-
-- **Periodic Process Health** — Every 10 seconds, the Master checks whether the current worker PID is still alive in the process table. If the worker has disappeared without notifying the monitor goroutine, the Master starts a replacement immediately.
-- **Readiness-Based Traffic Admission** — During graceful restart, the new worker must respond with HTTP 200 from its `/ready` endpoint before the old worker receives a shutdown signal. The endpoint reports application-level health: database connectivity, cache availability, and essential background workers. Until `/ready` succeeds, the new worker is invisible to the Nginx upstream.
-
-In addition, Nginx fronting the application runs the `nginx_upstream_check_module` with a 3-second active check interval. If a worker becomes unhealthy at the application level, Nginx removes it from the upstream pool before the Master even detects the failure, providing defense in depth.
-
-### Layer 3 — Deployment Layer
-
-The deployment layer automates multi-server rollout with built-in safety controls:
-
-- **Server Role Detection** — The deployment script auto-classifies each target as load balancer, application, or database host and applies the correct configuration subset.
-- **Pre-Deployment Backup** — Before any change, the current binary and configuration are backed up with timestamped directories. SSL key material is preserved with appropriate privilege escalation. Backups are retained with automatic rotation.
-- **Network Quality Assessment** — Prior to file transfer, the script evaluates packet loss and latency to each target. Poor network conditions are flagged before they can cause partial deployment states.
-- **Graceful Restart Trigger** — On each application host, the deployment sends `SIGUSR1` to the running Master process, initiating the zero-downtime handoff described above.
-- **Post-Deployment Validation** — After restart, the script probes `/ready` and `/ping` endpoints via both localhost (SSH tunnel) and external HTTP/HTTPS paths with retry logic. Failure at this stage triggers recorded failure details.
-- **Auto-Rollback** — If non-disaster-recovery nodes exceed the configured failure threshold, the deployment outcome is classified as `ROLLBACK` and the platform reverses to the backed-up version.
-- **Gray Deployments** — Traffic can be shifted incrementally using header-based gray routing. A gray cluster receives a configurable percentage of production traffic (e.g., 1%) before full promotion.
+1. **零停机部署** — 用更新的二进制文件替换正在运行的服务实例，而无需终止活动的 TCP 连接或正在进行的 API 请求。
+2. **自我修复运行时** — 检测意外的工作进程故障并通过有界重试、端口可用性验证和状态协调自动恢复。
+3. **验证变更升级** — 在进行任何生产部署之前，需要通过运行状况检查、E2E 验证以及暂存和生产之间的版本奇偶校验。
+4. **与平台无关的开发** — 在 Linux 生产主机和 macOS/Windows 开发人员工作站之间保持相同的业务逻辑，无需代码分支。
+5. **可观察和可逆** - 发出结构化部署日志，维护版本备份，并在部署后验证失败时支持自动回滚。
 
 ---
 
-## Deployment Lifecycle
+## 设计原则
 
-A standard production deployment follows this lifecycle:
+### 优雅的过渡
 
-1. **Pre-Flight Gates** — The operator invokes `make deploy-gate-check`, which runs blocking E2E tests against the target environment. These tests validate critical booking flows, search aggregation, and financial transaction integrity.
-2. **UAT Canary Gate** — For production promotion, `make deploy-prod-gated` first verifies that UAT is running the same commit intended for production. If version parity is absent, UAT is updated first. Blocking E2E tests then run against UAT as a live canary.
-3. **Backup Phase** — On each production host, the current binary and configuration are archived.
-4. **Binary Propagation** — The new binary is transferred to application hosts and placed under supervisor control.
-5. **Signal-Driven Restart** — The deployment script sends `SIGUSR1` to each Master process, triggering the graceful restart protocol.
-6. **Health Validation** — The script polls `/ready` until HTTP 200 is returned, with a maximum wait of 120 seconds.
-7. **Nginx Reload** — Load balancer nodes reload Nginx configuration to pick up any upstream changes, validated with `nginx -t` before application.
-8. **Outcome Classification** — Results are classified as `SUCCESS`, `PARTIAL_SUCCESS`, or `ROLLBACK` based on failure counts across non-backup servers.
+每个流程生命周期转换（启动、重新启动、关闭）都被视为协调的切换，而不是突然的状态更改。当新的工作进程启动时，平台会等到它积极报告就绪后再将流量路由到它。当老工人退休时，它会收到一个终止信号，并有一段宽裕的宽限期来完成正在进行的请求。这一原则确保瞬态（打开的 HTTP 连接、活动的供应商会话、进行中的预订）永远不会经历硬中断。
+
+### 故障安全默认值
+
+所有安全关键超时都有保守的默认值。新工作人员就绪轮询在 120 秒后到期，以防止无限期阻塞。旧工作进程正常关闭的时间上限为 30 秒，之后强制终止可确保端口被释放。意外退出后，端口可用性检查等待最多 30 秒，然后才允许重新启动。这些界限保证系统始终收敛到已知状态，即使在不利条件下也是如此。
+
+### 每个登机口都进行验证
+
+如果不经过多个独立的验证层，任何更改都会到达生产环境。静态分析 (`golangci-lint`)、更改大小限制、增量测试覆盖率阈值、阻塞 E2E 测试和 UAT 金丝雀验证均充当门禁。任何层的故障都会停止升级，从而防止有缺陷的代码进入生产运行时。
+
+### 平台抽象
+
+Master/Worker 模型是 Linux 生产原语，但 macOS 和 Windows 上的开发人员不应承受模拟复杂性的负担。该平台会自动检测操作系统，并在非 Linux 主机上默认为工作模式，从而可以使用与生产中运行的相同二进制文件进行本地开发。在本地测试 Master 行为时，显式标志会覆盖默认值。
 
 ---
 
-## Implemented Control Summary
+## 运行时架构
 
-| Control | Customer Value |
+HotelByte运行时分为三层：Master/Worker进程层、健康检查层和部署层。
+
+### 第 1 层 — 主/工作进程层
+
+在 Linux 生产主机上，服务二进制文件以**主模式**启动。 Master进程是一个轻量级的监管者，有四个职责：
+
+1. **Worker 生命周期管理** — Master 启动初始 Worker 进程，转发启动参数（包括配置覆盖），并设置标识 Worker 父关系的环境变量。
+2. **信号协调** — 主设备侦听 `SIGUSR1`（正常重启）、`SIGTERM` 和 `SIGINT`（关闭）。信号处理是特定于平台的：Unix 系统支持完整的协议； Windows 会正常降级。
+3. **平滑重启编排** — 收到 `SIGUSR1` 后，Master 以原子方式启动一个新工作线程，以 1 秒的间隔轮询其 `/ready` 端点，持续时间长达 120 秒，然后才向旧工作线程发出退出信号。这种重叠确保至少有一个健康的工作线程始终在监听服务端口。
+4. **崩溃恢复** — 如果worker意外退出，Master会对退出原因进行分类（正常退出、意外退出代码、信号终止或等待错误），等待TCP清理和端口释放，并启动替换worker。在尝试绑定之前，通过主动探测来验证端口可用性。
+
+**工作进程**执行完整的业务 HTTP 服务。除了通过标准环境变量之外，它不知道 Master。这种关注点分离使业务运行时保持简单，而 Master 则处理操作复杂性。
+
+### 第 2 层 — 健康检查层
+
+健康验证以两种频率运行：
+
+- **定期进程健康状况** — 每 10 秒，Master 检查进程表中当前的工作进程 PID 是否仍然存在。如果worker在没有通知monitor goroutine 的情况下消失了，Master会立即开始替换。
+- **基于就绪的流量准入** - 在正常重启期间，新工作线程必须在旧工作线程收到关闭信号之前从其 `/ready` 端点响应 HTTP 200。端点报告应用程序级别的运行状况：数据库连接、缓存可用性和重要的后台工作人员。在 `/ready` 成功之前，新的工作线程对于 Nginx 上游是不可见的。
+
+此外，应用程序前端的 Nginx 以 3 秒的主动检查间隔运行 `nginx_upstream_check_module`。如果某个工作线程在应用程序级别变得不健康，Nginx 会在 Master 检测到故障之前将其从上游池中删除，从而提供深度防御。
+
+### 第 3 层 — 部署层
+
+部署层通过内置安全控制自动执行多服务器部署：
+
+- **服务器角色检测** — 部署脚本自动将每个目标分类为负载均衡器、应用程序或数据库主机，并应用正确的配置子集。
+- **部署前备份** — 在进行任何更改之前，当前的二进制文件和配置都会使用带时间戳的目录进行备份。 SSL 密钥材料通过适当的权限升级来保留。备份通过自动轮转保留。
+- **网络质量评估** — 在文件传输之前，脚本会评估每个目标的数据包丢失和延迟。不良网络状况会在导致部分部署状态之前被标记。
+- **平滑重启触发器** - 在每个应用程序主机上，部署将 `SIGUSR1` 发送到正在运行的主进程，启动上述零停机时间切换。
+- **部署后验证** — 重新启动后，脚本通过本地主机（SSH 隧道）和具有重试逻辑的外部 HTTP/HTTPS 路径探测 `/ready` 和 `/ping` 端点。此阶段的失败会触发记录的失败详细信息。
+- **自动回滚** — 如果非灾难恢复节点超过配置的故障阈值，部署结果将被分类为 `ROLLBACK`，并且平台将恢复到备份版本。
+- **灰色部署** — 可以使用基于标头的灰色路由增量转移流量。灰色集群在全面升级之前接收可配置百分比的生产流量（例如 1%）。
+
+---
+
+## 部署生命周期
+
+标准生产部署遵循以下生命周期：
+
+1. **飞行前门** - 操作员调用 `make deploy-gate-check`，它针对目标环境运行阻塞 E2E 测试。这些测试验证关键的预订流程、搜索聚合和金融交易完整性。
+2. **UAT Canary Gate** — 对于生产升级，`make deploy-prod-gated` 首先验证 UAT 是否正在运行与生产相同的提交。如果版本奇偶校验不存在，则首先更新 UAT。阻塞 E2E 测试然后像活金丝雀一样针对 UAT 运行。
+3. **备份阶段** — 在每台生产主机上，当前的二进制文件和配置都会被存档。
+4. **二进制传播** — 新的二进制文件被传输到应用程序主机并置于主管控制之下。
+5. **信号驱动重启** — 部署脚本将 `SIGUSR1` 发送到每个主进程，触发平滑重启协议。
+6. **健康验证** — 脚本轮询 `/ready`，直到返回 HTTP 200，最长等待时间为 120 秒。
+7. **Nginx 重新加载** — 负载均衡器节点重新加载 Nginx 配置以获取任何上游更改，并在应用之前使用 `nginx -t` 进行验证。
+8. **结果分类** — 根据非备份服务器上的故障计数将结果分类为 `SUCCESS`、`PARTIAL_SUCCESS` 或 `ROLLBACK`。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| Master/Worker Process Model | A lightweight supervisor ensures a healthy worker is always listening on the service port, isolating business logic from operational lifecycle concerns. |
-| SIGUSR1 Graceful Restart | Zero-downtime binary replacement: new workers prove readiness before old workers are retired, eliminating in-flight request drops during deployments. |
-| 120-Second Readiness Polling | Conservative timeout prevents premature traffic cutover to a worker that has not finished initializing database pools or cache warm-up. |
-| 30-Second Graceful Shutdown | Old workers receive a bounded grace period to complete active requests; force-termination ensures cleanup if a worker hangs. |
-| 10-Second Periodic Health Check | The Master detects silent worker disappearance and replaces the process before Nginx upstream checks or external monitors flag the outage. |
-| Crash Recovery with Port Reconciliation | After unexpected worker exit, the system waits for TCP cleanup and actively verifies port availability before restart, preventing bind conflicts. |
-| Cross-Platform Process Mode | Linux defaults to Master mode for production supervision; macOS and Windows default to Worker mode for frictionless local development. |
-| Nginx Active Health Check (`nginx_upstream_check_module`) | 3-second interval upstream probing removes unhealthy workers from rotation independently of application signals, adding a network-layer safety net. |
-| Pre-Deployment Backup | Every deployment creates timestamped, rotated backups of the binary and configuration, enabling sub-minute rollback if post-deployment validation fails. |
-| SSH Keep-Alive & Retry | Long-running deployments use persistent SSH connections with heartbeat packets and automatic retry on transient network failures. |
-| Network Quality Pre-Check | Packet-loss and latency assessment before file transfer prevents partial deployment states on degraded network paths. |
-| Gray Deployment with Header Routing | New versions can receive a configurable traffic percentage (e.g., 1%) before full promotion, limiting blast radius of undetected regressions. |
-| Auto-Rollback on Failure | When non-backup nodes exceed failure tolerance, the deployment automatically reverts to the prior version, preventing a bad release from saturating the fleet. |
-| `golangci-lint` CI Gate | Static analysis catches common Go defects, anti-patterns, and security issues before code is eligible for deployment. |
-| 400-Line Change Limit | Enforces small, reviewable diffs that reduce cognitive load and regression risk per deployment unit. |
-| 50% Incremental Coverage Gate | Every pull request must cover at least half of its new code with tests, preventing untested logic from entering the release pipeline. |
-| Blocking E2E Gate (`deploy-gate-check`) | Deployment is blocked until end-to-end tests pass against the target environment, ensuring core business flows remain intact. |
-| UAT Canary Gate (`deploy-prod-gated`) | Production deployment requires UAT version parity and passing E2E validation, providing a live production-like canary before customer-facing rollout. |
+| Master/Worker 流程​​模型 |轻量级主管可确保健康的工作人员始终监听服务端口，将业务逻辑与操作生命周期问题隔离开来。 |
+| SIGUSR1 正常重启 |零停机二进制替换：新工作人员在老工作人员退休之前证明已准备就绪，从而消除了部署期间进行中的请求丢失。 |
+| 120 秒准备情况轮询 |保守超时可防止流量过早切换到尚未完成初始化数据库池或缓存预热的工作线程。 |
+| 30 秒优雅关机 |老工人有有限的宽限期来完成主动请求；如果工作人员挂起，强制终止可确保清理工作。 |
+| 10 秒定期健康检查 | Master 检测到静默工作线程消失，并在 Nginx 上游检查或外部监视器标记中断之前替换该进程。 |
+|通过端口协调进行崩溃恢复 | Worker意外退出后，系统等待TCP清理并在重启前主动验证端口可用性，防止绑定冲突。 |
+|跨平台处理模式| Linux默认采用Master模式进行生产监督； macOS 和 Windows 默认为工作模式，以实现无摩擦的本地开发。 |
+| Nginx 主动健康检查 (`nginx_upstream_check_module`) | 3 秒间隔的上游探测可将不健康的工作人员从独立于应用程序信号的轮换中移除，从而添加网络层安全网。 |
+|部署前备份 |每个部署都会创建带时间戳的二进制文件和配置轮换备份，以便在部署后验证失败时实现亚分钟回滚。 |
+| SSH 保持活动并重试 |长时间运行的部署使用带有心跳数据包的持久 SSH 连接，并在瞬时网络故障时自动重试。 |
+|网络质量预检查|文件传输前的数据包丢失和延迟评估可防止降级网络路径上的部分部署状态。 |
+|带有标头路由的灰色部署 |新版本可以在全面升级之前接收可配置的流量百分比（例如 1%），从而限制未检测到的回归的爆炸半径。 |
+|失败时自动回滚 |当非备份节点超出容错能力时，部署会自动恢复到之前的版本，从而防止不良版本导致队列饱和。 |
+| `golangci-lint` CI 门 |静态分析可以在代码符合部署条件之前捕获常见的 Go 缺陷、反模式和安全问题。 |
+| 400 行更改限制 |强制执行小的、可审查的差异，以减少每个部署单元的认知负载和回归风险。 |
+| 50% 增量覆盖门 |每个拉取请求必须通过测试覆盖至少一半的新代码，以防止未经测试的逻辑进入发布管道。 |
+|阻塞E2E门（`deploy-gate-check`）|在针对目标环境的端到端测试通过之前，部署将被阻止，从而确保核心业务流程保持完整。 |
+| UAT 金丝雀门 (`deploy-prod-gated`) |生产部署需要 UAT 版本奇偶校验并通过 E2E 验证，在面向客户的部署之前提供类似于实时生产的金丝雀。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte's zero-downtime controls through the following mechanisms:
+外部评审者和企业客户可以通过以下机制验证HotelByte 的零停机控制：
 
-1. **Structured Deployment Logs** — Every deployment emits timestamped, color-coded logs that record SSH connectivity tests, network quality metrics, backup paths, graceful restart signals, health-check results, and final outcome classification. These logs are retained for post-hoc audit.
+1. **结构化部署日志** — 每个部署都会发出带时间戳、颜色编码的日志，记录 SSH 连接测试、网络质量指标、备份路径、正常重启信号、运行状况检查结果和最终结果分类。这些日志将被保留以供事后审计。
 
-2. **Master Process Logs** — The Master emits explicit log lines for worker start, worker exit reason classification, readiness polling status, graceful restart progress, and force-termination decisions. Reviewers can correlate deployment timestamps with Master logs to verify that no restart skipped the readiness gate.
+2. **主进程日志** - 主进程发出明确的日志行，用于工作进程启动、工作进程退出原因分类、就绪轮询状态、正常重启进度和强制终止决策。审核者可以将部署时间戳与主日志关联起来，以验证没有重新启动跳过了准备就绪关卡。
 
-3. **Nginx Upstream Check Logs** — When `nginx_upstream_check_module` is enabled, Nginx logs upstream peer additions and removals. Independent verification confirms that unhealthy workers are removed from rotation before traffic is routed to them.
+3. **Nginx 上游检查日志** — 启用 `nginx_upstream_check_module` 时，Nginx 会记录上游对等点的添加和删除。独立验证证实，在将流量路由到不健康的工人之前，他们会被从轮换中删除。
 
-4. **Metrics Export** — `hotel_be_worker_exit_total` and `hotel_be_worker_restart_total` counters are tagged by exit reason and restart action. Reviewers with metric access can validate that unexpected exits are rare and that restart attempts succeed.
+4. **指标导出** — `hotel_be_worker_exit_total` 和 `hotel_be_worker_restart_total` 计数器按退出原因和重新启动操作进行标记。具有指标访问权限的审阅者可以验证意外退出的情况很少见，并且重新启动尝试是否成功。
 
-5. **CI/CD Artifact Retention** — GitHub Actions retains `golangci-lint` reports, file-size check results, coverage artifacts (`coverage.out`, `incremental_coverage.out`), and E2E gate logs. Each production deployment is traceable to a specific commit that passed all gates.
+5. **CI/CD 工件保留** — GitHub Actions 保留 `golangci-lint` 报告、文件大小检查结果、覆盖工件（`coverage.out`、`incremental_coverage.out`）和 E2E 门日志。每个生产部署都可以追溯到通过所有关卡的特定提交。
 
-6. **Source Availability** — The Master/Worker protocol, deployment scripts, and CI workflow definitions are stored in the repository. Reviewers can inspect exact timeout values, retry logic, and signal handling behavior.
+6. **源可用性** — Master/Worker 协议、部署脚本和 CI 工作流程定义存储在存储库中。审核者可以检查确切的超时值、重试逻辑和信号处理行为。
 
-7. **Supervisor Integration** — On production hosts, the worker process runs under supervisor control with configured `stdout` and `stderr` log paths. Process uptime and restart history are observable via standard supervisor tooling.
+7. **Supervisor 集成** — 在生产主机上，工作进程在具有配置的 `stdout` 和 `stderr` 日志路径的 Supervisor 控制下运行。可通过标准监控工具观察流程正常运行时间和重启历史记录。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Google SRE Book — Chapter 16: Disaster Planning** | "The goal is to reduce the frequency of unplanned downtime, and when it does occur, reduce the time to recover." | The Master/Worker model reduces unplanned downtime through 10-second health checks and automatic crash recovery. Graceful restart reduces recovery time to seconds by overlapping old and new workers. |
-| **AWS Well-Architected Framework — Reliability Pillar (REL08-BP03)** | "Deploy changes to production using immutable infrastructure or phased rollout methods (canary, linear, all-at-once)." | HotelByte uses phased rollout via gray deployments with configurable traffic ratios (1–100%), followed by full promotion only after health validation. |
-| **AWS Well-Architected Framework — Operational Excellence Pillar (OPS05-BP05)** | "Make small, reversible changes that can be rolled back quickly without affecting customers." | The 400-line change limit enforces small diffs; pre-deployment backups and auto-rollback enable sub-minute reversal. |
-| **Google SRE Book — Chapter 8: Release Engineering** | "Releases should be staged, and each stage should validate the release before proceeding to the next stage." | `deploy-gate-check` and `deploy-prod-gated` implement staged validation: lint → unit tests → E2E gate → UAT canary → production. |
-| **NIST SP 800-53 Rev. 5 CP-10 — System Recovery and Reconstitution** | "Provide for the recovery and reconstitution of the information system to a known state." | Pre-deployment backups, timestamped artifacts, and automatic rollback ensure the platform can be reconstituted to a known-good state after a failed deployment. |
-| **The Twelve-Factor App — XI. Logs** | "A twelve-factor app never concerns itself with routing or storage of its output stream." | Worker processes write logs to `stdout`/`stderr`, which the Master forwards transparently. Supervisor captures and persists these streams, keeping the application runtime decoupled from log infrastructure. |
-| **RFC 7231 — HTTP/1.1 Semantics and Content (503 Service Unavailable)** | "The 503 status code indicates that the server is currently unable to handle the request due to temporary overloading or maintenance." | The `/ready` endpoint returns 503 during startup and shutdown, signaling Nginx and load balancers to route traffic away from the worker without dropping existing connections. |
+| **Google SRE 书籍 — 第 16 章：灾难规划** | “我们的目标是减少意外停机的频率，并在发生意外停机时减少恢复时间。” | Master/Worker 模型通过 10 秒的运行状况检查和自动崩溃恢复来减少计划外停机。优雅重启通过重叠新旧工作线程将恢复时间缩短至几秒。 |
+| **AWS 架构完善的框架 — 可靠性支柱 (REL08-BP03)** | “使用不可变的基础设施或分阶段推出方法（金丝雀、线性、一次性）将更改部署到生产中。” | HotelByte 通过具有可配置流量比率（1-100%）的灰色部署来分阶段推出，只有在健康验证后才进行全面推广。 |
+| **AWS 架构完善的框架 — 卓越运营支柱 (OPS05-BP05)** | “做出小的、可逆的改变，可以快速回滚而不影响客户。” | 400 行更改限制强制执行小差异；部署前备份和自动回滚可实现亚分钟级逆转。 |
+| **Google SRE 书籍 — 第 8 章：发布工程** | “发布应该分阶段进行，每个阶段都应该在进入下一阶段之前验证发布。” | `deploy-gate-check`和`deploy-prod-gated`实现分阶段验证：lint→单元测试→E2E门→UAT金丝雀→生产。 |
+| **NIST SP 800-53 Rev. 5 CP-10 — 系统恢复和重建** | “将信息系统恢复并重建到已知状态。” |部署前备份、带时间戳的工件和自动回滚可确保平台在部署失败后可以重新构建到已知良好的状态。 |
+| **十二要素应用程序 — XI。日志** | “十二因素应用程序从不关心其输出流的路由或存储。” | Worker进程将日志写入`stdout`/`stderr`，Master将其透明转发。 Supervisor 捕获并保留这些流，使应用程序运行时与日志基础设施分离。 |
+| **RFC 7231 — HTTP/1.1 语义和内容（503 服务不可用）** | “503状态码表示服务器当前由于临时过载或维护而无法处理请求。” | `/ready` 端点在启动和关闭期间返回 503，向 Nginx 和负载均衡器发出信号，将流量从工作线程路由出去，而不会丢弃现有连接。 |
 
 ---

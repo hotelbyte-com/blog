@@ -7,7 +7,7 @@ tags: [Hotel API, Whitepaper, Architecture]
 author: "HotelByte Team"
 description: "Full HotelByte technical whitepaper published on the blog for readable public access."
 lang: en
-permalink: /whitepapers/wp04-database-storage-resilience/original/
+permalink: /en/whitepapers/wp04-database-storage-resilience/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp04-database-storage-resilience/
 ---

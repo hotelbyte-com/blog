@@ -8,7 +8,7 @@ tags: [Deployment, Runtime, SRE]
 author: "HotelByte Team"
 description: "A guide to HotelByte's runtime and deployment safety model."
 lang: en
-permalink: /whitepapers/wp25-zero-downtime/
+permalink: /en/whitepapers/wp25-zero-downtime/
 source_asset: hotel-be/docs/en/whitepapers/25-zero-downtime-runtime-and-deployment.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp25-zero-downtime/original/

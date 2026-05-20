@@ -1,166 +1,155 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：LLM 增强智能引擎白皮书"
+title: "LLM 增强智能引擎白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp17-llm-intelligence/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp17-llm-intelligence/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp17-llm-intelligence/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：LLM 增强智能引擎白皮书
+HotelByte 的 LLM 增强智能引擎代表了大型语言模型功能与酒店分销运营的生产级集成。该引擎提高了房间测绘的准确性，自动执行智能诊断，并提供可操作的运营见解，同时保持严格的成本治理和对大多数请求的亚秒级延迟保证。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+该架构构建在三个基础层上： **智能路由器**，根据置信度评分动态选择处理路径； **LLM 增强器**，将结构化推理应用于边界情况；以及利用多模型编排进行操作分析的**智能诊断**模块。这些组件共同使 HotelByte 能够实现更高的映射精度和更快的事件解决速度，而不会影响高吞吐量 API 分销的经济性。
 
-# LLM-Augmented Intelligence Engine Whitepaper
+该系统通过确定性算法路径处理超过 95% 的房型映射请求，为概率推理提供可测量值的案例子集保留 LLM 推理。这种方法实现了速度、准确性和成本的最佳平衡。
 
-## Executive Summary
+## 范围
 
-HotelByte's LLM-Augmented Intelligence Engine represents a production-grade integration of large language model capabilities into hotel distribution operations. The engine enhances room mapping accuracy, automates intelligent diagnostics, and delivers actionable operational insights while maintaining strict cost governance and sub-second latency guarantees for the majority of requests.
+本白皮书涵盖了 HotelByte 的 LLM 增强智能引擎的架构设计、操作原则和治理控制。它涉及：
 
-The architecture is built on three foundational layers: a **Smart Router** that dynamically selects processing paths based on confidence scoring; an **LLM Enhancer** that applies structured reasoning to boundary cases; and an **Intelligent Diagnostics** module that leverages multi-model orchestration for operational analysis. Together, these components enable HotelByte to achieve higher mapping precision and faster incident resolution without compromising the economics of high-throughput API distribution.
+- **房型映射增强**：将供应商房间类型智能分组为标准化类别，并在法学硕士的帮助下解决不明确或多语言的描述。
+- **运营诊断**：自动分析订单失败、价格差异、供应商路线决策、库存不一致和配置影响。
+- **成本和性能治理**：跨所有 LLM 调用的工作流程的预算控制、令牌优化、缓存策略和延迟管理。
 
-The system processes over 95% of room mapping requests through deterministic algorithmic paths, reserving LLM inference for the subset of cases where probabilistic reasoning provides measurable value. This approach yields an optimal balance of speed, accuracy, and cost.
+该文档面向评估 HotelByte 人工智能增强基础设施的技术利益相关者，包括工程领导者、安全审计员和企业合作伙伴。
 
-## Scope
+## 目标
 
-This whitepaper covers the architectural design, operational principles, and governance controls of HotelByte's LLM-Augmented Intelligence Engine. It addresses:
+1. **准确性改进**：针对传统相似性算法难以解决的边缘情况，提高房型映射的置信度，例如多语言房间描述、细致入微的视图分类和不明确的床类型指定。
+2. **运营速度**：通过自动诊断九个运营场景的根本原因，缩短配送事件的平均解决时间 (MTTR)。
+3. **成本可预测性**：确保每次 LLM 调用都通过可衡量的置信度阈值证明合理，并在每个请求、每日和每月级别设置硬预算上限。
+4. **大规模可靠性**：维护确定性后备路径，以便 LLM 不可用或预算耗尽永远不会降低核心 API 可用性。
+5. **可审计性**：为每个人工智能辅助决策生成结构化、可验证的输出，从而实现下游审查和合规性验证。
 
-- **Room Mapping Enhancement**: Intelligent grouping of supplier room types into standardized categories, with LLM assistance for ambiguous or multilingual descriptions.
-- **Operational Diagnostics**: Automated analysis of order failures, price discrepancies, supplier routing decisions, inventory inconsistencies, and configuration impacts.
-- **Cost and Performance Governance**: Budget controls, token optimization, caching strategies, and latency management across all LLM-invoked workflows.
+## 设计原则
 
-The document is intended for technical stakeholders evaluating HotelByte's AI-augmented infrastructure, including engineering leaders, security auditors, and enterprise partners.
+### 成本感知路由
 
-## Objectives
+在消耗任何 LLM 资源之前，都会对进入 Intelligence Engine 的每个请求进行可信度评估。高置信度案例完全通过优化的基线算法解决，消除了不必要的推理支出。这一原则确保 LLM 成本随请求量呈次线性增长。
 
-1. **Accuracy Improvement**: Elevate room mapping confidence for edge cases that traditional similarity algorithms struggle to resolve, such as multilingual room descriptions, nuanced view classifications, and ambiguous bed type designations.
-2. **Operational Velocity**: Reduce mean time to resolution (MTTR) for distribution incidents by automatically diagnosing root causes across nine operational scenarios.
-3. **Cost Predictability**: Ensure every LLM invocation is justified by measurable confidence thresholds, with hard budget ceilings at the per-request, daily, and monthly levels.
-4. **Reliability at Scale**: Maintain deterministic fallback paths so that LLM unavailability or budget exhaustion never degrades core API availability.
-5. **Auditability**: Produce structured, verifiable outputs for every AI-assisted decision, enabling downstream review and compliance verification.
+### 可靠性结构化输出
 
-## Design Principles
+所有 LLM 交互都强制执行严格的输出模式。房型映射边界计算器需要包含 `ShouldGroup`、`Confidence`、`Reason` 和 `Action` 字段的 `BoundaryDecision` 结构。诊断输出遵循包含 `Summary`、`RootCause`、`Action` 和 `Confidence` 部分的标准化模板。结构化生成消除了自由文本的歧义并实现了自动化的下游处理。
 
-### Cost-Aware Routing
+### 预算治理
 
-Every request that enters the Intelligence Engine is evaluated for confidence before any LLM resource is consumed. High-confidence cases are resolved entirely through optimized baseline algorithms, eliminating unnecessary inference spend. This principle ensures that LLM costs scale sub-linearly with request volume.
+该引擎实现了三层预算管理框架：每个请求上限为 0.50 美元，每日限额为 100 美元，每月上限为 3,000 美元。当利用率超过任何阈值的 80% 时，系统会自动降级到成本较低的模型或推迟到缓存的结果。预算耗尽会触发仅算法路径的优雅降级，而不会造成服务中断。
 
-### Structured Output for Reliability
+### 优雅的降级
 
-All LLM interactions enforce strict output schemas. The room mapping boundary evaluator requires a `BoundaryDecision` structure containing `ShouldGroup`, `Confidence`, `Reason`, and `Action` fields. Diagnostic outputs follow normalized templates with `Summary`, `RootCause`, `Action`, and `Confidence` sections. Structured generation eliminates free-text ambiguity and enables automated downstream processing.
+该架构的设计使得 LLM 组件的删除不会损害核心功能。基线算法为 100% 的请求返回有效结果； LLM 强化是严格附加的。如果出现提供商延迟、超时或预算限制，系统会在几毫秒内回退到 LLM 之前的结果。
 
-### Budget Governance
+### 多模型弹性
 
-The engine implements a three-tier budget management framework: a per-request ceiling of $0.50, a daily limit of $100, and a monthly cap of $3,000. When utilization exceeds 80% of any threshold, the system automatically downgrades to lower-cost models or defers to cached results. Budget exhaustion triggers graceful degradation to algorithmic-only paths with no service interruption.
+诊断层集成了支持 DeepSeek V3.2（默认）、GPT-4o 和 Claude 3.5 Sonnet 的多模型网关。这种多样性减少了特定于供应商的中断，并支持根据场景复杂性和成本限制进行模型选择。
 
-### Graceful Degradation
+## 智能引擎架构
 
-The architecture is designed so that the removal of LLM components does not impair core functionality. Baseline algorithms return valid results for 100% of requests; LLM augmentation is strictly additive. In the event of provider latency, timeout, or budget constraint, the system falls back to pre-LLM results within milliseconds.
+智能引擎由三个操作层组成，每个操作层负责人工智能增强处理的不同阶段。
 
-### Multi-Model Resilience
+### 路由器层
 
-The diagnostics layer integrates a multi-model gateway supporting DeepSeek V3.2 (default), GPT-4o, and Claude 3.5 Sonnet. This diversity mitigates vendor-specific outages and enables model selection based on scenario complexity and cost constraints.
+**智能路由器** (`smart_router.go`) 充当所有房型映射请求的流量控制平面。收到基线算法结果后，路由器计算所有房间组的平均置信度分数和低置信度比率，以将请求分类到三个处理通道之一：
 
-## Intelligence Engine Architecture
+- **快速路径（大约 80% 的请求）**：当平均置信度超过 0.75 并且少于 10% 的房间低于低置信度阈值时触发。算法结果直接返回，延迟低于 100 毫秒，LLM 成本为零。
+- **混合路径（大约 15% 的请求）**：在中等置信水平下触发。路由器识别结果集中的特定边界情况，并仅将这些房间对转发到 LLM 增强器以进行选择性重新评估。
+- **LLM 路径（约占请求的 5%）**：当平均置信度低于 0.50 或超过 30% 的房间置信度较低时触发。整个房间将被转发以进行全面的 LLM 重新处理。
 
-The Intelligence Engine comprises three operational layers, each responsible for a distinct stage of AI-augmented processing.
+这种分层方法可确保为最小部分的请求保留最昂贵的计算路径。
 
-### Router Layer
+### 增强层
 
-The **Smart Router** (`smart_router.go`) serves as the traffic control plane for all room mapping requests. Upon receiving a baseline algorithmic result, the router computes average confidence scores and low-confidence ratios across all room groups to classify the request into one of three processing lanes:
+**LLM 增强器** (`llm_enhancer.go`) 在智能路由器识别的边界情况下运行。其职责包括：
 
-- **Fast Path (approximately 80% of requests)**: Triggered when average confidence exceeds 0.75 and fewer than 10% of rooms fall below the low-confidence threshold. The algorithmic result is returned directly with sub-100ms latency and zero LLM cost.
-- **Hybrid Path (approximately 15% of requests)**: Triggered at medium confidence levels. The router identifies specific boundary cases within the result set and forwards only those room pairs to the LLM Enhancer for selective re-evaluation.
-- **LLM Path (approximately 5% of requests)**: Triggered when average confidence falls below 0.50 or when more than 30% of rooms are low-confidence. The entire room set is forwarded for comprehensive LLM reprocessing.
+- **批量边界处理**：每个 LLM 调用最多以 5 对为批次处理边界房间对，通过及时整合最大限度地减少每个请求的开销。
+- **结构化决策输出**：每个批次返回一个 `BoundaryDecision` 对象数组，声明房间是否应该分组、置信度、推理和建议的操作。这种结构化格式可以确定性地应用调整，而不会产生额外的解析歧义。
+- **成本跟踪**：增强器维护总调用、输入/输出代币和估计美元成本的累积统计数据，公开这些指标以进行监控和预算调节。
 
-This tiered approach ensures that the most expensive computational path is reserved for the smallest fraction of requests.
+该增强器与 CloudWeGo Eino 框架集成，利用与 OpenAI 兼容的聊天模型界面，具有可配置的温度（确定性分组为 0.1）和最大令牌限制。
 
-### Enhancer Layer
+### 诊断层
 
-The **LLM Enhancer** (`llm_enhancer.go`) operates on boundary cases identified by the Smart Router. Its responsibilities include:
+**智能诊断**模块 (`bi/README_LLM_ANALYSIS.md`) 将 LLM 功能扩展到映射到运营智能之外。它围绕四个内部组件构建：
 
-- **Batch Boundary Processing**: Boundary room pairs are processed in batches of up to five pairs per LLM call, minimizing per-request overhead through prompt consolidation.
-- **Structured Decision Output**: Each batch returns an array of `BoundaryDecision` objects, declaring whether rooms should be grouped, the confidence level, the reasoning, and the recommended action. This structured format enables deterministic application of adjustments without additional parsing ambiguity.
-- **Cost Tracking**: The enhancer maintains cumulative statistics across total calls, input/output tokens, and estimated USD cost, exposing these metrics for monitoring and budget reconciliation.
+- **AgentSelector**：自动将传入的诊断请求分类为九种已识别场景之一：订单失败分析、供应商路由（包括假设分析和投资回报率分析）、价格差异分析、取消政策分析、房型映射分析、库存不一致检测、性能诊断和配置更改影响评估。
+- **LogContextBuilder**：为已识别的场景组装相关日志上下文，应用分层令牌压缩。轻压缩去除快速成功的子请求；积极压缩仅保留错误跟踪和关键路径条目。这确保了提示尺寸保持经济，而不牺牲诊断信号。
+- **PPIOChatModel**：将请求发送到 PPIO 多模型网关，该网关提供对 DeepSeek V3.2（默认）、GPT-4o 和 Claude 3.5 Sonnet 的 OpenAI 兼容访问。模型选择以场景复杂性和当前预算状态为指导。
+- **ResultProcessor**：将 LLM 输出规范化为一致的模式，应用置信度评分，验证业务规则一致性，并通过可操作的特异性丰富建议。
 
-The enhancer integrates with the CloudWeGo Eino framework, utilizing an OpenAI-compatible chat model interface with configurable temperature (0.1 for deterministic grouping) and max token limits.
+Redis 支持的智能缓存以五分钟的 TTL 存储诊断结果，并以会话标识符为键。这可以防止对同一操作事件的重复查询进行冗余 LLM 调用。
 
-### Diagnostics Layer
+### 整合策略
 
-The **Intelligent Diagnostics** module (`bi/README_LLM_ANALYSIS.md`) extends LLM capabilities beyond mapping into operational intelligence. It is architected around four internal components:
+CloudWeGo Eino 框架为所有 LLM 交互提供抽象层。 Eino 基于组件的模型架构允许 HotelByte 在 OpenAI 兼容的提供商之间切换，而无需更改业务逻辑代码。支持三种操作模式：
 
-- **AgentSelector**: Automatically classifies incoming diagnostic requests into one of nine recognized scenarios: order failure analysis, supplier routing (including What-if and ROI analysis), price discrepancy analysis, cancellation policy analysis, room mapping analysis, inventory inconsistency detection, performance diagnosis, and configuration change impact assessment.
-- **LogContextBuilder**: Assembles relevant log contexts for the identified scenario, applying tiered token compression. Light compression removes fast-success sub-requests; aggressive compression retains only error traces and critical path entries. This ensures prompt sizes remain economical without sacrificing diagnostic signal.
-- **PPIOChatModel**: Dispatches requests to the PPIO multi-model gateway, which provides OpenAI-compatible access to DeepSeek V3.2 (default), GPT-4o, and Claude 3.5 Sonnet. Model selection is guided by scenario complexity and current budget state.
-- **ResultProcessor**: Normalizes LLM outputs into a consistent schema, applies confidence scoring, validates business rule conformance, and enriches recommendations with actionable specificity.
+1. **边界案例增强（推荐）**：仅针对低置信度房间类型调用LLM，将算法效率与AI精度相结合。
+2. **完整的 LLM 处理**：LLM 直接处理所有房间分类，针对基线算法缺乏足够训练信号的复杂多语言混合进行优化。
+3. **纯基线算法**：零LLM成本，低于100ms 的延迟，适合现有置信水平已经令人满意的高吞吐量场景。
 
-A Redis-backed smart cache stores diagnostic results with a five-minute TTL, keyed by session identifier. This prevents redundant LLM invocations for repeated queries on the same operational incident.
+## 请求生命周期
 
-### Integration Strategy
+典型的房型映射请求通过智能引擎的流程如下：
 
-The CloudWeGo Eino framework provides the abstraction layer for all LLM interactions. Eino's component-based model architecture allows HotelByte to switch between OpenAI-compatible providers without code changes to the business logic. Three operational modes are supported:
+1. **基线算法执行**：请求首先由确定性房型映射器处理，生成带有每个房间置信度分数的初始分组。
+2. **置信度评估**：智能路由器评估基线结果。如果平均置信度较高且低置信度房间稀疏，则结果将通过快速路径立即返回。
+3. **边界情况检测**：对于混合或 LLM 路径分类，路由器会识别特定的边界情况 - 置信度低于配置阈值的房间对或组。
+4. **LLM 增强器（如果适用）**：边界案例被分批并发送给 LLM 增强器。增强器返回结构化决策，这些决策将用作对基线结果的调整。
+5. **结果组装**：最终响应将高置信度算法分组与经过 LLM 验证的边界调整相结合，保留大多数房间的确定性输出。
+6. **指标排放**：记录路由统计、令牌计数、延迟测量和成本估算，以进行监控和预算跟踪。
 
-1. **Boundary Case Enhancement (recommended)**: LLM is invoked only for low-confidence room types, combining algorithmic efficiency with AI precision.
-2. **Full LLM Processing**: The LLM handles all room classifications directly, optimized for complex multilingual mixtures where baseline algorithms lack sufficient training signal.
-3. **Pure Baseline Algorithm**: Zero LLM cost, sub-100ms latency, suitable for high-throughput scenarios where existing confidence levels are already satisfactory.
+对于诊断请求，生命周期遵循并行模式：场景分类、具有令牌压缩的上下文组装、模型分派、结果规范化、缓存存储和指标记录。
 
-## Request Lifecycle
+## 实施的控制摘要
 
-A typical room mapping request flows through the Intelligence Engine as follows:
-
-1. **Baseline Algorithm Execution**: The request is first processed by the deterministic room mapper, producing an initial grouping with per-room confidence scores.
-2. **Confidence Assessment**: The Smart Router evaluates the baseline result. If average confidence is high and low-confidence rooms are sparse, the result is returned immediately via the Fast Path.
-3. **Boundary Case Detection**: For Hybrid or LLM Path classifications, the router identifies specific boundary cases—room pairs or groups with confidence below the configured threshold.
-4. **LLM Enhancement (if applicable)**: Boundary cases are batched and sent to the LLM Enhancer. The enhancer returns structured decisions that are applied as adjustments to the baseline result.
-5. **Result Assembly**: The final response combines high-confidence algorithmic groupings with LLM-validated boundary adjustments, preserving deterministic outputs for the majority of rooms.
-6. **Metrics Emission**: Routing statistics, token counts, latency measurements, and cost estimates are recorded for monitoring and budget tracking.
-
-For diagnostic requests, the lifecycle follows a parallel pattern: scenario classification, context assembly with token compression, model dispatch, result normalization, cache storage, and metric recording.
-
-## Implemented Control Summary
-
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **Smart Router with Confidence Thresholds** | Ensures 80% of requests resolve in <100ms with zero LLM cost; only ambiguous cases incur inference spend. |
-| **Three-Tier Budget Governance** ($0.50/request, $100/day, $3,000/month) | Guarantees predictable, bounded operational costs with automatic model downgrade and graceful degradation when thresholds approach. |
-| **Structured Output Schemas (`BoundaryDecision`, normalized diagnostic templates)** | Eliminates parsing ambiguity, enables automated downstream processing, and produces auditable decision records. |
-| **Batch Boundary Processing (max 5 pairs per call)** | Reduces per-request API overhead, lowering token costs while maintaining throughput. |
-| **Tiered Token Compression (light → aggressive)** | Minimizes prompt sizes for diagnostics without losing critical error signal, keeping inference costs low. |
-| **Redis Smart Cache (5-minute TTL)** | Prevents redundant LLM calls for repeated diagnostic queries, improving response time and reducing cost. |
-| **Multi-Model Gateway (DeepSeek V3.2, GPT-4o, Claude 3.5)** | Provides resilience against single-provider failures and enables cost-performance optimization per scenario. |
-| **Automatic Model Downgrade at 80% Budget Utilization** | Prevents budget overruns by transparently switching to lower-cost models before limits are reached. |
-| **Graceful Degradation to Baseline Algorithms** | Core API availability is never dependent on LLM provider uptime; fallback paths are instantaneous. |
-| **Comprehensive Cost and Latency Metrics** | Enables real-time observability of AI spend, supporting chargeback, optimization, and capacity planning. |
+| **具有置信阈值的智能路由器** |确保 80% 的请求在 100 毫秒内得到解决，LLM 成本为零；只有模棱两可的情况才会产生推理花费。 |
+| **三级预算治理**（0.50 美元/请求、100 美元/天、3,000 美元/月）|当接近阈值时，通过自动模型降级和优雅降级，保证可预测的、有限的运营成本。 |
+| **结构化输出模式（`BoundaryDecision`，标准化诊断模板）** |消除解析歧义，实现自动化下游处理，并生成可审核的决策记录。 |
+| **批量边界处理（每次调用最多 5 对）** |减少每个请求的 API 开销，降低令牌成本，同时保持吞吐量。 |
+| **分层令牌压缩（轻→激进）** |在不丢失关键错误信号的情况下最大限度地减少诊断提示大小，从而保持较低的推理成本。 |
+| **Redis 智能缓存（5 分钟 TTL）** |防止重复诊断查询的冗余 LLM 调用，从而缩短响应时间并降低成本。 |
+| **多模型网关（DeepSeek V3.2、GPT-4o、Claude 3.5）** |提供针对单一提供商故障的恢复能力，并实现每个场景的成本性能优化。 |
+| **预算利用率达到 80% 时自动模型降级** |通过在达到限制之前透明地切换到成本较低的模型来防止预算超支。 |
+| **优雅降级到基线算法** |核心 API 的可用性永远不依赖于 LLM 提供商的正常运行时间；后备路径是即时的。 |
+| **综合成本和延迟指标** |实现人工智能支出的实时可观测性，支持退款、优化和容量规划。 |
 
-## Auditability
+## 可审计性
 
-Every AI-assisted decision within the Intelligence Engine is designed to be traceable and verifiable.
+智能引擎中的每一个人工智能辅助决策都被设计为可追溯和可验证的。
 
-- **Decision Logging**: Each `BoundaryDecision` and diagnostic result is emitted with a unique identifier, timestamp, input context hash, and confidence score. These records are retained for downstream review.
-- **Prompt Versioning**: The enhancer tags every LLM call with a prompt version identifier (e.g., `boundary_v1`), ensuring that auditors can reconstruct the exact instructions that produced a given output.
-- **Cost Attribution**: Per-call token counts and estimated USD costs are tracked cumulatively and exposed through monitoring APIs, enabling fine-grained cost allocation by scenario, session, or time period.
-- **Routing Transparency**: The Smart Router records the strategy selected (Fast, Hybrid, or LLM Path), the confidence metrics that triggered the selection, and the rationale string for every request.
-- **Cache Provenance**: Cached diagnostic results include the original model identifier, generation timestamp, and source prompt hash, allowing validation of whether a returned result was computed or retrieved from cache.
+- **决策日志记录**：每个 `BoundaryDecision` 和诊断结果都带有唯一标识符、时间戳、输入上下文哈希和置信度分数。这些记录将被保留以供下游审查。
+- **提示版本控制**：增强器使用提示版本标识符（例如 `boundary_v1`）标记每个 LLM 调用，确保审核员可以重建产生给定输出的确切指令。
+- **成本归因**：每次调用的代币计数和估计的美元成本通过监控 API 进行累积跟踪和公开，从而实现按场景、会话或时间段进行细粒度的成本分配。
+- **路由透明度**：智能路由器记录所选策略（快速、混合或LLM路径）、触发选择的置信度指标以及每个请求的理由字符串。
+- **缓存来源**：缓存的诊断结果包括原始模型标识符、生成时间戳和源提示哈希，允许验证返回的结果是否是从缓存中计算或检索的。
 
-These mechanisms collectively satisfy requirements for operational audit, compliance review, and post-incident analysis without exposing sensitive supplier or customer data in log contexts.
+这些机制共同满足运营审计、合规审查和事件后分析的要求，而不会在日志上下文中暴露敏感的供应商或客户数据。
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **OWASP Top 10 for LLM Applications (2025)** | "Implement input validation and sanitization for prompts to prevent injection attacks... Use structured output formats to constrain model behavior." | The Intelligence Engine enforces strict `BoundaryDecision` schemas and normalized diagnostic templates for all LLM outputs, constraining generation to predefined fields and eliminating unconstrained free-text responses. |
-| **NIST AI Risk Management Framework (AI RMF 1.0)** | "Organizations should establish governance processes to manage AI risks... including measurable processes for identifying, assessing, and mitigating risks." | Three-tier budget governance ($0.50/$100/$3,000), automatic downgrade at 80% utilization, and graceful degradation to baseline algorithms provide measurable, risk-mitigating controls over LLM operational exposure. |
-| **OpenAI API Best Practices — Production Safety** | "Use temperature values close to 0 for tasks requiring deterministic outputs... Validate and parse all API responses before acting on them." | Room mapping enhancement uses `temperature: 0.1` for deterministic grouping decisions. All LLM responses pass through strict JSON schema validation and bounds checking before adjustments are applied. |
-| **Google Cloud — Responsible AI: Cost Management** | "Implement budget alerts, quota limits, and fallback mechanisms to prevent runaway inference costs in production systems." | Per-request, daily, and monthly budget ceilings are enforced with automatic model downgrade and algorithmic fallback paths, ensuring costs remain bounded even under anomalous traffic spikes. |
-| **ISO/IEC 42001:2023 — AI Management Systems** | "Organizations shall maintain documented information about AI system performance, including monitoring, measurement, and traceability of AI-generated decisions." | Comprehensive metrics (routing stats, token counts, latency percentiles, cost attribution) and decision logs with unique identifiers provide the documented traceability required for AI management system audits. |
-| **CloudWeGo Eino Documentation — Structured Generation** | "Eino components support structured output through schema definitions, enabling reliable integration of LLM capabilities into business workflows." | The engine leverages CloudWeGo Eino's component model to enforce structured generation across all LLM interactions, separating provider-specific transport from business logic and enabling provider portability. |
+| **OWASP 法学硕士申请前 10 名 (2025)** | “对提示实施输入验证和清理，以防止注入攻击......使用结构化输出格式来约束模型行为。” |智能引擎对所有 LLM 输出强制执行严格的 `BoundaryDecision` 模式和规范化诊断模板，将生成限制为预定义字段并消除不受约束的自由文本响应。 |
+| **NIST 人工智能风险管理框架 (AI RMF 1.0)** | “组织应该建立治理流程来管理人工智能风险……包括用于识别、评估和减轻风险的可衡量流程。” |三层预算治理（0.50 美元/100 美元/3,000 美元）、利用率为 80% 时自动降级以及基线算法的优雅降级为 LLM 运营风险提供了可衡量的、降低风险的控制。 |
+| **OpenAI API 最佳实践——安全生产** | “对于需要确定性输出的任务，请使用接近 0 的温度值...在对所有 API 响应采取行动之前验证并解析它们。” |房型映射增强使用 `temperature: 0.1` 进行确定性分组决策。所有 LLM 响应在应用调整之前都会经过严格的 JSON 模式验证和边界检查。 |
+| **Google Cloud — 负责任的人工智能：成本管理** | “实施预算警报、配额限制和后备机制，以防止生产系统中推理成本失控。” |通过自动模型降级和算法回退路径来强制执行每个请求、每日和每月的预算上限，确保即使在异常流量高峰的情况下成本也保持在一定范围内。 |
+| **ISO/IEC 42001:2023 — 人工智能管理系统** | “组织应维护有关人工智能系统性能的记录信息，包括人工智能生成的决策的监控、测量和可追溯性。” |综合指标（路由统计数据、令牌计数、延迟百分位数、成本归因）和具有唯一标识符的决策日志提供了人工智能管理系统审计所需的记录可追溯性。 |
+| **CloudWeGo Eino 文档 — 结构化生成** | “Eino 组件通过模式定义支持结构化输出，从而能够将 LLM 功能可靠地集成到业务工作流程中。” |该引擎利用 CloudWeGo Eino 的组件模型在所有 LLM 交互中强制执行结构化生成，将特定于提供商的传输与业务逻辑分开并实现提供商的可移植性。 |

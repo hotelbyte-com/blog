@@ -1,143 +1,132 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：规格驱动开发白皮书"
+title: "规格驱动开发白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp22-spec-driven-development/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp22-spec-driven-development/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp22-spec-driven-development/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
+## 执行摘要
 
-# 英文 canonical 原文：规格驱动开发白皮书
+HotelByte 运营着一个全球酒店 API 分销平台，将不同市场的数千家供应商和买家连接起来，每个平台都有不同的业务规则、监管要求和服务水平期望。在这种环境中，未记录的假设和隐含的需求是生产缺陷、集成不匹配和代价高昂的返工的主要根源。
 
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
+为了解决这个问题，HotelByte 采用了**规范驱动开发 (SDD)**，这是一种严格的工作流程，其中每个更改都源自书面规范，每个要求都表达为可验证的场景，如果没有经过批准的版本化规范，则不会进行任何实施。这种方法将需求从部落知识转变为持久的、可测试的合同。
 
-# Spec-Driven Development Whitepaper
+结果是可衡量的：需求模糊性是在提案阶段而不是在生产中发现的；回归测试直接根据规范生成；每个部署的变更都带有从业务意图到经过验证的行为的完整的、可审计的链条。
 
-## Executive Summary
+## 范围
 
-HotelByte operates a global hotel API distribution platform connecting thousands of suppliers and buyers across diverse markets, each with distinct business rules, regulatory requirements, and service-level expectations. In this environment, undocumented assumptions and implicit requirements are the primary sources of production defects, integration mismatches, and costly rework.
+本白皮书描述了 HotelByte 应用于平台变更的规范驱动开发方法，包括 API 合同修改、供应商集成更新、预订工作流程增强和运营控制变更。它涵盖了从提案到实施再到归档的整个生命周期，重点是规范如何驱动验证和可审计性。
 
-To address this, HotelByte has adopted **Spec-Driven Development (SDD)**—a disciplined workflow where every change originates from a written specification, every requirement is expressed as a verifiable scenario, and no implementation proceeds without an approved, versioned spec. This approach transforms requirements from tribal knowledge into durable, testable contracts.
+此处描述的做法适用于 HotelByte 平台的所有重大变更。琐碎的更改（例如文档拼写错误修复或现有边界内的配置值更新）可能会遵循轻量级路径，但当它们影响外部可观察的行为时，仍然需要明确的场景覆盖。
 
-The result is measurable: requirements ambiguity is caught during the proposal phase rather than in production; regression tests are generated directly from specifications; and every deployed change carries a complete, auditable chain from business intent to verified behavior.
+## 目标
 
-## Scope
+HotelByte 的 SDD 计划追求四个目标：
 
-This whitepaper describes HotelByte's spec-driven development methodology as applied to platform changes—encompassing API contract modifications, supplier integration updates, booking workflow enhancements, and operational control changes. It covers the full lifecycle from proposal through implementation to archival, with emphasis on how specifications drive verification and auditability.
+1. **在编码之前消除歧义。** 在投入工程工作之前，每个需求都以结构化的散文形式和可执行的场景来表达。这可以防止最昂贵的一类缺陷：建立在被误解的需求之上的缺陷。
 
-The practices described here govern all material changes to the HotelByte platform. Trivial changes—such as documentation typo fixes or configuration value updates within existing boundaries—may follow a lightweight path, but still require explicit scenario coverage when they affect externally observable behavior.
+2. **保证可验证性。** 除非包含至少一种描述可观察结果的场景，否则任何要求都不会被视为完整。这弥补了“代码已编写”和“行为正确”之间的差距。
 
-## Objectives
+3. **最小化变更面。** 每个变更的范围都限定在可交付客户价值的最小可验证单元。大型的推测性变更被分解为较小的、独立指定的提案。
 
-The SDD program at HotelByte pursues four objectives:
+4. **保持永久的可审计性。** 每次变更都会留下持久的、按时间顺序排列的记录，将业务理由、技术设计、规范、实施和验证结果联系起来。这支持监管审查、安全审计和事件后分析。
 
-1. **Eliminate Ambiguity Before Coding.** Every requirement is expressed in structured prose with executable scenarios before engineering effort is expended. This prevents the most expensive class of defect: the one built on a misunderstood requirement.
+## 设计原则
 
-2. **Guarantee Verifiability.** No requirement is considered complete unless it includes at least one scenario describing an observable outcome. This bridges the gap between "the code was written" and "the behavior is correct."
+HotelByte 的规范驱动工作流程建立在源自需求工程、行为驱动开发和系统安全规则的五项设计原则之上：
 
-3. **Minimize Change Surface.** Each change is scoped to the smallest verifiable unit that delivers customer value. Large, speculative changes are decomposed into smaller, independently specified proposals.
+**实施前的规范。** 在实施开始之前，提案及其相关规范必须存在并得到批准。这是一扇硬门：规范就是合同，代码是合同的履行，而不是相反。
 
-4. **Maintain Permanent Auditability.** Every change leaves a durable, time-ordered record linking business justification, technical design, specification, implementation, and verification results. This supports regulatory review, security audits, and post-incident analysis.
+**可验证的需求。** 每个需求声明必须与至少一个描述具体 WHEN/THEN 条件的 Gherkin 式场景相结合。诸如“提高性能”或“使其更加稳健”之类的模糊愿望会被拒绝，直到它们被转化为可测量、可测试的主张。
 
-## Design Principles
+**最小变化面。** 变化被分解，直到默认实现适合单个、集中的工件。这减少了审查负担，限制了影响范围，并使回滚决策变得简单。禁止的模式包括没有规范的开放式重构、模糊意图的版本后缀（V2、增强型）以及替代实际安全分析的安全限定名称。
 
-HotelByte's spec-driven workflow is built on five design principles derived from requirements engineering, behavior-driven development, and systems safety disciplines:
+**MECE 文档架构。** 所有文档均根据 MECE 原则组织——互斥、集体详尽。在每个目录级别，条目数受 7±2 规则限制（5 至 9 项）。这可以防止信息过载，并确保任何工程师都可以在三个导航步骤内找到给定功能的权威规范。
 
-**Specification Before Implementation.** A proposal and its associated specifications must exist and be approved before implementation begins. This is a hard gate: the spec is the contract, and code is the fulfillment of that contract—not the other way around.
+**作为证明的“完成”定义。**合并代码时不会声明完成。当功能代码、单元测试和端到端测试全部通过规范中定义的场景时，就会声明它。规范就是预言机；测试就是证据。
 
-**Verifiable Requirements.** Every requirement statement must be coupled to at least one Gherkin-style scenario describing a concrete WHEN/THEN condition. Vague aspirations such as "improve performance" or "make it more robust" are rejected until they are translated into measurable, testable claims.
+## 规范驱动的工作流程架构
 
-**Minimal Change Surface.** Changes are decomposed until the default implementation fits within a single, focused artifact. This reduces review burden, limits blast radius, and makes rollback decisions straightforward. Prohibited patterns include open-ended refactoring without specification, version suffixes that obscure intent (V2, Enhanced), and safety-qualified names that substitute for actual safety analysis.
+HotelByte 的 SDD 工作流程组织为四层架构，每一层都有不同的职责、进入标准和退出标准。
 
-**MECE Documentation Architecture.** All documentation is organized according to the MECE principle—Mutually Exclusive, Collectively Exhaustive. At each directory level, the number of entries is bounded by the 7±2 rule (five to nine items). This prevents information overload and ensures that any engineer can locate the authoritative spec for a given capability within three navigational steps.
+### 提案层
 
-**Definition of Done as a Proof.** Completion is not declared when code is merged. It is declared when functional code, unit tests, and end-to-end tests all pass against the scenarios defined in the specification. The spec is the oracle; the tests are the evidence.
+每项变更都以一份提案文件开始，该提案文件回答三个问题：原因、内容和影响。该提案确定了业务或技术问题，定义了拟议解决方案的范围，并列举了受影响的利益相关者。提案被编号并存储在变更目录中，确保每个计划在分配工程资源之前都有一个稳定的标识符。
 
-## Spec-Driven Workflow Architecture
+提案层充当入口。不完整的提案（缺乏明确的影响陈述或利益相关者识别）将被返回进行修订，而不是提前达到规范。这种轻量级过滤器可以防止管道中充满不理解的工作。
 
-HotelByte's SDD workflow is organized as a four-layer architecture, each layer with distinct responsibilities, entry criteria, and exit criteria.
+### 规范层
 
-### Proposal Layer
+一旦提案被接受，它将被详细阐述为三个协调的工件：任务分解、技术设计文档和特定于功能的规范。
 
-Every change begins with a proposal document that answers three questions: Why, What, and Impact. The proposal identifies the business or technical problem, defines the scope of the proposed solution, and enumerates the stakeholders affected. Proposals are numbered and stored in a changes directory, ensuring that every initiative has a stable identifier before engineering resources are allocated.
+任务分解将提案分解为可操作、可独立验证的工作单元。技术设计文档描述了架构方法、接口更改、数据模型更新和操作注意事项。功能规范包含权威的行为定义：对于每个受影响的功能，规范文档捕获需求及其关联的 Gherkin 场景。
 
-The proposal layer serves as the intake gate. An incomplete proposal—one lacking clear impact statements or stakeholder identification—is returned for revision rather than advanced to specification. This lightweight filter prevents the pipeline from filling with poorly understood work.
+规范层强制执行可验证性原则。无法进行场景测试的需求将被视为不完整。这一层的审稿人的明确任务是挑战歧义：每个“应该”、“可以”和“适当”都被标记为需要澄清。
 
-### Specification Layer
+### 实现层
 
-Once a proposal is accepted, it is elaborated into three coordinated artifacts: a task breakdown, a technical design document, and capability-specific specifications.
+只有在规范层获得批准后才能继续实施。工程师根据规范实施，而不是根据提案或非正式讨论。编写单元测试是为了在组件级别测试场景。端到端测试验证完整的用户可见行为。两个测试套件都通过标识符引用规范场景，创建从需求到测试结果的可跟踪链接。
 
-The task breakdown decomposes the proposal into actionable, independently verifiable units of work. The technical design document describes the architectural approach, interface changes, data model updates, and operational considerations. The capability specifications contain the authoritative behavior definitions: for each affected capability, a spec document captures the requirements and their associated Gherkin scenarios.
+实施层不允许在不修改规范的情况下偏离已批准的规范。如果实施发现规范不正确，则在更新代码之前会修改并重新批准规范。这可以防止常见的反模式，即代码成为事实上的规范，而书面规范变得无关紧要。
 
-The specification layer enforces the verifiability principle. A requirement that cannot be scenario-tested is treated as incomplete. Reviewers at this layer are explicitly tasked with challenging ambiguity: every "should," "may," and "appropriate" is flagged for clarification.
+### 存档层
 
-### Implementation Layer
+部署后，完整的变更记录（提案、任务、设计、规范、测试结果和部署确认）将存档在带日期标记的目录中。这将创建一个永久的、不可变的快照，其中包含已批准的内容、已构建的内容以及已验证的内容。
 
-Implementation proceeds only after the specification layer is approved. Engineers implement against the spec, not against the proposal or informal discussion. Unit tests are written to exercise the scenarios at the component level. End-to-end tests validate the complete user-visible behavior. Both test suites reference the spec scenarios by identifier, creating a traceable link from requirement to test result.
+归档层不是一个随意的归档系统。它是用于事件后调查、合规审计和跨职能审查的权威历史记录。档案结构反映了活动变更布局，确保任何工程师都可以使用相同的路径从当前功能规范导航到其历史前例。
 
-The implementation layer does not permit deviation from the approved spec without a specification amendment. If implementation reveals that the spec is incorrect, the spec is revised and re-approved before code is updated. This prevents the common anti-pattern where code becomes the de facto specification and the written spec drifts into irrelevance.
+## 改变生命周期
 
-### Archive Layer
+典型的变更通过以下生命周期进行，每次转换都有明确的门：
 
-After deployment, the complete change record—proposal, tasks, design, specifications, test results, and deployment confirmation—is archived in a date-stamped directory. This creates a permanent, immutable snapshot of what was approved, what was built, and what was verified.
+1. **提案起草。** 作者撰写提案，阐述原因、内容和影响。
+2. **提案审查。** 同行和利益相关者审查其清晰度、范围和一致性。
+3. **规范开发。** 作者使用场景创建任务、设计和功能规范。
+4. **规范审查。** 技术审查人员验证完整性、可测试性和 MECE 合规性。
+5. **实施。** 工程师根据批准的规范编写代码和测试。
+6. **验证。** 自动和手动测试确认所有场景均通过。
+7. **部署。** 通过具有自动检查的环境来促进更改。
+8. **归档。**完整的记录被移动到带有部署时间戳的归档层。
 
-The archive layer is not a casual filing system. It is the authoritative historical record used for post-incident investigation, compliance auditing, and cross-functional review. The archival structure mirrors the active changes layout, ensuring that any engineer can navigate from a current capability spec to its historical antecedents using identical paths.
+任何审查门的拒绝都会将更改返回到前一层进行修订。没有旁路路径。
 
-## Change Lifecycle
+## 实施的控制摘要
 
-A typical change progresses through the following lifecycle, with explicit gates at each transition:
-
-1. **Proposal Drafting.** Author writes the proposal addressing Why, What, and Impact.
-2. **Proposal Review.** Peers and stakeholders review for clarity, scope, and alignment.
-3. **Specification Development.** Author creates tasks, design, and capability specs with scenarios.
-4. **Specification Review.** Technical reviewers verify completeness, testability, and MECE compliance.
-5. **Implementation.** Engineers write code and tests against the approved spec.
-6. **Verification.** Automated and manual tests confirm all scenarios pass.
-7. **Deployment.** Change is promoted through environments with automated checks.
-8. **Archival.** Complete record is moved to the archive layer with deployment timestamp.
-
-Rejection at any review gate returns the change to the preceding layer for revision. There are no bypass paths.
-
-## Implemented Control Summary
-
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **Three-Stage Gate** (Proposal → Spec → Archive) | Ensures every production change has traceable justification, design, and verification—reducing unexpected breaking changes and enabling rapid impact assessment. |
-| **Scenario Enforcement** (Gherkin WHEN/THEN per requirement) | Guarantees that every business rule has an observable, testable outcome—preventing silent failures and ensuring that what was promised is what was delivered. |
-| **MECE Documentation with 7±2 Rule** | Enables customers and partners to locate authoritative interface specifications quickly, reducing integration friction and support inquiries. |
-| **Minimal Change Surface** | Limits the blast radius of each deployment, improving platform stability and reducing the window of exposure during rollouts. |
-| **Definition of Done** (Code + Unit Tests + E2E Tests Passing) | Provides confidence that declared capabilities are actually working in production, not merely present in source control. |
-| **Permanent Archive Layer** | Supports compliance inquiries, security audits, and incident investigations with complete, immutable change history. |
+| **三阶段门**（提案→规范→存档）|确保每个生产变更都有可追溯的理由、设计和验证，减少意外的重大变更并实现快速影响评估。 |
+| **场景执行**（小黄瓜何时/何时根据要求）|保证每条业务规则都有可观察、可测试的结果——防止无声故障并确保所承诺的就是所交付的。 |
+| **采用 7±2 规则的 MECE 文档** |使客户和合作伙伴能够快速找到权威的接口规范，减少集成摩擦和支持查询。 |
+| **最小变化表面** |限制每次部署的爆炸半径，提高平台稳定性并减少部署期间的暴露窗口。 |
+| **完成的定义**（代码 + 单元测试 + E2E 测试通过）|让您确信所声明的功能实际上在生产中发挥作用，而不仅仅是存在于源代码控制中。 |
+| **永久存档层** |通过完整、不可变的变更历史记录支持合规性查询、安全审计和事件调查。 |
 
-## Auditability
+## 可审计性
 
-Auditability in the HotelByte SDD workflow rests on three verification methods:
+HotelByte SDD 工作流程中的可审核性取决于三种验证方法：
 
-**Scenario Traceability.** Every requirement scenario is assigned a stable identifier that appears in both the specification document and the automated test suite. Test execution reports include these identifiers, enabling auditors to confirm that every specified behavior is exercised on every build.
+**场景可追溯性。** 每个需求场景都分配有一个稳定的标识符，该标识符出现在规范文档和自动化测试套件中。测试执行报告包括这些标识符，使审核员能够确认每个指定的行为都在每个构建上执行。
 
-**Three-Independent-Approval Review.** Proposals, specifications, and designs each require independent review before advancement. The review history—including reviewer identity, timestamp, and resolution—is preserved in version control, creating a non-repudiable record of scrutiny.
+**三项独立审批审查。** 提案、规格和设计在推进前都需要经过独立审查。审阅历史记录（包括审阅者身份、时间戳和解决方案）保存在版本控制中，创建不可否认的审查记录。
 
-**Immutable Archive Snapshots.** Post-deployment, the entire change record is snapshotted to the archive layer with a date prefix. These archives are write-once: no subsequent modification is permitted. In the event of an incident or audit, the exact specification and verification evidence that governed a deployment can be retrieved without ambiguity.
+**不可变的存档快照。** 部署后，整个更改记录都会以日期前缀快照到存档层。这些存档是一次性写入的：不允许后续修改。如果发生事件或审计，可以毫不含糊地检索管理部署的确切规范和验证证据。
 
-Together, these methods ensure that any change can be traced from business intent through specification, implementation, verification, and deployment—and that this trace is durable, inspectable, and tamper-evident.
+这些方法共同确保可以从业务意图到规范、实现、验证和部署来跟踪任何更改，并且这种跟踪是持久的、可检查的和防篡改的。
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **ISO/IEC/IEEE 29148:2018** — *Systems and software engineering — Life cycle processes — Requirements engineering* | "Requirements shall be expressed in a manner that avoids ambiguity and is verifiable." | The Scenario Enforcement control requires every requirement to include a Gherkin-style WHEN/THEN scenario, directly satisfying the verifiability and ambiguity-avoidance mandates. |
-| **Gherkin Language Specification** — *Cucumber.io* | "Gherkin uses a set of special keywords to give structure and meaning to executable specifications. The primary keywords are Feature, Rule, Example (or Scenario), Given, When, Then, And, But." | HotelByte capability specifications adopt Gherkin syntax for scenario expression, ensuring that requirements are structured for both human review and automated test generation. |
-| **Behavior-Driven Development: BDD with Cucumber and SpecFlow** — *Gáspár Nagy and Seb Rose* | "BDD is a way for software teams to work that closes the gap between business people and technical people by encouraging collaboration across roles to build a shared understanding of the problem to be solved." | The Three-Stage Gate creates explicit collaboration points between business stakeholders (proposal), technical designers (specification), and engineers (implementation), closing the business-technical gap. |
-| **ITIL 4: Change Control Practice** | "The purpose of the change control practice is to maximize the number of successful service and product changes by ensuring that risks have been properly assessed, authorizing changes to proceed, and managing the change schedule." | HotelByte's proposal review gate performs risk assessment and stakeholder alignment; the archive layer maintains the change schedule and historical record; together they implement ITIL-aligned change control. |
-| **MECE Principle** — *Barbara Minto, The Pyramid Principle* | "The grouping must be Mutually Exclusive and Collectively Exhaustive... the ideas must not overlap, and they must cover all the relevant possibilities." | Documentation Architecture control applies MECE to capability organization, ensuring that every spec has a single, exhaustive home without overlap or omission. |
-| **ISO 9001:2015** — *Quality management systems* | "The organization shall retain documented information to the extent necessary to have confidence that the processes have been carried out as planned." | The Archive Layer and immutable snapshot policy retain complete documented information for every change, providing the evidentiary basis for quality system confidence. |
+| **ISO/IEC/IEEE 29148:2018** — *系统和软件工程 — 生命周期过程 — 需求工程* | “应以避免歧义且可验证的方式表达要求。” |场景执行控制要求每个需求都包含 Gherkin 式的“何时/那么”场景，直接满足可验证性和避免歧义的要求。 |
+| **Gherkin 语言规范** — *Cucumber.io* | “Gherkin 使用一组特殊关键字来为可执行规范提供结构和含义。主要关键字是功能、规则、示例（或场景）、Given、When、Then、And、But。” | HotelByte 功能规范采用 Gherkin 语法进行场景表达，确保需求的结构化可用于人工审核和自动测试生成。 |
+| **行为驱动开发：使用 Cucumber 和 SpecFlow 的 BDD** — *Gáspár Nagy 和 Seb Rose* | “BDD 是软件团队的一种工作方式，通过鼓励跨角色协作来缩小业务人员和技术人员之间的差距，以建立对要解决的问题的共同理解。” |三阶段门在业务利益相关者（提案）、技术设计师（规范）和工程师（实施）之间创建了明确的协作点，从而缩小了业务与技术之间的差距。 |
+| **ITIL 4：变更控制实践** | “变更控制实践的目的是通过确保正确评估风险、授权变更继续进行以及管理变更时间表，最大限度地提高成功服务和产品变更的数量。” | HotelByte 的提案审查门执行风险评估和利益相关者协调；归档层维护变更时间表和历史记录；他们共同实施符合 ITIL 的变更控制。 |
+| **MECE 原则** — *Barbara Minto，金字塔原则* | “分组必须是互斥的、集体详尽的……想法不能重叠，并且必须涵盖所有相关的可能性。” |文档架构控制将 MECE 应用于能力组织，确保每个规范都有一个详尽的主页，没有重叠或遗漏。 |
+| **ISO 9001:2015** — *质量管理体系* | “组织应保留必要的文件化信息，以确保过程已按计划进行。” |存档层和不可变快照策略保留每次更改的完整记录信息，为质量体系信心提供证据基础。 |

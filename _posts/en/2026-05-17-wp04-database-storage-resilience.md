@@ -8,7 +8,7 @@ tags: [Database, Storage, Hotel API, Reliability]
 author: "HotelByte Team"
 description: "A guide to HotelByte's database and storage resilience design."
 lang: en
-permalink: /whitepapers/wp04-database-storage-resilience/
+permalink: /en/whitepapers/wp04-database-storage-resilience/
 source_asset: hotel-be/docs/en/whitepapers/04-database-and-storage-resilience-layer.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp04-database-storage-resilience/original/

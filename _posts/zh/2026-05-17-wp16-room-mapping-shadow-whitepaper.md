@@ -1,209 +1,198 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：Shadow Mode 房型映射白皮书"
+title: "Shadow Mode 房型映射白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp16-room-mapping-shadow/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp16-room-mapping-shadow/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp16-room-mapping-shadow/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：Shadow Mode 房型映射白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Room Mapping with Shadow Mode Whitepaper
-
-**Version:** 2.0
-**Classification:** External — Customer-Facing
-**Scope:** HotelByte Room Mapping System
-**Date:** May 2026
+**版本：** 2.0
+**分类：** 外部 — 面向客户
+**范围：** HotelByte 房间测绘系统
+**日期：** 2026 年 5 月
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-Hotel distribution relies on the accurate alignment of room types between supplier systems and customer-facing search results. A "Double Room with Sea View" from one supplier must correspond to the same physical room category offered by another, even when naming conventions, languages, and attribute schemas differ. Room mapping — the automated reconciliation of heterogeneous room inventories — is therefore a critical competency for any hotel API distribution platform.
+酒店分销依赖于供应商系统和面向客户的搜索结果之间房间类型的准确匹配。一个供应商提供的“海景双人房”必须与另一供应商提供的同一物理房间类别相对应，即使命名约定、语言和属性模式不同。因此，房型映射（异构房间库存的自动协调）对于任何酒店 API 分销平台来说都是一项关键能力。
 
-This whitepaper describes HotelByte's Room Mapping system, which operates under a **Shadow Mode** safety architecture. In Shadow Mode, candidate mapping algorithms run in parallel with the production system without mutating customer-visible outputs. Algorithms are promoted to production only after they demonstrate statistically significant improvement across precision, recall, F1 score, and latency percentiles against a curated ground-truth corpus. This approach ensures that every mapping decision reaching a customer search result has been validated through layered evaluation gates, human review workflows, and continuous A/B measurement.
+本白皮书介绍了 HotelByte 的房型映射系统，该系统在 **影子模式** 安全架构下运行。在影子模式下，候选映射算法与生产系统并行运行，不会改变客户可见的输出。仅当算法在精确度、召回率、F1 分数和延迟百分位数方面相对于精选的真实语料库表现出统计上的显着改进后，才会将其推广到生产。这种方法可确保到达客户搜索结果的每个映射决策都已通过分层评估门、人工审核工作流程和连续 A/B 测量进行验证。
 
-The system supports a **Multi-Version Algorithm Matrix** — a portfolio of complementary mapping approaches spanning rule-based feature extraction, multidimensional semantic scoring, and performance-optimized inference pipelines. Each algorithm version is held to the same Shadow Mode contract: observe, evaluate, and only then act.
-
----
-
-## Scope
-
-This whitepaper covers the following aspects of HotelByte's Room Mapping system:
-
-- **Shadow Mode Architecture** — the safety layer that isolates candidate algorithms from production search responses.
-- **Algorithm Portfolio** — the Multi-Version Algorithm Matrix and the distinct technical approaches employed.
-- **Offline Evaluation Loop** — pair-based benchmarking, confusion matrix analysis, and automatic winner determination.
-- **Annotation & Test Set Management** — human review workflows and auto-corpus construction.
-- **Embedding Service** — semantic vector computation for text similarity scoring.
-- **Auditability & Controls** — traceability, metrics persistence, and compliance mappings.
-
-This document does not cover supplier onboarding, hotel-level geographic mapping, or real-time pricing logic, which are addressed in separate whitepapers.
+该系统支持**多版本算法矩阵** - 一系列互补映射方法，涵盖基于规则的特征提取、多维语义评分和性能优化的推理管道。每个算法版本都遵循相同的影子模式契约：观察、评估，然后才采取行动。
 
 ---
 
-## Objectives
+## 范围
 
-The Room Mapping system is designed to achieve the following objectives:
+本白皮书涵盖了 HotelByte 房间地图系统的以下方面：
 
-1. **Preserve Search Integrity** — No mapping algorithm may modify a `RoomTypeId` or any main-chain search response field until it has met validated confidence thresholds through Shadow Mode evaluation.
-2. **Enable Safe Experimentation** — Engineering teams must be able to deploy new algorithms, feature engineering pipelines, and similarity models without risk to customer-facing search accuracy.
-3. **Ensure Continuous Measurable Improvement** — Every candidate algorithm is evaluated against a held-out ground-truth test set using standard information-retrieval metrics (Precision, Recall, F1, Rand Index) and latency percentiles (P95).
-4. **Maintain Human Oversight** — A structured review workflow (annotated → approved → rejected) governs the construction of the ground-truth corpus, and approved samples automatically enrich the auto-corpus test set.
-5. **Guarantee Traceability** — Original supplier room identifiers (via `roomKey`: supplierHotelId + roomCode) are persisted alongside all mapping outputs to prevent evaluation distortion and to enable full retrospective audit.
+- **影子模式架构** — 将候选算法与生产搜索响应隔离的安全层。
+- **算法组合** — 多版本算法矩阵和所采用的独特技术方法。
+- **离线评估循环** — 基于配对的基准测试、混淆矩阵分析和自动获胜者确定。
+- **注释和测试集管理** - 人工审核工作流程和自动语料库构建。
+- **嵌入服务** — 用于文本相似性评分的语义向量计算。
+- **可审核性和控制** — 可追溯性、指标持久性和合规性映射。
 
----
-
-## Design Principles
-
-The following design principles govern the architecture and operation of the Room Mapping system:
-
-### Safety Before Accuracy
-
-No algorithm — regardless of theoretical accuracy — is permitted to influence production search results until it has completed Shadow Mode validation. Safety is enforced by architectural separation, not by convention. The shadow layer is physically incapable of writing to customer-visible response fields.
-
-### Continuous Evaluation
-
-Evaluation is not a one-time certification event. Every algorithm in the matrix is subject to recurring evaluation against an expanding auto-corpus. As new approved annotations enter the test set, previously validated algorithms are re-benchmarked to detect regression.
-
-### Human-in-the-Loop
-
-Automated mapping decisions are probabilistic. The ground-truth corpus is built through a structured human review workflow. Only samples that pass expert review (annotated → approved) enter the auto-corpus. Rejected samples are preserved for error-case analysis and model refinement.
-
-### Multi-Strategy Redundancy
-
-The Multi-Version Algorithm Matrix deliberately employs heterogeneous approaches — lexical, structural, semantic, and price-aware — so that no single failure mode can compromise the entire mapping pipeline. Disagreement between algorithms is itself a signal for downstream confidence scoring.
-
-### Observability by Default
-
-All mapping decisions, algorithm outputs, confidence scores, and latency measurements are written to both real-time monitoring (Prometheus) and persistent relational storage (MySQL `room_mapping_metric`). Dual-metrics writing ensures that transient runtime issues do not result in permanent observability gaps.
+本文档不涵盖供应商入职、酒店级地理测绘或实时定价逻辑，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Shadow Mode Architecture
+## 目标
 
-The Shadow Mode architecture comprises three logically separated layers: the **Shadow Layer**, the **Algorithm Layer**, and the **Evaluation Layer**.
+房型映射系统旨在实现以下目标：
 
-### Shadow Layer
+1. **保持搜索完整性** — 任何映射算法都不能修改 `RoomTypeId` 或任何主链搜索响应字段，直到通过影子模式评估满足经过验证的置信阈值。
+2. **启用安全实验** - 工程团队必须能够部署新算法、特征工程管道和相似性模型，而不会对面向客户的搜索准确性造成风险。
+3. **确保持续可衡量的改进** - 使用标准信息检索指标（精度、召回率、F1、兰德指数）和延迟百分位数 (P95)，根据保留的真实测试集对每个候选算法进行评估。
+4. **维持人类监督** - 结构化审查工作流程（注释→批准→拒绝）控制地面实况语料库的构建，批准的样本会自动丰富自动语料库测试集。
+5. **保证可追溯性** — 原始供应商房间标识符（通过 `roomKey`：supplierHotelId + roomCode）与所有映射输出一起保留，以防止评估失真并实现全面的回顾性审计。
 
-The Shadow Layer is the safety-critical boundary of the system. It receives the same inputs as the production mapping path — supplier room metadata, search context, and pricing signals — but its outputs are routed exclusively to isolated storage and metrics pipelines. The Shadow Layer cannot write to search response structs, cache entries that affect customer results, or any main-chain persistence.
+---
 
-Key safety guarantees enforced by the Shadow Layer:
+## 设计原则
 
-- **Immutability Contract:** Candidate algorithms are bound by the `MapperInterface` abstraction, which explicitly disallows mutation of the production `RoomTypeId` field.
-- **Sampling Control:** A/B test configuration via `hb_compare_sample_rate` governs the fraction of traffic shadowed for each algorithm. Sampling rates vary by environment to ensure that production shadowing is conservative while staging shadowing is comprehensive.
-- **Original Traceability Preservation:** The `roomKey` (composite of `supplierHotelId` and `roomCode`) is persisted alongside every shadow mapping decision. This prevents the substitution of evaluated room identifiers with inferred ones, a common source of evaluation distortion in mapping systems.
+以下设计原则支配着房型映射系统的架构和操作：
 
-### Algorithm Layer
+### 安全性高于准确性
 
-The Algorithm Layer hosts the **Multi-Version Algorithm Matrix** — a portfolio of complementary mapping strategies that operate independently within the Shadow Layer. The matrix is organized by capability rather than by version lineage, reflecting that each approach addresses distinct aspects of the mapping problem.
+在完成影子模式验证之前，任何算法（无论理论准确性如何）都不允许影响生产搜索结果。安全性是通过架构分离来加强的，而不是通过惯例。影子层在物理上无法写入客户可见的响应字段。
 
-| Algorithm Dimension | Core Technique | Key Capabilities |
+### 持续评估
+
+评估不是一次性的认证活动。矩阵中的每个算法都需要针对不断扩展的自动语料库进行反复评估。随着新批准的注释进入测试集，之前验证的算法将重新进行基准测试以检测回归。
+
+### 人机交互
+
+自动映射决策是概率性的。真实语料库是通过结构化的人工审核工作流程构建的。只有通过专家评审（注释→批准）的样本才会进入自动语料库。保留被拒绝的样本以用于错误情况分析和模型细化。
+
+### 多策略冗余
+
+多版本算法矩阵特意采用异构方法（词汇、结构、语义和价格感知），以便任何单一故障模式都不会损害整个映射管道。算法之间的分歧本身就是下游置信度评分的信号。
+
+### 默认可观测性
+
+所有映射决策、算法输出、置信度分数和延迟测量都写入实时监控 (Prometheus) 和持久关系存储 (MySQL `room_mapping_metric`)。双指标写入可确保暂时的运行时问题不会导致永久性的可观测性差距。
+
+---
+
+## 影子模式架构
+
+影子模式架构包含三个逻辑上独立的层：**影子层**、**算法层**和**评估层**。
+
+### 阴影层
+
+影子层是系统的安全关键边界。它接收与生产映射路径相同的输入（供应商室元数据、搜索上下文和定价信号），但其输出专门路由到隔离的存储和指标管道。影子层无法写入搜索响应结构、影响客户结果的缓存条目或任何主链持久性。
+
+影子层强制执行的关键安全保证：
+
+- **不变性契约：** 候选算法受 `MapperInterface` 抽象的约束，该抽象明确禁止生产 `RoomTypeId` 字段的突变。
+- **采样控制：** 通过 `hb_compare_sample_rate` 的 A/B 测试配置控制每个算法的阴影流量部分。采样率因环境而异，以确保生产镜像是保守的，而分段镜像是全面的。
+- **原始可追溯性保留：** `roomKey`（`supplierHotelId` 和 `roomCode` 的组合）与每个阴影映射决策一起保留。这可以防止用推断的标识符替换评估的房间标识符，这是地图系统中评估失真的常见来源。
+
+### 算法层
+
+算法层托管**多版本算法矩阵** - 在影子层中独立运行的互补映射策略组合。该矩阵是按功能而不是版本沿袭组织的，反映出每种方法都解决映射问题的不同方面。
+
+|算法维度|核心技术|关键能力|
 |---|---|---|
-| **Lexical-Rule Mapping** | Multilingual keyword feature extraction (en/pt/es/fr) for Capacity, BedType, ViewType, and RoomClass; weighted similarity composition (text 60% + price 20% + feature 20%); hierarchical threshold clustering. | High interpretability; deterministic behavior; strong performance on structured room metadata. |
-| **Semantic-Structural Mapping** | Multidimensional semantic feature engineering (ViewScore, ClassScore, AmenityScore, LuxuryScore); multidimensional price normalization (RelativePosition, ZScore, PriceRatio, Segment); three-layer similarity blending (lexical 50% + structural 30% + semantic 20%). | Captures nuanced room descriptions; robust to supplier naming variation; price-aware disambiguation. |
-| **Performance-Optimized Inference** | Feature caching with 24-hour Redis TTL; sparse similarity matrix representation reducing complexity from quadratic to near-linear; goroutine pool parallel processing. | Sub-second P95 latency at scale; supports high-throughput shadow evaluation without impacting production QPS. |
+| **词汇规则映射** |针对Capacity、BedType、ViewType 和RoomClass进行多语言关键词特征提取（en/pt/es/fr）；加权相似度构成（文本60%+价格20%+特征20%）；层次阈值聚类。 |高可解释性；确定性行为；在结构化房间元数据上表现强劲。 |
+| **语义结构映​​射** |多维语义特征工程（ViewScore、ClassScore、AmenityScore、LuxuryScore）；多维价格标准化（RelativePosition、ZScore、PriceRatio、Segment）；三层相似度混合（词汇 50% + 结构 30% + 语义 20%）。 |捕捉细致入微的房间描述；对供应商命名变化具有鲁棒性；价格感知消歧。 |
+| **性能优化的推理** |具有24小时Redis TTL 的功能缓存；稀疏相似性矩阵表示将复杂性从二次降低到近线性； Goroutine 池并行处理。 |大规模亚秒级 P95 延迟；支持高吞吐量影子评估，而不影响生产 QPS。 |
 
-Each dimension of the matrix can be evaluated, promoted, or rolled back independently. The matrix design ensures that a regression in one dimension does not invalidate gains in another.
+矩阵的每个维度都可以独立评估、提升或回滚。矩阵设计确保一个维度的回归不会使另一维度的收益失效。
 
-### Evaluation Layer
+### 评估层
 
-The Evaluation Layer executes the offline benchmarking pipeline that determines algorithm promotion.
+评估层执行确定算法升级的离线基准测试管道。
 
-**Pair-Based Evaluation:**
-The `buildPairs()` construct generates exhaustive room pair sets from the ground-truth corpus. For each pair, the algorithm under evaluation predicts a match or non-match decision. These predictions are compared against human-approved labels.
+**基于配对的评估：**
+`buildPairs()` 构造从地面实况语料库生成详尽的房间对集。对于每一对，评估的算法都会预测匹配或不匹配的决定。这些预测与人类认可的标签进行比较。
 
-**Metrics Computed:**
+**计算的指标：**
 
-| Metric | Purpose |
+|公制|目的|
 |---|---|
-| **Precision** | Fraction of predicted matches that are true matches. |
-| **Recall** | Fraction of true matches that are correctly predicted. |
-| **F1 Score** | Harmonic mean of Precision and Recall; primary promotion criterion. |
-| **Rand Index** | Agreement between predicted clusters and ground-truth clusters. |
-| **P95 Latency** | 95th-percentile inference time; must remain within SLO bounds. |
+| **精确** |预测匹配中真实匹配的比例。 |
+| **回忆** |正确预测的真实匹配的比例。 |
+| **F1 得分** |精确率和召回率的调和平均值；主要晋升标准。 |
+| **兰德指数** |预测聚类与真实聚类之间的一致性。 |
+| **P95 延迟** |第 95 个百分位数的推理时间；必须保持在 SLO 范围内。 |
 
-**Automatic Winner Determination:**
-The `CompareAlgorithms()` function applies a thresholded F1 Score comparison (difference > 0.001) to declare a statistically meaningful winner. Algorithms failing to surpass the incumbent by this margin remain in shadow.
+**自动获胜者确定：**
+`CompareAlgorithms()` 函数应用阈值 F1 分数比较（差异 > 0.001）来宣布具有统计意义的获胜者。未能以这一优势超越现有算法的算法仍然处于阴影之中。
 
-**Confusion Matrix & Error Analysis:**
-Every evaluation produces a full confusion matrix (True Positives, False Positives, True Negatives, False Negatives). Error cases are automatically surfaced for human review and may trigger targeted corpus augmentation.
-
----
-
-## Mapping Lifecycle
-
-The lifecycle of a room mapping decision at HotelByte follows a gated pipeline:
-
-1. **Ingestion** — Supplier room metadata is normalized and enriched with pricing context.
-2. **Shadow Execution** — All algorithms in the active matrix process the room independently within the Shadow Layer.
-3. **Metrics Emission** — Shadow outputs, confidence scores, and latency measurements are dual-written to Prometheus and MySQL `room_mapping_metric`.
-4. **Ground-Truth Construction** — Annotators review samples through the annotated → approved → rejected workflow. Approved samples enter the auto-corpus.
-5. **Offline Evaluation** — The evaluation layer runs `buildPairs()`, computes Precision/Recall/F1/Rand Index/P95, and executes `CompareAlgorithms()`.
-6. **Promotion Gate** — An algorithm is promoted to production eligibility only if it exceeds the incumbent F1 Score by > 0.001 and satisfies latency SLOs.
-7. **Production Activation** — Promoted algorithms are gradually ramped via controlled sampling before full deployment.
-8. **Continuous Monitoring** — Post-promotion, algorithms remain subject to ongoing auto-corpus re-evaluation to detect drift or regression.
+**混淆矩阵和误差分析：**
+每次评估都会产生一个完整的混淆矩阵（真阳性、假阳性、真阴性、假阴性）。错误案例会自动出现以供人工审查，并可能触发有针对性的语料库扩充。
 
 ---
 
-## Implemented Control Summary
+## 映射生命周期
 
-| Control | Customer Value |
+HotelByte 房型映射决策的生命周期遵循门控管道：
+
+1. **摄取** — 供应商房间元数据通过定价环境进行标准化和丰富。
+2. **阴影执行** — 有源矩阵中的所有算法在阴影层内独立处理房间。
+3. **指标发射** — 影子输出、置信度分数和延迟测量双写入 Prometheus 和 MySQL `room_mapping_metric`。
+4. **地面实况构建** - 注释者通过注释 → 批准 → 拒绝的工作流程来审查样本。批准的样本进入自动语料库。
+5. **离线评估** — 评估层运行 `buildPairs()`，计算 Precision/Recall/F1/Rand Index/P95，并执行 `CompareAlgorithms()`。
+6. **晋升门** - 仅当算法超过现有 F1 分数 > 0.001 并满足延迟 SLO 时，才会晋升为生产资格。
+7. **生产激活** - 在全面部署之前，通过受控采样逐步提升推广算法。
+8. **持续监控** - 升级后，算法仍需接受持续的自动语料库重新评估，以检测漂移或回归。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| **Shadow Mode Safety Boundary** | Customer search results are insulated from unvalidated algorithm outputs. Mapping decisions cannot reach production without completing independent offline evaluation. |
-| **Multi-Version Algorithm Matrix** | No single algorithm failure mode can compromise mapping quality. Heterogeneous approaches provide redundancy and enable selective promotion of best-performing strategies. |
-| **Dual Metrics Writing (Prometheus + MySQL)** | Complete observability of mapping behavior is preserved even in the event of transient monitoring system failure. Customers benefit from consistent, auditable decision trails. |
-| **Original Room Key Traceability (`roomKey`)** | Every mapping decision is linked to its original supplier identifier, preventing silent substitution and enabling accurate retrospective audit and dispute resolution. |
-| **Automatic Winner Determination (F1 Δ > 0.001)** | Algorithm promotion is governed by an objective, reproducible statistical threshold rather than subjective judgment, ensuring only measurably superior algorithms influence customer results. |
-| **Structured Annotation Workflow (annotated → approved → rejected)** | The ground-truth corpus is built through expert-reviewed samples, ensuring that evaluation benchmarks reflect human-validated reality rather than algorithmic self-reference. |
-| **Auto-Corpus Enrichment** | The test set continuously expands as approved annotations accumulate, preventing evaluation stagnation and ensuring that algorithms are tested against representative, current inventory patterns. |
-| **Embedding Service with LRU Cache & Hit Rate Statistics** | Semantic similarity computation is performed efficiently with bounded latency and observable cache performance, supporting scalable room description comparison without external service degradation. |
-| **A/B Sampling Rate Control (`hb_compare_sample_rate`)** | Shadow evaluation load is tuned per environment, ensuring that production traffic is never materially impacted by shadow computation overhead. |
-| **Confusion Matrix & Error Case Analysis** | Systematic identification of false positive and false negative patterns drives targeted algorithm improvement and maintains transparency into failure modes. |
+| **影子模式安全边界** |客户搜索结果与未经验证的算法输出隔离。如果不完成独立的离线评估，测绘决策就无法投入生产。 |
+| **多版本算法矩阵** |任何单一算法的故障模式都不会影响绘图质量。异构方法提供了冗余并能够选择性地推广表现最佳的策略。 |
+| **双指标编写（Prometheus + MySQL）** |即使在监控系统发生瞬态故障的情况下，也可以保留映射行为的完整可观测性。客户受益于一致、可审核的决策跟踪。 |
+| **原始房间钥匙可追溯性 (`roomKey`)** |每个映射决策都与其原始供应商标识符相关联，防止无声替换并实现准确的回顾性审计和争议解决。 |
+| **自动获胜者确定 (F1 Δ > 0.001)** |算法推广由客观、可重复的统计阈值而不是主观判断来控制，确保只有可衡量的优越算法才会影响客户的结果。 |
+| **结构化注释工作流程（注释→批准→拒绝）** |真实语料库是通过专家评审的样本构建的，确保评估基准反映人类验证的现实，而不是算法的自我参考。 |
+| **自动语料库丰富** |随着批准的注释的积累，测试集不断扩展，防止评估停滞并确保算法根据代表性的当前库存模式进行测试。 |
+| **具有 LRU 缓存和命中率统计的嵌入服务** |语义相似性计算以有限的延迟和可观察的缓存性能有效地执行，支持可扩展的房间描述比较，而不会降低外部服务质量。 |
+| **A/B 采样率控制 (`hb_compare_sample_rate`)** |影子评估负载根据环境进行调整，确保生产流量永远不会受到影子计算开销的重大影响。 |
+| **混淆矩阵和错误案例分析** |系统地识别误报和漏报模式可推动有针对性的算法改进并保持故障模式的透明度。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-Auditability is a first-class requirement of the Room Mapping system. HotelByte provides the following verification methods:
+可审计性是 Room Mapping 系统的首要要求。 HotelByte提供以下验证方式：
 
-- **Decision Traceability:** Every shadow and production mapping output is associated with a unique trace identifier, the originating `roomKey`, the algorithm version that produced it, the confidence score, and the Unix timestamp of the decision.
-- **Metrics Persistence:** MySQL `room_mapping_metric` tables retain historical evaluation results, confusion matrices, and latency distributions for the lifetime of the data retention policy. This supports longitudinal trend analysis and regulatory audit.
-- **Corpus Provenance:** Each entry in the auto-corpus test set carries metadata including review status, annotator identifier, supplier, and country distribution. Test set statistics are reported by review status, case type, supplier, and geography.
-- **Embedding Audit Log:** The embedding service tracks batch processing identifiers, cache hit rates, and similarity computation outputs. LRU cache statistics (hit rate, eviction count) are emitted to monitoring for capacity planning and quality assurance.
-- **Promotion Log:** Every algorithm promotion or rollback event is logged with the incumbent F1 Score, the challenger F1 Score, the computed delta, and the evaluation timestamp. This creates an immutable record of why a given algorithm version was activated.
+- **决策可追溯性：** 每个影子和生产映射输出都与唯一的跟踪标识符、原始 `roomKey`、生成它的算法版本、置信度分数以及决策的 Unix 时间戳相关联。
+- **指标持久性：** MySQL `room_mapping_metric` 表保留数据保留策略生命周期内的历史评估结果、混淆矩阵和延迟分布。这支持纵向趋势分析和监管审计。
+- **语料库来源：** 自动语料库测试集中的每个条目都携带元数据，包括评论状态、注释者标识符、供应商和国家/地区分布。测试集统计数据按审查状态、案例类型、供应商和地理位置报告。
+- **嵌入审核日志：** 嵌入服务跟踪批处理标识符、缓存命中率和相似性计算输出。 LRU 缓存统计信息（命中率、逐出计数）被发送到监控以进行容量规划和质量保证。
+- **升级日志：** 每个算法升级或回滚事件都会记录现有的 F1 分数、挑战者 F1 分数、计算的增量和评估时间戳。这将创建一个不可变的记录，说明为什么激活给定的算法版本。
 
-Customers and auditors may request structured exports of mapping metrics, corpus statistics, and promotion logs through HotelByte's standard compliance channels.
+客户和审计员可以通过 HotelByte 的标准合规渠道请求结构化导出映射指标、语料库统计数据和促销日志。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-The following authoritative sources inform the design, evaluation, and governance of HotelByte's Room Mapping system. Each source is mapped to the corresponding HotelByte control.
+以下权威来源为 HotelByte 房型映射系统的设计、评估和治理提供了信息。每个源都映射到相应的 HotelByte 控件。
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Google. "Shadow Mode: A Safe Environment for Experimentation."** *Google AI Blog*, 2019. | "Shadow mode allows teams to run new models in parallel with production systems, capturing predictions without affecting user-facing outcomes. This enables safe measurement of model performance before launch." | **Shadow Mode Safety Boundary** — The production system remains unaffected by candidate algorithm outputs until offline evaluation is complete. |
-| **Microsoft. "Responsible AI: Fairness and Transparency in Machine Learning."** *Microsoft AI Principles*, 2022. | "AI systems should be evaluated against fairness metrics and transparent about their decision-making processes, including the ability to explain outcomes and audit model behavior over time." | **Structured Annotation Workflow** and **Auto-Corpus Enrichment** — Human-validated ground truth and continuous re-evaluation ensure fairness and transparency in mapping decisions. |
-| **Powers, David M.W. "Evaluation: From Precision, Recall and F-Measure to ROC, Informedness, Markedness & Correlation."** *Journal of Machine Learning Technologies*, 2011. | "F1 score is the harmonic mean of precision and recall and provides a balanced measure of a test's accuracy, particularly useful when class distributions are uneven." | **Automatic Winner Determination (F1 Δ > 0.001)** — F1 score is the primary promotion criterion, balancing precision and recall in the presence of imbalanced match/non-match pair distributions. |
-| **Hubert, Lawrence, and Phipps Arabie. "Comparing Partitions."** *Journal of Classification*, 1985. | "The Rand Index measures the similarity between two data clusterings, providing a scalar value between 0 and 1 that reflects the proportion of agreed-upon pairwise decisions." | **Offline Evaluation Loop** — Rand Index is computed alongside Precision and Recall to validate cluster-level agreement, not just pairwise accuracy. |
-| **Breck, Eric, et al. "What's Your ML Test Score? A Rubric for ML Production Systems."** *Google Research*, 2017. | "ML systems in production require tests for feature expectations, model specifications, and integration contracts, with continuous monitoring for data drift and model staleness." | **Dual Metrics Writing**, **Continuous Monitoring**, and **Embedding Service with LRU Cache & Hit Rate Statistics** — Comprehensive testing and monitoring rubric applied to mapping pipeline components. |
-| **OpenAI. "Text Embeddings: Best Practices for Production."** *OpenAI Platform Documentation*, 2024. | "Batching requests, implementing caching layers, and monitoring cache hit rates are essential for achieving cost-effective and low-latency embedding inference at scale." | **Embedding Service with LRU Cache & Hit Rate Statistics** — Batch processing (batch size 100), LRU cache (10k entries, 24h TTL), and hit rate monitoring align with production embedding best practices. |
-| **Kohavi, Ron, and Roger Longbotham. "Online Controlled Experiments and A/B Testing."** *Encyclopedia of Machine Learning and Data Mining*, 2017. | "Controlled experiments with randomized assignment and configurable sampling rates are the gold standard for measuring the causal impact of system changes on user outcomes." | **A/B Sampling Rate Control (`hb_compare_sample_rate`)** — Configurable per-environment sampling enables causal measurement of algorithm impact without exposing full traffic to unvalidated changes. |
+| **谷歌。 “影子模式：安全的实验环境。”** *Google AI 博客*，2019 年。 | “影子模式允许团队与生产系统并行运行新模型，捕获预测而不影响面向用户的结果。这可以在发布之前安全地测量模型性能。” | **影子模式安全边界** — 在离线评估完成之前，生产系统不会受到候选算法输出的影响。 |
+| **微软。 “负责任的人工智能：机器学习的公平性和透明度。”** *微软人工智能原则*，2022 年。 “人工智能系统应该根据公平指标进行评估，并对其决策过程保持透明，包括解释结果和审计模型随时间变化的行为的能力。” | **结构化注释工作流程**和**自动语料库丰富** - 人工验证的基本事实和持续的重新评估确保映射决策的公平性和透明度。 |
+| **Powers，David M.W.“评估：从精确度、召回率和 F 测量到 ROC、信息性、标记性和相关性。”** *机器学习技术杂志*，2011 年。 “F1 分数是精确度和召回率的调和平均值，提供了测试准确性的平衡衡量标准，在类别分布不均匀时特别有用。” | **自动获胜者确定 (F1 Δ > 0.001)** — F1 分数是主要的晋升标准，在存在不平衡匹配/不匹配对分布的情况下平衡精确度和召回率。 |
+| **休伯特、劳伦斯和菲普斯·阿拉比。 “比较分区。”** *《分类杂志》*，1985 年。 “兰德指数衡量两个数据聚类之间的相似性，提供 0 到 1 之间的标量值，反映商定的成对决策的比例。” | **离线评估循环** - Rand Index 与 Precision 和 Recall 一起计算，以验证集群级别的一致性，而不仅仅是成对的准确性。 |
+| **布雷克、埃里克等人。 “您的 ML 测试分数是多少？ML 生产系统的评分标准。”** *Google Research*，2017 年。 “生产中的机器学习系统需要对功能预期、模型规范和集成合同进行测试，并持续监控数据漂移和模型陈旧性。” | **双指标写入**、**持续监控**和**具有 LRU 缓存和命中率统计的嵌入服务** - 应用于映射管道组件的全面测试和监控规则。 |
+| **开放人工智能。 “文本嵌入：生产最佳实践。”** *OpenAI 平台文档*，2024 年。 | “批处理请求、实施缓存层和监控缓存命中率对于大规模实现经济高效且低延迟的嵌入推理至关重要。” | **具有 LRU 缓存和命中率统计信息的嵌入服务** — 批处理（批量大小 100）、LRU 缓存（10k 条目、24 小时 TTL）和命中率监控与生产嵌入最佳实践保持一致。 |
+| **科哈维、罗恩和罗杰·隆博瑟姆。 “在线控制实验和 A/B 测试。”** *机器学习和数据挖掘百科全书*，2017 年。 “具有随机分配和可配置采样率的受控实验是衡量系统变化对用户结果因果影响的黄金标准。” | **A/B 采样率控制 (`hb_compare_sample_rate`)** — 可配置的每个环境采样可以对算法影响进行因果测量，而不会将全部流量暴露给未经验证的更改。 |
 
 ---
 
-*© 2026 HotelByte. All rights reserved. This whitepaper is provided for informational purposes and does not constitute a binding service-level agreement.*
+*© 2026 HotelByte。版权所有。本白皮书仅供参考，并不构成具有约束力的服务级别协议。*

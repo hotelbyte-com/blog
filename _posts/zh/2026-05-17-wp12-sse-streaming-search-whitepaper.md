@@ -1,202 +1,191 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：SSE 流式搜索架构白皮书"
+title: "SSE 流式搜索架构白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp12-sse-streaming-search/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp12-sse-streaming-search/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp12-sse-streaming-search/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：SSE 流式搜索架构白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# SSE Streaming Search Architecture Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte is a global hotel API distribution platform that serves aggregated inventory from dozens of supplier integrations to travel agencies, online travel agencies (OTAs), and corporate booking tools. Traditional hotel search APIs return results only after all supplier queries have completed, forcing end users to wait several seconds before seeing any hotels. HotelByte replaces this blocking model with a progressive streaming architecture built on Server-Sent Events (SSE).
+HotelByte 是一个全球酒店 API 分销平台，为旅行社、在线旅行社 (OTA) 和企业预订工具的数十家供应商集成提供聚合库存服务。传统的酒店搜索 API 仅在所有供应商查询完成后才返回结果，迫使最终用户等待几秒钟才能看到任何酒店。 HotelByte 用基于服务器发送事件 (SSE) 的渐进式流架构取代了这种阻塞模型。
 
-The SSE streaming search endpoint (`/hotelListStream`) delivers an `initial` event containing the complete hotel catalog within milliseconds, followed by zero or more `update` events as live rates arrive from supplier systems, and finally a `complete` event with aggregated statistics. This architecture decouples catalog presentation from supplier latency, achieving a Time-To-First-Byte (TTFB) target of under 200 milliseconds and a First Contentful Paint (FCP) target of under 500 milliseconds.
+SSE 流式搜索端点 (`/hotelListStream`) 在几毫秒内交付包含完整酒店目录的 `initial` 事件，随后随着供应商系统传来实时价格而交付零个或多个 `update` 事件，最后交付具有汇总统计数据的 `complete` 事件。该架构将目录呈现与供应商延迟解耦，实现了 200 毫秒以下的首字节时间 (TTFB) 目标和 500 毫秒以下的首次内容绘制 (FCP) 目标。
 
-This whitepaper describes the protocol design, concurrent batch processing engine, frontend state synchronization model, and the observability framework that makes the stream fully auditable. It is intended for integration partners, enterprise customers, and security auditors who require transparency into how HotelByte delivers progressive search results without compromising data consistency or error visibility.
-
----
-
-## Scope
-
-This document covers the HotelByte streaming search layer only:
-
-- SSE protocol implementation and event lifecycle
-- Concurrent supplier batch processing and chunk scheduling
-- Frontend state machine for real-time price merging and hotel visibility
-- Structured observability, per-event logging, and stream statistics
-- Framework integration via the `StreamingOutput` interface
-
-It does not cover the underlying supplier adapter framework, the static hotel content pipeline, or the booking/trade engine, which are addressed in separate whitepapers.
+本白皮书描述了协议设计、并发批处理引擎、前端状态同步模型以及使流完全可审计的可观测性框架。它适用于需要透明了解 HotelByte 如何在不影响数据一致性或错误可见性的情况下提供渐进式搜索结果的集成合作伙伴、企业客户和安全审核员。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Progressive Discovery** — Users see the full hotel catalog immediately, while live rates stream in asynchronously as suppliers respond.
-2. **Latency Budget Enforcement** — TTFB < 200ms for the initial event; FCP < 500ms for the first meaningful price update.
-3. **Supplier Fault Isolation** — A slow or failing supplier does not block results from other suppliers; per-supplier errors are emitted as discrete events.
-4. **Real-Time Price Convergence** — The frontend merges incoming rates incrementally, always displaying the best available price observed across all supplier responses.
-5. **Full Observability** — Every event is traceable via a unified trace ID, and stream completion produces structured statistics suitable for operational dashboards and customer reports.
-6. **Graceful Degradation** — Hotels without live offers remain visible when no alternative pricing exists, preventing empty-result states.
+本文档仅涵盖 HotelByte 流式搜索层：
 
----
+- SSE协议实现和事件生命周期
+- 并发供应商批处理和块调度
+- 用于实时价格合并和酒店可见性的前端状态机
+- 结构化可观测性、每个事件日志记录和流统计
+- 通过 `StreamingOutput` 接口进行框架集成
 
-## Design Principles
-
-### Progressive Enhancement
-
-The user experience is intentionally layered. The initial event contains hotel static content (names, stars, locations, amenities) and any cached or pre-computed pricing already available in the platform. Live supplier responses then progressively enhance this baseline. This guarantees that a user with a slow connection or a supplier experiencing an outage still receives a usable hotel list.
-
-### Latency Budgeting
-
-Each phase of the stream carries a strict latency budget. Initial catalog preparation is optimized to complete within the TTFB window. Supplier queries are executed concurrently with aggressive batching and timeout management. The frontend applies a 150-millisecond debounce window for update rendering to balance perceived responsiveness with rendering efficiency.
-
-### Observable by Design
-
-Streaming responses bypass the default JSON marshaling path, which would ordinarily produce a single structured log entry. To preserve observability, the streaming response object maintains an internal event journal that records every emitted event—its type, supplier, credential, batch index, hotel count, and duration. Upon stream completion, `GetLogData()` returns this journal as a structured JSON object, ensuring that streamed responses are no less auditable than standard API calls.
-
-### Fault Isolation at the Credential Boundary
-
-Supplier queries are decomposed into batches, and each batch is further decomposed into independent goroutines per credential. A timeout, network error, or business-rule block in one credential does not delay or contaminate another. Error events carry full supplier and credential context, enabling downstream systems to attribute failures precisely.
-
-### Session Consistency
-
-The platform maintains a transactional search session that survives across API calls. During streaming, incremental session state is persisted before each update event is written to the client. This ensures that if a user clicks into a hotel immediately after its price appears, the subsequent `hotelRates` call operates against a fully synchronized session.
+它不涵盖底层供应商适配器框架、静态酒店内容管道或预订/交易引擎，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Streaming Architecture
+## 目标
 
-The streaming architecture consists of three coordinated layers: the SSE Protocol Layer, the Batch Processing Layer, and the Frontend State Layer.
+1. **渐进式发现** — 用户可以立即看到完整的酒店目录，而实时价格会随着供应商的响应而异步传输。
+2. **延迟预算执行** — 初始事件的 TTFB < 200ms；对于第一次有意义的价格更新，FCP < 500ms。
+3. **供应商故障隔离** — 缓慢或失败的供应商不会阻止其他供应商的结果；每个供应商的错误作为离散事件发出。
+4. **实时价格收敛** — 前端逐步合并传入费率，始终显示在所有供应商响应中观察到的最佳可用价格。
+5. **完全可观测性** — 每个事件都可以通过统一的跟踪 ID 进行跟踪，流完成会生成适合操作仪表板和客户报告的结构化统计数据。
+6. **优雅降级** — 当不存在替代定价时，没有实时优惠的酒店仍然可见，从而防止出现空结果状态。
 
-### SSE Protocol Layer
+---
 
-The endpoint returns `Content-Type: text/event-stream` with `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no` to prevent intermediate proxies from buffering events. Every SSE event conforms to the standard `event: {type}\ndata: {payload}\n\n` format.
+## 设计原则
 
-Four event types form the contract:
+### 渐进增强
 
-| Event Type | Purpose |
+用户体验是有意分层的。初始事件包含酒店静态内容（名称、星级、位置、便利设施）以及平台中已有的任何缓存或预先计算的价格。然后，实时供应商响应将逐步提高这一基线。这保证了连接速度慢的用户或遇到中断的供应商仍然收到可用的酒店列表。
+
+### 延迟预算
+
+流的每个阶段都有严格的延迟预算。初始目录准备经过优化，可以在 TTFB 窗口内完成。供应商查询与积极的批处理和超时管理同时执行。前端应用 150 毫秒的去抖窗口来更新渲染，以平衡感知响应能力与渲染效率。
+
+### 可观察的设计
+
+流式响应绕过默认的 JSON 编组路径，该路径通常会生成单个结构化日志条目。为了保持可观测性，流响应对象维护一个内部事件日志，记录每个发出的事件——其类型、供应商、凭证、批次索引、酒店数量和持续时间。流完成后，`GetLogData()` 将此​​日志作为结构化 JSON 对象返回，确保流式响应的可审核性不亚于标准 API 调用。
+
+### 凭证边界的故障隔离
+
+供应商查询被分解为批次，每个批次进一步分解为每个凭证的独立 goroutine。一个凭证中的超时、网络错误或业务规则阻止不会延迟或污染另一个凭证。错误事件携带完整的供应商和凭证上下文，使下游系统能够准确地归因故障。
+
+### 会话一致性
+
+该平台维护一个跨 API 调用持续存在的事务搜索会话。在流式传输期间，在将每个更新事件写入客户端之前，会保留增量会话状态。这确保了如果用户在酒店价格出现后立即点击酒店，后续的 `hotelRates` 调用将针对完全同步的会话进行操作。
+
+---
+
+## 流媒体架构
+
+流式传输架构由三个协调层组成：SSE 协议层、批处理层和前端状态层。
+
+### SSE协议层
+
+端点返回 `Content-Type: text/event-stream` 以及 `Cache-Control: no-cache`、`Connection: keep-alive` 和 `X-Accel-Buffering: no`，以防止中间代理缓冲事件。每个 SSE 事件都符合标准 `event: {type}\ndata: {payload}\n\n` 格式。
+
+合约由四种事件类型组成：
+
+|事件类型 |目的|
 |---|---|
-| `initial` | Delivers the complete hotel catalog, session ID, pagination metadata, and any cached pricing. This event always arrives first. |
-| `update` | Carries live supplier results for a specific batch. Contains supplier ID, credential ID, batch index, supplier cost time, and the hotel rate payload. |
-| `error` | Signals a supplier-level or global failure. Includes the same identity metadata as `update` events so failures can be correlated to specific supplier queries. |
-| `complete` | Terminates the stream with aggregated statistics: total suppliers, success/failure counts, total credentials, total batches, and their respective success/failure breakdowns. |
+| `initial` |提供完整的酒店目录、会话 ID、分页元数据和任何缓存的定价。此事件总是先到达。 |
+| `update` |携带特定批次的实时供应商结果。包含供应商 ID、凭证 ID、批次索引、供应商成本时间和酒店房价有效负载。 |
+| `error` |发出供应商级别或全球故障的信号。包括与 `update` 事件相同的身份元数据，因此故障可以与特定供应商查询相关联。 |
+| `complete` |使用聚合统计数据终止流：供应商总数、成功/失败计数、总凭证、总批次及其各自的成功/失败细分。 |
 
-Every event carries a monotonically increasing `eventSeq`, an `eventTs` (millisecond timestamp), and a `traceId` that is aligned across the HTTP response header and every SSE event. This allows distributed tracing tools to correlate the streaming HTTP request with each incremental payload.
+每个事件都带有一个单调递增的 `eventSeq`、一个 `eventTs`（毫秒时间戳）以及一个在 HTTP 响应标头和每个 SSE 事件之间对齐的 `traceId`。这允许分布式跟踪工具将流式 HTTP 请求与每个增量负载相关联。
 
-### Batch Processing Layer
+### 批处理层
 
-When a streaming search is initiated, the platform first resolves the buyer entity and all active seller entities for the requested hotels. For each seller, the system determines the optimal batch size (configurable per supplier entity) and splits the supplier hotel ID list into chunks.
+启动流式搜索时，平台首先解析所请求酒店的买方实体和所有活跃卖方实体。对于每个卖家，系统确定最佳批量大小（每个供应商实体可配置）并将供应商酒店 ID 列表拆分为多个块。
 
-The processing pipeline follows this pattern:
+处理管道遵循以下模式：
 
-1. **Seller Parallelization** — Each seller is processed in its own concurrent goroutine. Sellers do not block one another.
-2. **Batch Chunking** — Hotel IDs are partitioned into chunks based on the supplier's configured batch size. This prevents oversized supplier requests that can trigger timeouts or rate limits.
-3. **Credential Concurrency** — Within each chunk, every available credential is queried concurrently. This maximizes throughput for accounts with multiple active credentials.
-4. **Rule Application** — Responses flow through a deterministic pipeline: seller-out rules filter rooms, room mapping normalizes supplier room types, buyer-out rules enforce customer-specific pricing policies, and rate normalization flattens and deduplicates results.
-5. **Room Aggregation** — Normalized rooms are grouped by hotel ID, and the minimum price per hotel is computed. The resulting `StreamUpdatePayload` contains one entry per hotel with its aggregated rooms and computed minimum price.
-6. **Visibility Resolution** — A final visibility update is computed after all supplier responses have been processed. Hotels that received no live offers are hidden only when at least one other hotel in the same search has a confirmed live offer. If no hotel has offers, all hotels remain visible with a "no offers" indicator, preventing empty-result states.
+1. **卖家并行化** - 每个卖家都在自己的并发 goroutine 中进行处理。卖家不会互相屏蔽。
+2. **批量分块** — 酒店 ID 根据供应商配置的批量大小分为多个块。这可以防止供应商请求过大而触发超时或速率限制。
+3. **凭证并发** — 在每个块内，同时查询每个可用凭证。这可以最大限度地提高具有多个活动凭证的帐户的吞吐量。
+4. **规则应用** - 响应流经确定性管道：卖方规则过滤房间，房型映射规范供应商房间类型，买方规则强制执行客户特定的定价政策，费率规范化使结果平坦化并消除重复。
+5. **房间聚合** — 标准化房间按酒店 ID 分组，并计算每家酒店的最低价格。生成的 `StreamUpdatePayload` 包含每个酒店的一个条目及其聚合客房和计算出的最低价格。
+6. **可见性分辨率** — 在处理所有供应商响应后计算最终的可见性更新。仅当同一搜索中至少有另一家酒店已确认实时优惠时，未收到实时优惠的酒店才会隐藏。如果没有酒店提供优惠，则所有酒店都将保持可见，并带有“无优惠”指示器，从而防止出现空结果状态。
 
-### Frontend State Layer
+### 前端状态层
 
-The client maintains an in-memory `HotelStateMap` keyed by hotel ID. As `update` events arrive, the frontend performs an incremental merge:
+客户端在内存中维护一个由酒店 ID 键入的 `HotelStateMap`。当 `update` 事件到达时，前端执行增量合并：
 
-- Existing hotel state is preserved for fields not present in the update.
-- Incoming rooms are merged into the hotel's room list.
-- Minimum price is updated when the new supplier price is lower than the current best price.
-- The `hideFromSearchResults` flag is applied to suppress hotels that receive confirmed no-offer states.
+- 更新中不存在的字段保留现有酒店状态。
+- 传入的房间将合并到酒店的房间列表中。
+- 当新供应商价格低于当前最优惠价格时，最低价格会更新。
+- `hideFromSearchResults` 标志用于抑制收到确认无报价状态的酒店。
 
-To prevent excessive React re-renders during high-frequency updates, the frontend applies a 150-millisecond debounce window. Updates arriving within this window are batched into a single state transition. The debounce is flushed immediately when the `complete` event arrives, ensuring the final state is rendered without delay.
-
----
-
-## Stream Lifecycle
-
-A typical stream progresses through the following lifecycle:
-
-1. **Request Ingestion** — The HTTP dispatcher recognizes that the service method returns a `StreamingOutput` implementation and delegates response writing to the stream object.
-2. **Catalog Preparation** — The platform resolves the destination, builds the hotel list, applies pagination, and enriches with cached pricing. This phase is measured and reported in the `initial` event's `ServerCostMilliseconds` header.
-3. **Initial Event Emission** — The full hotel list is serialized and flushed to the client. The connection remains open.
-4. **Concurrent Supplier Execution** — Seller goroutines begin executing. As each credential query completes, the result is normalized, aggregated, and pushed to the stream channel.
-5. **Incremental Persistence** — Before each `update` event is written, the current session state is cached. This guarantees session readiness for any immediate downstream `hotelRates` call.
-6. **Update Event Emission** — Each supplier result is written as an `update` event with full trace context. Slow suppliers do not block fast ones because the channel is buffered and each supplier operates independently.
-7. **Error Event Emission** — If a supplier query fails (timeout, authentication failure, business error), an `error` event is emitted with the same supplier/credential/batch metadata. The stream continues.
-8. **Final Visibility Update** — After all sellers complete, a computed visibility patch is emitted to hide hotels with no offers (only when other hotels have valid offers).
-9. **Complete Event Emission** — The `complete` event delivers final statistics and closes the stream.
-10. **Structured Logging** — `GetLogData()` returns the full event journal, byte count, and success/failure statistics for the platform's structured log pipeline.
+为了防止高频更新期间过多的 React 重新渲染，前端应用了 150 毫秒的去抖窗口。在此窗口内到达的更新被批量处理为单个状态转换。当 `complete` 事件到达时，去抖会立即刷新，确保最终状态毫不延迟地呈现。
 
 ---
 
-## Implemented Control Summary
+## 流生命周期
 
-| Control | Customer Value |
+典型的流会经历以下生命周期：
+
+1. **请求摄取** — HTTP 调度程序识别出服务方法返回 `StreamingOutput` 实现并将响应写入委托给流对象。
+2. **目录准备** — 平台解析目的地、构建酒店列表、应用分页并通过缓存的价格进行丰富。该阶段在 `initial` 事件的 `ServerCostMilliseconds` 标头中进行测量和报告。
+3. **初始事件发射** — 完整的酒店列表被序列化并刷新给客户端。连接保持打开状态。
+4. **并发供应商执行** — 卖方 goroutine 开始执行。每个凭证查询完成后，结果将被标准化、聚合并推送到流通道。
+5. **增量持久性** — 在写入每个 `update` 事件之前，会缓存当前会话状态。这保证了任何直接下游 `hotelRates` 调用的会话准备就绪。
+6. **更新事件发射** — 每个供应商结果都被写入具有完整跟踪上下文的 `update` 事件。慢速供应商不会阻止快速供应商，因为通道是缓冲的并且每个供应商独立运行。
+7. **错误事件发射** — 如果供应商查询失败（超时、身份验证失败、业务错误），则会使用相同的供应商/凭证/批次元数据发出 `error` 事件。流继续。
+8. **最终可见性更新** — 所有卖家完成后，会发出计算出的可见性补丁，以隐藏没有优惠的酒店（仅当其他酒店有有效优惠时）。
+9. **完成事件发射** — `complete` 事件提供最终统计数据并关闭流。
+10. **结构化日志记录** — `GetLogData()` 返回平台结构化日志管道的完整事件日志、字节计数和成功/失败统计信息。
+
+---
+
+## 实施的控制摘要
+
+|控制|客户价值 |
 |---|---|
-| Server-Sent Events (SSE) Protocol | Progressive result delivery over a single long-lived HTTP connection; no WebSocket handshake overhead and full compatibility with standard HTTP infrastructure. |
-| Initial Event with Full Catalog | Users see hotels within 200ms regardless of supplier latency, eliminating the blank-screen problem of traditional blocking search APIs. |
-| Configurable Batch Chunking | Supplier requests are sized to match each supplier's capacity, reducing timeout rates and improving supplier relationship stability. |
-| Credential-Level Concurrency | Multi-credential accounts achieve maximum parallel throughput; one credential's slowness does not delay another. |
-| Seller-Level Fault Isolation | A failing supplier is contained to its own error event; all other suppliers continue streaming unaffected. |
-| Real-Time Price Merging | The frontend always displays the lowest price observed across all suppliers, updated live as each batch returns. |
-| Debounced Frontend Rendering | A 150ms batching window prevents UI thrashing during high-frequency updates while preserving perceived real-time behavior. |
-| Incremental Session Persistence | Session state is cached before every update event, ensuring that subsequent `hotelRates` calls are immediately valid. |
-| Conditional Hotel Visibility | Hotels without offers are hidden only when alternatives exist; otherwise, the catalog remains intact to prevent empty-result UX degradation. |
-| Per-Event Structured Logging | Every event type, supplier, credential, batch, and hotel count is recorded in a structured log object for audit and debugging. |
-| Unified Trace ID Propagation | The same `traceId` flows from the HTTP response header through every SSE event, enabling end-to-end distributed tracing. |
-| Stream Completion Statistics | The `complete` event reports total, success, and failure counts at supplier, credential, and batch granularity for operational transparency. |
-| `StreamingOutput` Framework Extension | Streaming endpoints are first-class citizens in the HTTP dispatcher, with automatic bypass of default JSON marshaling and retained observability. |
+|服务器发送事件 (SSE) 协议 |通过单个长期 HTTP 连接进行渐进式结果交付；没有 WebSocket 握手开销，并且与标准 HTTP 基础设施完全兼容。 |
+|带有完整目录的初始活动 |无论供应商延迟如何，用户都可以在 200 毫秒内看到酒店，从而消除了传统阻塞搜索 API 的黑屏问题。 |
+|可配置的批量分块 |供应商请求的大小应与每个供应商的能力相匹配，从而减少超时率并提高供应商关系的稳定性。 |
+|凭证级并发 |多凭证账户实现最大并行吞吐量；一项凭证的缓慢不会耽误另一项凭证的速度。 |
+|卖家级故障隔离|失败的供应商被包含在自己的错误事件中；所有其他供应商继续直播，不受影响。 |
+|实时价格合并 |前端始终显示所有供应商观察到的最低价格，并在每批退货时实时更新。 |
+|去抖前端渲染 | 150 毫秒的批处理窗口可防止高频更新期间的 UI 抖动，同时保留感知的实时行为。 |
+|增量会话持续性|会话状态在每个更新事件之前被缓存，确保后续的 `hotelRates` 调用立即有效。 |
+|有条件的酒店能见度|仅当存在替代方案时才会隐藏没有优惠的酒店；否则，目录将保持完整，以防止空结果用户体验下降。 |
+|按事件结构化日志记录 |每个事件类型、供应商、凭证、批次和酒店计数都记录在结构化日志对象中，以供审核和调试。 |
+|统一跟踪 ID 传播 |相同的 `traceId` 从 HTTP 响应标头流经每个 SSE 事件，从而实现端到端分布式跟踪。 |
+|流完成统计 | `complete` 事件报告供应商、凭证和批次粒度的总数、成功和失败计数，以实现操作透明度。 |
+| `StreamingOutput` 框架扩展 |流端点是 HTTP 调度程序中的一等公民，可以自动绕过默认 JSON 封送处理并保留可观测性。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-External reviewers and enterprise customers can verify HotelByte streaming search controls through the following mechanisms:
+外部审核者和企业客户可以通过以下机制验证 HotelByte 流式搜索控制：
 
-1. **Structured Stream Logs (HBLog)** — Every stream emits a structured log object via `GetLogData()` containing event count, byte count, total suppliers, success/failure breakdowns by supplier, credential, and batch, and a chronological event journal. These logs are retained and available for audit export.
+1. **结构化流日志 (HBLog)** — 每个流通过 `GetLogData()` 发出结构化日志对象，其中包含事件计数、字节计数、供应商总数、按供应商划分的成功/失败细分、凭证和批次以及按时间顺序排列的事件日志。这些日志将被保留并可供审计导出。
 
-2. **Trace ID Correlation** — The `traceId` returned in the HTTP `Trace-Id` header is identical to the `traceId` field in every SSE event. Reviewers can correlate the parent HTTP request with each incremental event in log aggregation tools.
+2. **跟踪 ID 相关性** — HTTP `Trace-Id` 标头中返回的 `traceId` 与每个 SSE 事件中的 `traceId` 字段相同。审阅者可以将父 HTTP 请求与日志聚合工具中的每个增量事件关联起来。
 
-3. **Per-Event Timing** — The `ServerCostMilliseconds` field in each event header reports the backend cost for that specific phase: initial preparation cost for the `initial` event, supplier round-trip cost for each `update` event, and total stream duration for the `complete` event.
+3. **每事件计时** — 每个事件标头中的 `ServerCostMilliseconds` 字段报告该特定阶段的后端成本：`initial` 事件的初始准备成本、每个 `update` 事件的供应商往返成本以及 `complete` 事件的总流持续时间。
 
-4. **Stream Statistics Payload** — The `complete` event's `stats` object reports `totalSuppliers`, `success`, `failed`, `totalCredentials`, `successCredentials`, `failedCredentials`, `totalBatches`, `successBatches`, and `failedBatches`. These counters can be validated against supplier configuration and expected concurrency levels.
+4. **流统计负载** — `complete` 事件的 `stats` 对象报告 `totalSuppliers`、`success`、`failed`、`totalCredentials`、`successCredentials`、`failedCredentials`、`totalBatches`、`successBatches` 和 `failedBatches`。可以根据供应商配置和预期并发级别验证这些计数器。
 
-5. **E2E Test Coverage** — The streaming endpoint is covered by end-to-end tests that validate progressive loading, real-time price updates, error handling, hotel visibility logic, and performance thresholds. Reviewers can execute these tests in a local environment to reproduce control behavior.
+5. **E2E 测试覆盖率** — 流媒体端点受到端到端测试的覆盖，这些测试验证渐进式加载、实时价格更新、错误处理、酒店可见性逻辑和性能阈值。审阅者可以在本地环境中执行这些测试以重现控制行为。
 
-6. **Source Annotations** — The streaming service method declares OpenAPI tags, authentication requirements, and permission annotations in source code. These annotations are parsed at build time and can be statically audited to verify that the endpoint matches published API documentation.
+6. **源注释** — 流服务方法在源代码中声明 OpenAPI 标签、身份验证要求和权限注释。这些注释在构建时进行解析，并且可以进行静态审核以验证端点是否与已发布的 API 文档匹配。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **HTML Standard — Server-Sent Events (WHATWG)** | "The event stream is a simple stream of text data which must be encoded using UTF-8. Each message is separated by a double newline." | The streaming endpoint emits strictly formatted SSE events (`event: {type}\ndata: {payload}\n\n`) with `Content-Type: text/event-stream`, ensuring universal browser and proxy compatibility. |
-| **RFC 6202 — Known Issues and Best Practices for the Use of Long Polling and Streaming in Bidirectional HTTP** | "Use the 'Cache-Control: no-cache' header to prevent intermediaries from buffering responses." | The platform sets `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no` to prevent intermediate proxies from buffering SSE events. |
-| **Google Web Vitals — First Contentful Paint (FCP)** | "FCP measures how long it takes the browser to render the first piece of DOM content after a user navigates to your page." | The streaming architecture targets FCP < 500ms by delivering the full hotel catalog in the `initial` event, followed by progressive price enhancement via `update` events. |
-| **Martin Fowler — Circuit Breaker Pattern** | "The basic idea behind the circuit breaker is very simple. You wrap a protected function call in a circuit breaker object, which monitors for failures." | Supplier failures are isolated to discrete `error` events; the stream continues for healthy suppliers. This containment acts as a per-supplier circuit breaker at the event-stream level. |
-| **AWS Well-Architected Framework — Performance Efficiency Pillar** | "Use a multi-threaded or asynchronous architecture to reduce blocking and increase throughput." | The batch processing layer executes sellers, batches, and credentials in concurrent goroutines with bounded error groups, maximizing throughput while preventing unbounded goroutine growth. |
-| **NIST SP 800-53 Rev. 5 AU-12 Audit Generation** | "The information system provides audit record generation capability for the events defined in AU-2 at all information system components where audit capability is deployed." | `StreamHotelListResp` maintains an internal event journal (`logEvents`) and exposes `GetLogData()` to return a structured audit object containing every event, supplier, batch, and outcome, ensuring no audit gap for streamed responses. |
+| **HTML 标准 — 服务器发送的事件 (WHATWG)** | “事件流是一个简单的文本数据流，必须使用 UTF-8 进行编码。每条消息均由双换行符分隔。” |流端点使用 `Content-Type: text/event-stream` 发出严格格式的 SSE 事件 (`event: {type}\ndata: {payload}\n\n`)，确保通用浏览器和代理兼容性。 |
+| **RFC 6202 — 在双向 HTTP 中使用长轮询和流式处理的已知问题和最佳实践** | “使用‘Cache-Control: no-cache’标头来防止中介缓冲响应。” |平台设置 `Cache-Control: no-cache`、`Connection: keep-alive` 和 `X-Accel-Buffering: no` 以防止中间代理缓冲 SSE 事件。 |
+| **Google Web Vitals — 首次内容绘制 (FCP)** | “FCP 测量用户导航到您的页面后浏览器渲染第一段 DOM 内容所需的时间。” |流式架构的目标是 FCP < 500ms，在 `initial` 事件中提供完整的酒店目录，然后通过 `update` 事件逐步提高价格。 |
+| **Martin Fowler — 断路器模式** | “断路器背后的基本思想非常简单。您将受保护的函数调用包装在断路器对象中，该对象监视故障。” |供应商故障与离散的 `error` 事件隔离；对于健康的供应商来说，这一趋势仍在继续。此遏制充当事件流级别的每个供应商断路器。 |
+| **AWS 架构完善的框架 — 性能效率支柱** | “使用多线程或异步架构来减少阻塞并提高吞吐量。” |批处理层在具有有限错误组的并发 goroutine 中执行卖家、批次和凭证，从而最大化吞吐量，同时防止 goroutine 无限增长。 |
+| **NIST SP 800-53 Rev. 5 AU-12 审核生成** | “信息系统为部署审计功能的所有信息系统组件中 AU-2 中定义的事件提供审计记录生成功能。” | `StreamHotelListResp` 维护内部事件日志 (`logEvents`) 并公开 `GetLogData()` 以返回包含每个事件、供应商、批次和结果的结构化审计对象，确保流式响应没有审计间隙。 |
 
 ---
 
-*For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+*如对本白皮书有疑问或审核请求，请通过您指定的合作伙伴渠道联系 HotelByte Engineering。*

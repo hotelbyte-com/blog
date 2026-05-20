@@ -1,177 +1,166 @@
 ---
-
 layout: post
-title: "英文 canonical 原文：金融级钱包与授信系统白皮书"
+title: "金融级钱包与信用系统白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
 author: "HotelByte Team"
-description: "HotelByte 技术白皮书原文已发布到博客，便于公开阅读、引用和分享。"
+description: "HotelByte 技术白皮书中文原文，公开发布，便于阅读、引用和分享。"
 lang: zh
 permalink: /zh/whitepapers/wp14-wallet-credit/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp14-wallet-credit/
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp14-wallet-credit/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
-</div>
-
-# 英文 canonical 原文：金融级钱包与授信系统白皮书
-
-> 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical 全文已在本页下方发布。
-
-# Financial-Grade Wallet & Credit System Whitepaper
-
-**HotelByte Technical Whitepaper | Version 2.0**
+**HotelByte 技术白皮书 | Version 2.0**
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-HotelByte operates a multi-tenant hotel distribution platform where thousands of booking transactions flow between customers, tenants, and suppliers across dozens of currencies every hour. To govern financial exposure at each of these boundaries, HotelByte implements a financial-grade wallet and credit system that enforces strict balance integrity, immutable audit trails, and automatic reconciliation-driven compensation.
+HotelByte 运营着一个多租户酒店分销平台，每小时有数千笔预订交易在客户、租户和供应商之间以数十种货币进行流动。为了管理每个边界的财务风险，HotelByte 实施了金融级钱包与信用系统，该系统强制执行严格的余额完整性、不可变的审计跟踪和自动对账驱动的补偿。
 
-This whitepaper describes the architecture, controls, and operational guarantees of the wallet and credit subsystem. It is intended for enterprise customers, security auditors, and integration partners who require transparency into how HotelByte manages credit limits, pre-authorization holds, deductions, refunds, and cross-currency settlements without ever permitting a balance to drift into an inconsistent state.
-
----
-
-## Scope
-
-This document covers the HotelByte wallet and credit layer only:
-
-- Wallet domain model and triplet addressing (`user/domain/wallet.go`)
-- Wallet persistence and atomic balance operations (`user/mysql/wallet_dao.go`)
-- Credit lifecycle management: holds, deductions, releases, and refunds (`user/service/credit_management.go`)
-- Immutable ledger recording and query semantics
-- Order reconciliation and automatic wallet compensation (`trade/service/order_reconciliation.go`)
-- Cross-currency conversion and settlement tracking
-
-It does not cover payment processor integrations, charge-back handling, or regulatory tax reporting, which are addressed in separate whitepapers.
+本白皮书描述了钱包和信用子系统的架构、控制和操作保证。它面向企业客户、安全审计员和集成合作伙伴，他们需要透明地了解 HotelByte 如何管理信用限额、预授权保留、扣除、退款和跨货币结算，而又不允许余额陷入不一致状态。
 
 ---
 
-## Objectives
+## 范围
 
-1. **Financial-Grade Consistency** — Every credit operation is atomic, bounded, and leaves an immutable ledger record. No balance update is ever applied without a corresponding audit entry.
-2. **Defense in Depth for Balance Integrity** — Balance mutations are enforced at both the domain layer (invariant checks) and the storage layer (atomic conditional UPDATE), with self-healing clamp semantics for anomalous states.
-3. **Transparent Multi-Tenant Isolation** — Each wallet is scoped to a unique `(BuyerEntityID, SellerEntityID, Currency)` triplet, ensuring that credit exposure between any two parties is independently tracked and settled.
-4. **Automatic Reconciliation Compensation** — When supplier-reported order states diverge from the platform's internal state, the system automatically determines whether to refund or re-deduct wallet credit, keeping financial exposure aligned with ground truth.
-5. **Cross-Currency Transparency** — All currency conversions are recorded with original amount, settlement currency, and applied exchange rate, enabling full traceability for multi-currency accounts.
+本文档仅涵盖 HotelByte 钱包和信用层：
 
----
+- 钱包域模型和三元组寻址（`user/domain/wallet.go`）
+- 钱包持久化和原子平衡操作（`user/mysql/wallet_dao.go`）
+- 信用生命周期管理：保留、扣除、释放和退款 (`user/service/credit_management.go`)
+- 不可变的账本记录和查询语义
+- 订单对账和自动钱包补偿（`trade/service/order_reconciliation.go`）
+- 跨货币兑换和结算跟踪
 
-## Design Principles
-
-### Atomic Financial Operations
-
-Every mutation to a wallet's `UsedLimit` or `CreditLimit` is executed inside a transaction that also produces at least one immutable ledger record. There is no code path that updates a wallet balance without a corresponding `CreditLedger` entry. This ensures that the ledger is not a secondary log—it is the authoritative source of financial truth, and the wallet table serves as a denormalized, performance-optimized current-state view.
-
-### Immutable Ledger Records
-
-Ledger entries are append-only. Once created, a `CreditLedger` row is never updated or deleted. The five operation types—`HOLD`, `RELEASE`, `DEBIT`, `CREDIT`, and `LIMIT_CHANGE`—form a complete vocabulary for every financial event. Each entry carries a `RunningBalance` (`CreditLimit - UsedLimit` at the moment of recording), enabling auditors to reconstruct the wallet state at any point in time by replaying entries in sequence.
-
-### Defense in Depth for Balance Integrity
-
-Balance mutations pass through three independent enforcement layers:
-
-1. **Domain-layer invariants** — `CheckBalanceSufficient`, `CalculateNewUsedLimitForDeduction`, and `CalculateNewUsedLimitForRefund` enforce semantic correctness before any storage call.
-2. **Atomic conditional UPDATE** — MySQL `UPDATE` statements apply delta changes only when the resulting `UsedLimit` remains within `[0, CreditLimit]`. Unlimited-mode wallets (`CreditLimit == 0`) bypass the upper bound.
-3. **Self-healing clamp semantics** — Refund operations apply `GREATEST(0, used_limit + delta)` at the database level, automatically correcting any anomalous negative state that could theoretically arise from extreme edge cases.
-
-### Idempotent Safety
-
-All refund paths are designed to be safely retryable. When a refund request duplicates a previously processed operation, the system detects the no-op condition (zero rows affected from MySQL aligned with the domain expression) and returns success without double-crediting the wallet.
-
-### Unlimited-Mode Credit
-
-HotelByte supports both limited and unlimited credit modes. In unlimited mode (`CreditLimit == 0`), balance sufficiency checks are skipped, enabling trusted enterprise customers to operate without artificial booking caps while still recording every hold and deduction in the ledger for full visibility.
+它不包括支付处理器集成、退款处理或监管税务报告，这些内容将在单独的白皮书中讨论。
 
 ---
 
-## Wallet Architecture
+## 目标
 
-### Triplet Identity Model
+1. **金融级一致性** — 每个信用操作都是原子的、有界的，并留下不可变的账本记录。如果没有相应的审核条目，则不会应用余额更新。
+2. **平衡完整性的深度防御** - 在域层（不变检查）和存储层（原子条件更新）上强制执行平衡突变，并针对异常状态提供自我修复钳位语义。
+3. **透明的多租户隔离** — 每个钱包的范围仅限于唯一的 `(BuyerEntityID, SellerEntityID, Currency)` 三元组，确保任何两方之间的信用风险得到独立跟踪和结算。
+4. **自动对账补偿** — 当供应商报告的订单状态与平台内部状态出现偏差时，系统会自动确定是否退款或重新扣除钱包积分，从而使财务风险与真实情况保持一致。
+5. **跨币种透明度**——所有货币兑换均记录原始金额、结算币种和适用汇率，实现多币种账户的完全可追溯。
 
-Every wallet is uniquely identified by a triplet:
+---
+
+## 设计原则
+
+### 原子金融操作
+
+钱包的 `UsedLimit` 或 `CreditLimit` 的每次突变都是在一笔交易内执行的，该交易还生成至少一个不可变的账本记录。如果没有相应的 `CreditLedger` 条目，则没有代码路径可以更新钱包余额。这确保了分类账不是辅助日志——它是财务真相的权威来源，而钱包表则充当非规范化、性能优化的当前状态视图。
+
+### 不可变的账本记录
+
+分类账条目只能追加。 `CreditLedger` 行一旦创建，就永远不会更新或删除。五种操作类型（`HOLD`、`RELEASE`、`DEBIT`、`CREDIT` 和 `LIMIT_CHANGE`）构成了每个金融事件的完整词汇表。每个条目都带有一个 `RunningBalance`（记录时为 `CreditLimit - UsedLimit`），使审计人员能够通过按顺序重放条目来重建任意时间点的钱包状态。
+
+### 深度防御以平衡完整性
+
+平衡突变通过三个独立的执行层：
+
+1. **域层不变量** — `CheckBalanceSufficient`、`CalculateNewUsedLimitForDeduction` 和 `CalculateNewUsedLimitForRefund` 在任何存储调用之前强制执行语义正确性。
+2. **原子条件更新** — 仅当生成的 `UsedLimit` 保留在 `[0, CreditLimit]` 内时，MySQL `UPDATE` 语句才会应用增量更改。无限模式钱包（`CreditLimit == 0`）绕过上限。
+3. **自我修复钳制语义** - 退款操作在数据库级别应用 `GREATEST(0, used_limit + delta)`，自动纠正理论上可能由极端边缘情况引起的任何异常负面状态。
+
+### 幂等安全
+
+所有退款路径均设计为可安全重试。当退款请求重复之前处理的操作时，系统会检测到无操作条件（受 MySQL 影响的零行与域表达式对齐）并返回成功，而不会重复记入钱包。
+
+### 无限模式信用
+
+HotelByte支持有限和无限信用模式。在无限制模式 (`CreditLimit == 0`) 下，会跳过余额充足性检查，使受信任的企业客户能够在没有人为预订上限的情况下进行操作，同时仍记录账本中的每次保留和扣除，以实现完全可见性。
+
+---
+
+## 钱包架构
+
+### 三元组身份模型
+
+每个钱包都由三元组唯一标识：
 
 ```
 (BuyerEntityID, SellerEntityID, Currency)
 ```
 
-This design explicitly models the two-sided nature of hotel distribution: a buyer (the customer or sub-account) holds credit with a seller (the tenant or supplier). Because a single customer may book in EUR with one tenant and in USD with another, the currency is a first-class dimension of wallet identity, not merely an attribute.
+这种设计明确地模拟了酒店分销的双向性质：买方（客户或子帐户）持有卖方（租户或供应商）的信用。由于单个客户可能以欧元向一个租户预订，而以美元向另一个租户预订，因此货币是钱包身份的第一级维度，而不仅仅是一种属性。
 
-The query strategy implements a deterministic fallback chain:
+查询策略实现了确定性后备链：
 
-1. **Exact currency match** — Return the wallet whose `Currency` exactly matches the transaction currency.
-2. **`ALL` currency wallet** — If no exact match exists, return the universal-currency wallet (`Currency == "ALL"`), which stores balances normalized to USD minimum units.
-3. **Explicit failure** — If neither exists, the operation returns a not-found error rather than silently defaulting to an incorrect wallet.
+1. **币种精确匹配** — 返回`Currency`与交易币种完全匹配的钱包。
+2. **`ALL` 货币钱包** — 如果不存在精确匹配，则返回通用货币钱包 (`Currency == "ALL"`)，该钱包存储标准化为美元最小单位的余额。
+3. **显式失败** — 如果两者都不存在，则操作将返回未找到错误，而不是默默地默认为不正确的钱包。
 
-### Wallet State Model
+### 钱包状态模型
 
-Each wallet maintains the following core fields:
+每个钱包都维护以下核心字段：
 
-| Field | Semantics |
+|领域 |语义|
 |---|---|
-| `CreditLimit` | Maximum credit extended. `0` denotes unlimited mode. Negative values are sanitized to `0` available balance. |
-| `UsedLimit` | Cumulative amount currently held or deducted. Always non-negative in consistent state. |
-| `Status` | Enable/disable gate. Inactive wallets block new holds and deductions. |
-| `Currency` | Settlement currency. `ALL` wallets settle in USD minimum units. |
+| `CreditLimit` |授予的最大信用额度。 `0` 表示无限模式。负值将被清理为 `0` 可用余额。 |
+| `UsedLimit` |当前持有或扣除的累计金额。在一致状态下始终为非负。 |
+| `Status` |启用/禁用门。不活跃的钱包会阻止新的保留和扣除。 |
+| `Currency` |结算货币。 `ALL` 钱包以美元最小单位结算。 |
 
-The available balance is always computed as:
+可用余额始终计算如下：
 
 ```
 RunningBalance = CreditLimit - UsedLimit   (for limited wallets)
 RunningBalance = MAX_INT64                 (for unlimited wallets)
 ```
 
-This computed value is never persisted independently; it is derived on read to guarantee that `CreditLimit`, `UsedLimit`, and the ledger remain the single sources of truth.
+该计算值永远不会独立保存；它是在读取时派生的，以保证 `CreditLimit`、`UsedLimit` 和账本仍然是单一事实来源。
 
-### Ledger Layer
+### 账本层
 
-The `CreditLedger` is an append-only record of every financial event affecting a wallet. Each entry captures:
+`CreditLedger` 是影响钱包的每个金融事件的仅附加记录。每个条目捕获：
 
-- `OperationType`: `HOLD`, `RELEASE`, `DEBIT`, `CREDIT`, or `LIMIT_CHANGE`
-- `Amount` and `AmountSign`: the magnitude and direction of the change
-- `RunningBalance`: the computed available balance at the time of the entry
-- `Reference`: an external correlation key (e.g., booking ID)
-- `OriginalAmount`, `OriginalCurrency`, `ExchangeRate`: cross-currency audit trail
-- `PerformedBy`: user ID for human-initiated actions, nil for system operations
+- `OperationType`：`HOLD`、`RELEASE`、`DEBIT`、`CREDIT` 或 `LIMIT_CHANGE`
+- `Amount` 和 `AmountSign`：变化的幅度和方向
+- `RunningBalance`：输入时计算出的可用余额
+- `Reference`：外部关联键（例如预订 ID）
+- `OriginalAmount`、`OriginalCurrency`、`ExchangeRate`：跨货币审计跟踪
+- `PerformedBy`：用于人为发起的操作的用户ID，对于系统操作为零
 
-Because the ledger is append-only, it serves as a complete, tamper-evident history. Any discrepancy between the wallet's current state and the sum of ledger entries is detectable and correctable.
+因为账本是只能追加的，所以它可以作为完整的、防篡改的历史记录。钱包当前状态与账本条目总和之间的任何差异都是可检测和可纠正的。
 
-### Reconciliation Layer
+### 协调层
 
-The reconciliation engine (`trade/service/order_reconciliation.go`) continuously aligns internal order states with supplier-reported snapshots. When a state transition indicates that an order has moved from an active financial state (e.g., paid, confirmed) to an inactive terminal state (e.g., cancelled, failed), the system automatically triggers wallet compensation:
+调节引擎 (`trade/service/order_reconciliation.go`) 不断将内部订单状态与供应商报告的快照保持一致。当状态转换表明订单已从活跃的财务状态（例如，已付款、已确认）转移到不活跃的终端状态（例如，已取消、失败）时，系统会自动触发钱包补偿：
 
-- **Active → Inactive**: The platform refunds held or deducted credit back to the buyer's wallet.
-- **Inactive → Active**: The platform re-deducts or re-holds credit to restore the correct financial exposure.
+- **有效 → 无效**：平台将持有或扣除的积分退还至买家的钱包。
+- **不活跃→活跃**：平台重新扣除或重新持有信用以恢复正确的财务风险。
 
-These compensations are themselves recorded as ledger entries, ensuring that reconciliation actions are as auditable as user-initiated transactions.
+这些补偿本身记录为分类账条目，确保对账操作与用户发起的交易一样可审计。
 
 ---
 
-## Credit Lifecycle / Transaction Flow
+## 信用生命周期/交易流程
 
-### 1. Hold (Pre-Authorization)
+### 1. 保留（预授权）
 
-When a booking is initiated, `HoldCredit` pre-occupies the required amount in the customer's wallet:
+当预订开始时，`HoldCredit`会预先在客户的钱包中占用所需的金额：
 
-- The system resolves the wallet via the triplet query (exact currency → `ALL` fallback).
-- For limited wallets, `CheckBalanceSufficient` verifies that `UsedLimit + amount ≤ CreditLimit`.
-- Unlimited wallets skip the balance check.
-- `UsedLimit` is increased by the hold amount.
-- An immutable `HOLD` ledger entry is created, correlated to the booking ID via `Reference`.
+- 系统通过三元组查询解析钱包（确切的货币 → `ALL` 后备）。
+- 对于有限的钱包，`CheckBalanceSufficient` 验证 `UsedLimit + amount ≤ CreditLimit`。
+- 无限钱包跳过余额检查。
+- `UsedLimit` 增加持有量。
+- 创建一个不可变的 `HOLD` 分类账条目，通过 `Reference` 与预订 ID 相关联。
 
-Hold records are queryable by booking ID, enabling deterministic release even if the booking spans multiple wallets due to currency conversion.
+保留记录可通过预订 ID 查询，即使预订因货币兑换而跨越多个钱包，也可实现确定性释放。
 
-### 2. Deduction (Settlement)
+### 2. 扣除（结算）
 
-Upon successful confirmation, the actual deduction moves credit from the customer to the tenant (and subsequently from tenant to supplier). This is modeled as:
+成功确认后，实际扣除额将由客户转移至租户（随后从租户转移至供应商）。这被建模为：
 
-- Customer → Tenant: The held amount is consumed, or an additional `DEBIT` is applied if the final supplier amount differs from the original hold.
-- Tenant → Supplier: A parallel deduction may occur on the tenant's supplier-facing wallet.
+- 客户 → 租户：如果最终供应商金额与原始保留金额不同，则消耗保留金额，或者应用额外的 `DEBIT`。
+- 租户→供应商：租户面向供应商的钱包可能会发生平行扣除。
 
-Deductions use the atomic `IncrementUsedLimit` path with a positive delta. The database-level `UPDATE` enforces:
+推导使用具有正增量的原子 `IncrementUsedLimit` 路径。数据库级 `UPDATE` 强制执行：
 
 ```sql
 UPDATE wallet
@@ -180,22 +169,22 @@ WHERE id = ?
   AND (credit_limit = 0 OR GREATEST(0, used_limit) + ? <= credit_limit)
 ```
 
-If the boundary check fails, zero rows are affected and the operation returns an explicit insufficient-balance error. This prevents over-commitment even under concurrent load.
+如果边界检查失败，则零行受到影响，并且操作返回显式的余额不足错误。即使在并发负载下，这也可以防止过度承诺。
 
-### 3. Release (Cancellation)
+### 3. 发布（取消）
 
-When a booking is cancelled, `ReleaseCredit` reverses the hold:
+当取消预订时，`ReleaseCredit` 撤销保留：
 
-- All `HOLD` and `RELEASE` ledger entries for the booking ID are enumerated.
-- The remaining unreleased amount is computed (`totalHeld - alreadyReleased`).
-- `UsedLimit` is decreased by the release amount, with domain-level clamping to prevent negative states.
-- An immutable `RELEASE` ledger entry is created for each wallet touched.
+- 枚举预订 ID 的所有 `HOLD` 和 `RELEASE` 分类帐条目。
+- 计算剩余未释放量（`totalHeld - alreadyReleased`）。
+- `UsedLimit` 按释放量减少，并使用域级钳位来防止负状态。
+- 为每个接触的钱包创建一个不可变的 `RELEASE` 分类帐条目。
 
-Release is idempotent: if the full hold has already been released, the operation returns success without mutation.
+释放是幂等的：如果完全保留已被释放，则操作返回成功而不发生突变。
 
-### 4. Refund (Post-Deduction Reversal)
+### 4. 退款（扣除后撤销）
 
-For orders that were already deducted (not merely held), refund operations decrease `UsedLimit` using a negative delta. The database applies:
+对于已扣除（不仅仅是保留）的订单，退款操作会使用负增量减少 `UsedLimit`。数据库适用：
 
 ```sql
 UPDATE wallet
@@ -203,73 +192,73 @@ SET used_limit = GREATEST(0, used_limit + ?)
 WHERE id = ?
 ```
 
-The `GREATEST(0, ...)` clamp provides self-healing: if an anomalous state produced a negative `UsedLimit`, the refund operation corrects it to zero rather than compounding the error.
+`GREATEST(0, ...)` 钳位提供自我修复功能：如果异常状态产生负 `UsedLimit`，退款操作会将其修正为零，而不是增加错误。
 
-Idempotency is preserved by detecting when the domain-calculated new value equals the current value (zero rows affected from MySQL, but semantically a no-op success).
+通过检测域计算的新值何时等于当前值（受 MySQL 影响的零行，但语义上无操作成功）来保留幂等性。
 
-### 5. Reconciliation Loop
+### 5. 协调循环
 
-Supplier snapshots may report order state changes that the platform has not yet observed (e.g., a supplier-initiated cancellation). The reconciliation engine evaluates the transition:
+供应商快照可能会报告平台尚未观察到的订单状态变化（例如供应商发起的取消）。协调引擎评估转换：
 
 ```
 shouldRefundWalletForReconciliation:  active -> inactive  => refund
 shouldRechargeWalletForReconciliation: inactive -> active  => re-deduct/re-hold
 ```
 
-Compensation amounts are derived from the original order's buyer and seller currency amounts, converted through the same wallet-deduction path used at booking time. This closes the loop: every state change that affects financial exposure produces a corresponding, auditable wallet mutation.
+补偿金额源自原始订单的买方和卖方货币金额，并通过预订时使用的相同钱包扣除路径进行转换。这就形成了一个闭环：每一个影响财务风险的状态变化都会产生相应的、可审计的钱包突变。
 
 ---
 
-## Implemented Control Summary
+## 实施的控制摘要
 
-| Control | Customer Value |
+|控制|客户价值 |
 |---|---|
-| **Triplet Wallet Identity** | Credit exposure is independently tracked per buyer-seller-currency combination, preventing commingling of funds or accidental cross-tenant over-commitment. |
-| **Exact → `ALL` Currency Fallback** | Multi-currency customers can operate with either currency-specific wallets or a single universal (`ALL`) wallet, with deterministic resolution semantics. |
-| **Atomic Conditional UPDATE** | Balance mutations are protected by database-level boundary checks; concurrent bookings cannot overdraw a limited wallet. |
-| **Self-Healing Refund Clamp** | Refund operations clamp `UsedLimit` to a minimum of zero, automatically recovering from any anomalous state without manual intervention. |
-| **Idempotent Release & Refund** | Retry-safe operations ensure that duplicate cancellation or reconciliation events never double-credit a wallet. |
-| **Unlimited Credit Mode** | Trusted enterprise accounts can operate without hard booking caps while retaining full ledger visibility. Mode transitions generate explicit `LIMIT_CHANGE` entries. |
-| **Immutable Ledger Append-Only** | Every financial event is permanently recorded with `RunningBalance`, enabling point-in-time audit reconstruction and tamper detection. |
-| **Cross-Currency Audit Trail** | `OriginalAmount`, `OriginalCurrency`, and `ExchangeRate` are captured on every converted transaction, ensuring full transparency for multi-currency settlements. |
-| **Reconciliation-Driven Compensation** | Automatic wallet refund or re-deduction aligns financial exposure with supplier ground truth, closing the loop on state divergence. |
-| **Reference-Indexed Hold Tracking** | Holds are correlated to booking IDs, enabling precise partial or full release even when bookings span multiple currencies or wallets. |
-| **Two-Level Cache Invalidation** | Wallet reads leverage a two-level cache (local + Redis) with explicit invalidation on every mutation, balancing read performance with strong consistency. |
+| **三重钱包身份** |每个买家-卖家货币组合的信用风险都被独立跟踪，防止资金混合或意外的跨租户过度承诺。 |
+| **精确 → `ALL` 货币回退** |多货币客户可以使用特定货币的钱包或单个通用 (`ALL`) 钱包进行操作，并具有确定性解析语义。 |
+| **原子条件更新** |平衡突变受到数据库级边界检查的保护；并发预订不能透支有限的钱包。 |
+| **自愈退款夹** |退款操作将 `UsedLimit` 限制为最小值为零，自动从任何异常状态恢复，无需人工干预。 |
+| **幂等释放与退款** |重试安全操作可确保重复的取消或对账事件不会对钱包造成双重信用。 |
+| **无限信用模式** |受信任的企业账户可以在没有硬性预订上限的情况下运行，同时保留完整的账本可见性。模式转换生成显式 `LIMIT_CHANGE` 条目。 |
+| **不可变账本仅追加** |每个财务事件都通过 `RunningBalance` 永久记录，从而实现时间点审计重建和篡改检测。 |
+| **跨货币审计追踪** |每笔转换的交易都会捕获 `OriginalAmount`、`OriginalCurrency` 和 `ExchangeRate`，确保多货币结算的完全透明度。 |
+| **对账驱动的薪酬** |自动钱包退款或重新扣除使财务风险与供应商的基本事实保持一致，从而关闭了状态差异的循环。 |
+| **参考索引保留跟踪** |保留与预订 ID 相关，即使预订涉及多种货币或钱包，也能实现精确的部分或全部释放。 |
+| **二级缓存失效** |钱包读取利用两级缓存（本地+Redis），对每个突变都显式失效，平衡读取性能与强一致性。 |
 
 ---
 
-## Auditability
+## 可审计性
 
-### Ledger Replay
+### 账本重播
 
-Because the `CreditLedger` is append-only and every entry includes a `RunningBalance`, auditors can reconstruct the wallet state at any historical moment by replaying entries in `CreateTime` order. The sum of signed effective amounts (`Amount × AmountSign`) must equal `CreditLimit - RunningBalance` at every step.
+由于 `CreditLedger` 是仅附加的，并且每个条目都包含 `RunningBalance`，因此审计人员可以通过按 `CreateTime` 顺序重放条目来重建任何历史时刻的钱包状态。每一步的签名有效金额 (`Amount × AmountSign`) 之和必须等于 `CreditLimit - RunningBalance`。
 
-### Reference Tracing
+### 参考追踪
 
-Every `HOLD` and `RELEASE` entry carries a `Reference` field populated with the booking ID. This allows auditors to trace a single booking through its entire financial lifecycle:
+每个 `HOLD` 和 `RELEASE` 条目都带有一个填充有预订 ID 的 `Reference` 字段。这使得审计师可以在整个财务生命周期中追踪单个预订：
 
-1. Initial `HOLD` at booking creation.
-2. Potential `DEBIT` at confirmation (if the final amount differs from the hold).
-3. `RELEASE` or `REFUND` at cancellation.
-4. Reconciliation-compensation entries if supplier state divergence is detected.
+1. 创建预订时初始 `HOLD`。
+2. 确认时潜在的 `DEBIT`（如果最终金额与持有金额不同）。
+3. 取消时的 `RELEASE` 或 `REFUND`。
+4. 如果检测到供应商状态差异，则进行调节补偿条目。
 
-### Cross-Currency Verification
+### 跨货币验证
 
-For transactions involving currency conversion, the ledger stores the original request amount, the settlement currency amount, and the applied exchange rate. Auditors can independently verify conversion accuracy by dividing `OriginalAmount` by the settlement amount and comparing it to the recorded `ExchangeRate`.
+对于涉及货币兑换的交易，账本存储原始请求金额、结算货币金额以及适用的汇率。审计员可以通过将 `OriginalAmount` 除以结算金额并将其与记录的 `ExchangeRate` 进行比较来独立验证转换准确性。
 
-### Operational Query Interface
+### 操作查询接口
 
-The `GetCreditLedger` API supports paginated retrieval with time-range and operation-type filters. Customers and administrators can export ledger entries for arbitrary periods, filtered by `HOLD`, `DEBIT`, `CREDIT`, `RELEASE`, or `LIMIT_CHANGE`, enabling both routine reconciliation and forensic investigation.
+`GetCreditLedger` API 支持使用时间范围和操作类型过滤器进行分页检索。客户和管理员可以导出任意时间段的账本条目，并按 `HOLD`、`DEBIT`、`CREDIT`、`RELEASE` 或 `LIMIT_CHANGE` 进行过滤，从而实现例行对账和取证调查。
 
 ---
 
-## Authoritative Source References
+## 权威来源参考
 
-| Source | Original Excerpt | HotelByte Control Mapping |
+|来源 |原文摘录| HotelByte 控制映射 |
 |---|---|---|
-| **Double-Entry Bookkeeping Principles** | "Every financial transaction has equal and opposite effects in at least two different accounts." (Pacioli, *Summa de Arithmetica*, 1494) | Every wallet mutation produces a corresponding `CreditLedger` entry with signed `Amount` and `RunningBalance`, ensuring that the ledger and wallet remain mathematically consistent. |
-| **PCI DSS v4.0 Requirement 10** | "Implement audit trails linking all access to system components to each individual user." (PCI Security Standards Council, 2022) | `CreditLedger` records `PerformedBy` (user ID) for human-initiated actions and marks system operations explicitly, creating an immutable, user-attributed audit trail for every credit event. |
-| **ISO 27001:2022 Control A.8.11** | "Information shall be protected from unauthorized changes to ensure its integrity." (ISO/IEC 27001:2022) | Wallet mutations use atomic conditional `UPDATE` statements with strict boundary checks, preventing race-condition overdrafts and ensuring balance integrity under concurrent access. |
-| **ACID Transaction Semantics** | "A transaction is a single logical unit of work that takes the database from one consistent state to another." (Silberschatz, Korth, & Sudarshan, *Database System Concepts*) | `SetCreditLimit` and reconciliation compensation wrap entity updates, wallet updates, and ledger insertions in database transactions, guaranteeing atomicity and consistency. |
-| **Payment Card Industry — Data Integrity Best Practices** | "Systems should employ defense-in-depth strategies including input validation, boundary checks, and self-healing recovery mechanisms." (PCI SSC Guidance) | The `execRefundUsedLimitClamp` applies `GREATEST(0, used_limit + delta)` at the database level, providing a self-healing boundary that clamps anomalous states to zero rather than propagating corruption. |
-| **IEEE 830-1998 (Software Requirements Specifications)** | "Traceability ensures that each requirement can be traced forward to design, code, and test cases." (IEEE) | `Reference`-indexed holds and reconciliation-compensation entries enable forward and backward traceability from any booking ID to every wallet mutation and ledger record that affected it. |
+| **复式记账原则** | “每笔金融交易都会在至少两个不同的账户中产生相同且相反的影响。” （帕乔利，*算术大全*，1494）|每个钱包突变都会生成一个相应的 `CreditLedger` 条目，并带有签名的 `Amount` 和 `RunningBalance`，确保账本和钱包在数学上保持一致。 |
+| **PCI DSS v4.0 要求 10** | “实施审计跟踪，将对系统组件的所有访问链接到每个单独的用户。” （PCI 安全标准委员会，2022 年）| `CreditLedger` 记录人为操作的 `PerformedBy`（用户 ID），并显式标记系统操作，为每个信用事件创建不可变的、用户归因的审计跟踪。 |
+| **ISO 27001:2022 控制 A.8.11** | “应保护信息免遭未经授权的更改，以确保其完整性。” (ISO/IEC 27001:2022) |钱包突变使用原子条件 `UPDATE` 语句进行严格的边界检查，防止竞争条件透支并确保并发访问下的余额完整性。 |
+| **ACID 事务语义** | “事务是单个逻辑工作单元，它将数据库从一种一致状态转变为另一种一致状态。” （Silberschatz、Korth 和 Sudarshan，*数据库系统概念*） | `SetCreditLimit` 和对账补偿将实体更新、钱包更新和数据库事务中的账本插入包装起来，保证原子性和一致性。 |
+| **支付卡行业——数据完整性最佳实践** | “系统应该采用深度防御策略，包括输入验证、边界检查和自愈恢复机制。” （PCI SSC 指南）| `execRefundUsedLimitClamp` 在数据库级别应用 `GREATEST(0, used_limit + delta)`，提供自我修复边界，将异常状态限制为零，而不是传播损坏。 |
+| **IEEE 830-1998（软件需求规范）** | “可追溯性确保每个需求都可以追溯到设计、代码和测试用例。” (IEEE) | `Reference` 索引的保留和对账补偿条目可以实现从任何预订 ID 到影响它的每个钱包突变和账本记录的前向和后向可追溯性。 |

@@ -8,7 +8,7 @@ tags: [Price Intelligence, Benchmarking, Revenue]
 author: "HotelByte Team"
 description: "A guide to HotelByte's PriceAssist and benchmarking workflow."
 lang: en
-permalink: /whitepapers/wp19-price-intelligence/
+permalink: /en/whitepapers/wp19-price-intelligence/
 source_asset: hotel-be/docs/en/whitepapers/19-price-intelligence-and-competitive-benchmarking.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp19-price-intelligence/original/
