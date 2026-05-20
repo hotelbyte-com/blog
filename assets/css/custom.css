@@ -1,13 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --background: 0 0% 98%;
-  --foreground: 220 9% 15%;
+  --background: 0 0% 100%;
+  --foreground: 222 20% 12%;
   --surface: 0 0% 100%;
-  --surface-subdued: 220 13% 96%;
-  --surface-hovered: 0 0% 97%;
-  --text: 220 9% 15%;
-  --text-subdued: 220 9% 46%;
+  --surface-subdued: 220 17% 97%;
+  --surface-hovered: 220 17% 98%;
+  --text: 222 20% 12%;
+  --text-subdued: 222 11% 43%;
   --border: 220 13% 91%;
   --border-subdued: 220 13% 95%;
   --primary: 211 100% 50%;
@@ -27,8 +27,8 @@
   --space-10: 40px;
   --space-12: 48px;
   --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 16px -8px rgba(15, 23, 42, 0.22);
+  --shadow: 0 1px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 18px 42px -28px rgba(15, 23, 42, 0.32);
 }
 
 * {
@@ -60,7 +60,7 @@ a:hover {
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border-subdued));
   background: hsla(0, 0%, 100%, 0.92);
   backdrop-filter: blur(12px);
 }
@@ -363,11 +363,17 @@ a:hover {
 
 .page-wrapper {
   display: grid;
-  grid-template-columns: 230px minmax(0, 1fr) 260px;
-  gap: var(--space-6);
-  max-width: 1400px;
+  grid-template-columns: 248px minmax(0, 800px) 260px;
+  gap: 34px;
+  align-items: start;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: var(--space-6);
+  padding: var(--space-10) var(--space-8) var(--space-12);
+}
+
+.page-wrapper--no-series {
+  grid-template-columns: minmax(0, 840px) 260px;
+  justify-content: center;
 }
 
 .sidebar-left,
@@ -379,9 +385,8 @@ a:hover {
 
 .series-navigation,
 .table-of-contents,
-.cta-section,
-.content-wrapper {
-  border: 1px solid hsl(var(--border));
+.cta-section {
+  border: 1px solid hsl(var(--border-subdued));
   border-radius: var(--radius);
   background: hsl(var(--surface));
   box-shadow: var(--shadow);
@@ -393,9 +398,23 @@ a:hover {
   padding: var(--space-5);
 }
 
+.series-navigation {
+  max-height: calc(100vh - 112px);
+  overflow: auto;
+}
+
 .content-wrapper {
   min-width: 0;
-  padding: var(--space-10);
+  padding: 0;
+}
+
+.rail-kicker {
+  margin: 0 0 6px;
+  color: hsl(var(--primary-hovered));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .series-navigation h3,
@@ -403,8 +422,8 @@ a:hover {
 .cta-section h3 {
   margin: 0 0 var(--space-4);
   color: hsl(var(--text));
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .series-navigation ul,
@@ -416,17 +435,17 @@ a:hover {
 
 .series-navigation li,
 .table-of-contents li {
-  margin-bottom: var(--space-2);
+  margin-bottom: 6px;
 }
 
 .series-navigation a,
 .table-of-contents a {
   display: block;
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-radius: var(--radius-sm);
-  color: hsl(var(--text-subdued));
+  color: hsl(var(--text));
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
 }
 
@@ -439,38 +458,42 @@ a:hover {
 
 .series-navigation .desc {
   display: block;
-  padding: 0 10px;
+  padding: 0 10px 8px;
   color: hsl(var(--text-subdued));
   font-size: 11px;
   line-height: 1.45;
 }
 
+.post {
+  border-bottom: 1px solid hsl(var(--border-subdued));
+}
+
 .post-header {
-  margin-bottom: var(--space-8);
-  padding-bottom: var(--space-6);
-  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: var(--space-10);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px solid hsl(var(--border-subdued));
 }
 
 .post-title {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-5);
   color: hsl(var(--text));
   font-family: "Bricolage Grotesque", Inter, sans-serif;
-  font-size: clamp(32px, 4vw, 52px);
-  line-height: 1.08;
+  font-size: clamp(44px, 5.2vw, 76px);
+  line-height: 0.98;
   font-weight: 700;
 }
 
 .post-meta,
 .post-description {
   color: hsl(var(--text-subdued));
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.75;
 }
 
 .post-content {
   color: hsl(var(--text));
-  font-size: 16px;
-  line-height: 1.85;
+  font-size: 18px;
+  line-height: 1.82;
 }
 
 .post-content h1,
@@ -483,21 +506,21 @@ a:hover {
 }
 
 .post-content h1 {
-  margin: var(--space-10) 0 var(--space-5);
-  font-size: 34px;
-  line-height: 1.15;
+  margin: var(--space-12) 0 var(--space-5);
+  font-size: 42px;
+  line-height: 1.08;
 }
 
 .post-content h2 {
-  margin: var(--space-10) 0 var(--space-4);
+  margin: var(--space-12) 0 var(--space-4);
   padding-top: var(--space-2);
-  font-size: 26px;
-  line-height: 1.25;
+  font-size: 31px;
+  line-height: 1.18;
 }
 
 .post-content h3 {
-  margin: var(--space-8) 0 var(--space-3);
-  font-size: 21px;
+  margin: var(--space-10) 0 var(--space-3);
+  font-size: 23px;
 }
 
 .post-content h4 {
@@ -524,11 +547,12 @@ a:hover {
 }
 
 .post-content blockquote {
-  padding: var(--space-4) var(--space-5);
-  border-left: 4px solid hsl(var(--primary));
-  border-radius: 0 var(--radius) var(--radius) 0;
-  background: hsl(var(--primary-subdued));
-  color: hsl(var(--text-subdued));
+  padding: var(--space-6);
+  border: 0;
+  border-radius: var(--radius);
+  background: hsl(var(--surface-subdued));
+  color: hsl(var(--text));
+  font-weight: 500;
 }
 
 .post-content code {
@@ -545,7 +569,7 @@ a:hover {
   padding: var(--space-5);
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  background: hsl(220, 15%, 12%);
+  background: hsl(222, 20%, 12%);
   color: white;
 }
 
@@ -580,7 +604,37 @@ a:hover {
 .comments-wrapper {
   margin-top: var(--space-10);
   padding-top: var(--space-6);
-  border-top: 1px solid hsl(var(--border));
+  border-top: 1px solid hsl(var(--border-subdued));
+}
+
+.comment-fallback {
+  padding: var(--space-6);
+  border: 1px solid hsl(var(--border-subdued));
+  border-radius: var(--radius);
+  background: hsl(var(--surface-subdued));
+}
+
+.comment-fallback h3 {
+  margin: 0 0 var(--space-3);
+  font-size: 18px;
+}
+
+.comment-fallback p {
+  margin: 0 0 var(--space-4);
+  color: hsl(var(--text-subdued));
+  line-height: 1.7;
+}
+
+.comment-fallback a {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  background: hsl(var(--text));
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .post-tags {
@@ -654,6 +708,7 @@ a:hover {
 @media (max-width: 1100px) {
   .page-wrapper {
     grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-8) var(--space-5);
   }
 
   .sidebar-left,
@@ -700,7 +755,15 @@ a:hover {
   }
 
   .content-wrapper {
-    padding: var(--space-6);
+    padding: 0;
+  }
+
+  .post-title {
+    font-size: clamp(36px, 12vw, 52px);
+  }
+
+  .post-content {
+    font-size: 16px;
   }
 
   .quick-links,

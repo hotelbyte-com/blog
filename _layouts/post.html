@@ -30,13 +30,17 @@ layout: null
       </div>
     </header>
 
-    <div class="page-wrapper">
-      <!-- 左侧边栏：系列导航 -->
+      {% assign has_series_context = false %}
+      {% if page.whitepaper_kind or page.series or page.url contains 'why-hotel-api-integration-is-so-hard' %}
+        {% assign has_series_context = true %}
+      {% endif %}
+    <div class="page-wrapper{% unless has_series_context %} page-wrapper--no-series{% endunless %}">
+      {% if has_series_context %}
       <aside class="sidebar-left">
         {% include series-nav.html %}
       </aside>
+      {% endif %}
 
-      <!-- 主内容区 -->
       <main class="content-wrapper">
     <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
       <header class="post-header">
@@ -71,14 +75,12 @@ layout: null
       {% endif %}
     </article>
 
-    <!-- Comments -->
     <div class="comments-wrapper">
       <h2>{% if page.lang == 'en' %}Comments{% else %}评论{% endif %}</h2>
       {% include giscus.html %}
     </div>
       </main>
 
-      <!-- 右侧边栏：文章目录 -->
       <aside class="sidebar-right">
         <div class="table-of-contents">
           <h3>{% if page.lang == 'en' %}Contents{% else %}目录{% endif %}</h3>
