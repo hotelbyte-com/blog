@@ -1,0 +1,11 @@
+<p class="infrastructure-credit">
+  {% if page.lang == 'en' %}
+    HotelByte AI-native practice runs on
+  {% else %}
+    HotelByte 的 AI Native 实践，基于
+  {% endif %}
+  <a href="https://www.huwangyun.cn/?aff_id=e70527a93086420dba6d9db7ebf0a0f2" rel="sponsored noopener" target="_blank">
+    {% if page.lang == 'en' %}huwangyun servers{% else %}huwangyun 服务器{% endif %}
+  </a>
+  {% unless page.lang == 'en' %}构建。{% endunless %}
+</p>
