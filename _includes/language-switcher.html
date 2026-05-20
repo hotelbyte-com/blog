@@ -1,61 +1,20 @@
-<div class="language-switcher">
-  <select id="language-select">
-    <option value="zh">中文</option>
-    <option value="en">English</option>
-  </select>
-</div>
+{% assign current_path = page.url | default: '/' %}
+{% if current_path == '/' %}
+  {% assign target_lang_url = '/en/' %}
+  {% assign target_lang_label = 'EN' %}
+{% elsif current_path == '/en/' or current_path == '/en' %}
+  {% assign target_lang_url = '/' %}
+  {% assign target_lang_label = '中文' %}
+{% elsif current_path contains '/en/' %}
+  {% assign target_lang_url = current_path | replace_first: '/en/', '/zh/' %}
+  {% assign target_lang_label = '中文' %}
+{% else %}
+  {% assign target_lang_url = current_path | replace_first: '/zh/', '/en/' %}
+  {% assign target_lang_label = 'EN' %}
+{% endif %}
 
-<script>
-  // 语言切换器 - 优先用户手动选择
-  document.addEventListener('DOMContentLoaded', function() {
-    const select = document.getElementById('language-select');
-    const currentPath = window.location.pathname;
-    
-    // 从 sessionStorage 获取用户手动选择的语言
-    const userSelectedLang = sessionStorage.getItem('user-lang-preference');
-    
-    // 确定当前语言
-    let currentLang = 'zh';
-    if (currentPath.startsWith('/en/')) {
-      currentLang = 'en';
-    } else if (currentPath.startsWith('/zh/')) {
-      currentLang = 'zh';
-    }
-    
-    // 设置选择框的值
-    select.value = currentLang;
-    
-    // 处理语言切换
-    select.addEventListener('change', function() {
-      const lang = this.value;
-      
-      // 立即存储用户选择的语言（优先级最高）
-      sessionStorage.setItem('user-lang-preference', lang);
-      
-      // 构建新路径
-      let newPath;
-      if (lang === 'en') {
-        // 切换到英文
-        if (currentPath === '/') {
-          newPath = '/en/';
-        } else if (currentPath.startsWith('/zh/')) {
-          newPath = '/en/' + currentPath.substring(3);
-        } else {
-          newPath = '/en/' + currentPath;
-        }
-      } else {
-        // 切换到中文
-        if (currentPath === '/en/' || currentPath === '/en') {
-          newPath = '/';
-        } else if (currentPath.startsWith('/en/')) {
-          newPath = currentPath.substring(3);
-        } else {
-          newPath = currentPath;
-        }
-      }
-      
-      // 跳转
-      window.location.href = newPath;
-    });
-  });
-</script>
+<div class="language-switcher">
+  <a class="language-toggle" href="{{ target_lang_url | relative_url }}" aria-label="{% if target_lang_label == 'EN' %}Switch to English{% else %}切换到中文{% endif %}">
+    {{ target_lang_label }}
+  </a>
+</div>
