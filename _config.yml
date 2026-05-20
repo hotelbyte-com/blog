@@ -78,7 +78,7 @@ defaults:
       type: "posts"
     values:
       lang: en
-      permalink: /en/:categories/:title/
+      permalink: /:categories/:title/
   - scope:
       path: ""
     values:

@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's wallet and credit controls."
 lang: en
 permalink: /whitepapers/wp14-wallet-credit/
-source_asset: hotel-be/docs/whitepapers/14-financial-grade-wallet-and-credit-system.md
+source_asset: hotel-be/docs/en/whitepapers/14-financial-grade-wallet-and-credit-system.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp14-wallet-credit/original/
 ---

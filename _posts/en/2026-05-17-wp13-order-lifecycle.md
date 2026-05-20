@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's order lifecycle state machine."
 lang: en
 permalink: /whitepapers/wp13-order-lifecycle/
-source_asset: hotel-be/docs/whitepapers/13-order-lifecycle-state-machine.md
+source_asset: hotel-be/docs/en/whitepapers/13-order-lifecycle-state-machine.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp13-order-lifecycle/original/
 ---

@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's event-driven operating model."
 lang: en
 permalink: /whitepapers/wp05-distributed-messaging-event-bus/
-source_asset: hotel-be/docs/whitepapers/05-distributed-messaging-and-event-bus.md
+source_asset: hotel-be/docs/en/whitepapers/05-distributed-messaging-and-event-bus.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp05-distributed-messaging-event-bus/original/
 ---

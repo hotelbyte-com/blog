@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A buyer-facing guide to HotelByte's in-process API gateway whitepaper."
 lang: en
 permalink: /whitepapers/wp01-http-gateway-routing/
-source_asset: hotel-be/docs/whitepapers/01-http-gateway-and-in-process-routing.md
+source_asset: hotel-be/docs/en/whitepapers/01-http-gateway-and-in-process-routing.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp01-http-gateway-routing/original/
 ---

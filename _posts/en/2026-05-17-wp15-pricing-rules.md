@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's dynamic pricing and rules engine."
 lang: en
 permalink: /whitepapers/wp15-pricing-rules/
-source_asset: hotel-be/docs/whitepapers/15-dynamic-pricing-and-business-rules-engine.md
+source_asset: hotel-be/docs/en/whitepapers/15-dynamic-pricing-and-business-rules-engine.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp15-pricing-rules/original/
 ---

@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's real-time hotel search aggregation architecture."
 lang: en
 permalink: /whitepapers/wp11-real-time-search/
-source_asset: hotel-be/docs/whitepapers/11-real-time-search-aggregation.md
+source_asset: hotel-be/docs/en/whitepapers/11-real-time-search-aggregation.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp11-real-time-search/original/
 ---

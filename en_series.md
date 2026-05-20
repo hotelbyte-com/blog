@@ -2,7 +2,7 @@
 layout: post
 title: Series
 lang: en
-permalink: /en/series/
+permalink: /series/
 ---
 
 <div class="series">

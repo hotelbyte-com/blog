@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's geographic search intelligence."
 lang: en
 permalink: /whitepapers/wp21-geographic-search/
-source_asset: hotel-be/docs/whitepapers/21-geographic-search-intelligence.md
+source_asset: hotel-be/docs/en/whitepapers/21-geographic-search-intelligence.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp21-geographic-search/original/
 ---

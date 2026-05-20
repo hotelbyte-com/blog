@@ -2,7 +2,7 @@
 layout: home
 title: HotelByte 技术白皮书系列
 lang: zh
-permalink: /zh/whitepapers/
+permalink: /zh/en/whitepapers/
 ---
 
 <section class="whitepaper-hub">

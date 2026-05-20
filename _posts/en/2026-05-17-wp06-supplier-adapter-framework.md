@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's supplier adapter framework."
 lang: en
 permalink: /whitepapers/wp06-supplier-adapter-framework/
-source_asset: hotel-be/docs/whitepapers/06-supplier-adapter-framework-and-standardization.md
+source_asset: hotel-be/docs/en/whitepapers/06-supplier-adapter-framework-and-standardization.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp06-supplier-adapter-framework/original/
 ---

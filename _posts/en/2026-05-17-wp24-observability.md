@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's five-dimensional observability model."
 lang: en
 permalink: /whitepapers/wp24-observability/
-source_asset: hotel-be/docs/whitepapers/24-five-dimensional-observability.md
+source_asset: hotel-be/docs/en/whitepapers/24-five-dimensional-observability.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp24-observability/original/
 ---

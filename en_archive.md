@@ -2,7 +2,7 @@
 layout: post
 title: Archive
 lang: en
-permalink: /en/archive/
+permalink: /archive/
 ---
 
 <div class="archive">

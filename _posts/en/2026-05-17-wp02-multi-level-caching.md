@@ -9,7 +9,7 @@ author: "HotelByte Team"
 description: "A guide to HotelByte's multi-level caching architecture for hotel distribution."
 lang: en
 permalink: /whitepapers/wp02-multi-level-caching/
-source_asset: hotel-be/docs/whitepapers/02-multi-level-caching-architecture.md
+source_asset: hotel-be/docs/en/whitepapers/02-multi-level-caching-architecture.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp02-multi-level-caching/original/
 ---
