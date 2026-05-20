@@ -26,7 +26,9 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
+  --space-9: 36px;
   --space-10: 40px;
   --space-12: 48px;
   --shadow-sm: 0 1px 0 rgba(15, 23, 42, 0.04);
@@ -443,7 +445,7 @@ a:hover {
   align-items: start;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 56px var(--space-8) var(--space-12);
+  padding: 42px var(--space-8) var(--space-12);
 }
 
 .page-wrapper--no-series {
@@ -601,7 +603,7 @@ a:hover {
 }
 
 .post-header {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-7);
   padding-bottom: var(--space-6);
   border-bottom: 1px solid hsl(var(--border));
 }
@@ -619,8 +621,8 @@ a:hover {
   margin: 0 0 var(--space-4);
   color: hsl(var(--text));
   font-family: var(--font-sans);
-  font-size: clamp(36px, 4.1vw, 52px);
-  line-height: 1.08;
+  font-size: clamp(32px, 3.5vw, 44px);
+  line-height: 1.12;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -633,12 +635,12 @@ a:hover {
 }
 
 .post-description {
-  max-width: 760px;
+  max-width: 700px;
   margin-top: var(--space-5);
   color: hsl(var(--text-subdued));
   font-family: var(--font-sans);
-  font-size: 18px;
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.6;
   font-weight: 400;
 }
 
@@ -709,16 +711,16 @@ a:hover {
 
 .post-content blockquote {
   margin: var(--space-10) 0;
-  padding: var(--space-4) 0 var(--space-4) var(--space-8);
+  padding: var(--space-4) var(--space-5) var(--space-4) var(--space-8);
   border: 0;
   border-left: 2px solid hsl(var(--primary));
   border-radius: 0;
   background: transparent;
   color: hsl(var(--text));
   font-family: var(--font-sans);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 400;
-  line-height: 1.7;
+  line-height: 1.72;
 }
 
 .post-content blockquote p {
@@ -1002,7 +1004,7 @@ a:hover {
   }
 
   .post-title {
-    font-size: clamp(30px, 8vw, 38px);
+    font-size: clamp(28px, 7.4vw, 34px);
   }
 
   .post-content {

@@ -13,11 +13,6 @@ guide_url: /zh/whitepapers/wp27-ai-native-engineering-operating-system/
 featured: true
 ---
 
-**面向人机协作软件交付的受治理操作模型 / 版本 1.0**
-
-
----
-
 ## 执行摘要
 
 **适合读者：** 工程负责人、资深工程师、平台工程师和 AI 工具建设者。默认你已经理解现代软件交付，并且关心如何让 AI 参与工程工作但不失控。

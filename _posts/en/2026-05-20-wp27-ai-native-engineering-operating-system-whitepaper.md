@@ -13,11 +13,6 @@ guide_url: /en/whitepapers/wp27-ai-native-engineering-operating-system/
 featured: true
 ---
 
-**A Governed Operating Model for Human-AI Software Delivery / Version 1.0**
-
-
----
-
 ## Executive Summary
 
 **Assumed audience:** engineering leaders, staff engineers, platform engineers, and AI tooling builders who already understand modern software delivery and want to make AI participation governable.
