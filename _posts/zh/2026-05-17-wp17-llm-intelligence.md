@@ -19,5 +19,5 @@ LLM 在酒店运营中的价值，是帮助解释证据，而不是静默决定�
 
 如果你的团队正在评估 AI 辅助运营，并希望明确置信度、延迟和人工 review 边界，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp17-llm-intelligence/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp17-llm-intelligence/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：LLM 应该让运营证据更容易被检查。

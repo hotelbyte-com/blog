@@ -1,6 +1,6 @@
 ---
 layout: home
-title: HotelByte Technical Whitepapers
+title: HotelByte Technical Whitepaper Index
 lang: en
 permalink: /en/whitepapers/
 ---
@@ -8,13 +8,13 @@ permalink: /en/whitepapers/
 <section class="whitepaper-hub">
   <div class="whitepaper-hero">
     <div>
-      <h1>HotelByte Technical Whitepapers</h1>
-      <p>A structured public reading path for hotel distribution teams, integration partners, and technical reviewers. Each topic has a reader-facing guide and a full whitepaper published directly on the blog.</p>
+      <h1>HotelByte Technical Whitepaper Index</h1>
+      <p>Technical assets for hotel distribution teams, integration partners, and technical reviewers. Each topic has a reader guide and a citable whitepaper source.</p>
     </div>
     <div class="whitepaper-hero-panel">
-      <span>Reading path</span>
-      <strong>Start with the guide, then read the original</strong>
-      <p>The guide explains why the topic matters; the original keeps the architecture, controls, and evidence in one place.</p>
+      <span>Path</span>
+      <strong>Guide / Source</strong>
+      <p>Start with value and context, then move into architecture, controls, and evidence.</p>
     </div>
   </div>
 

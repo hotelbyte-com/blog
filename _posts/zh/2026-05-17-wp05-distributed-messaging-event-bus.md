@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp05-distributed-messaging-event-bus/original/
 
 如果你想评估事件总线是在保护预订一致性，还是只是在转发通知，这份资产可以作为检查入口。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp05-distributed-messaging-event-bus/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp05-distributed-messaging-event-bus/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：事件总线的价值在于让恢复过程可见。

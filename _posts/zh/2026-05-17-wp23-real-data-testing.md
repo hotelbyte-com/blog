@@ -19,5 +19,5 @@ Mock 测试有价值，但酒店分销质量最终要用真实静态数据、真
 
 如果你的团队想知道一个酒店集成是否真的工作，而不只是 demo path 能跑，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp23-real-data-testing/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp23-real-data-testing/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：真实酒店集成质量需要真实数据证据。

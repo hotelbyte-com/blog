@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp09-supplier-credential-security/original/
 
 如果你的安全 review 需要检查供应商凭证如何跨后端、前端和运营流程处理，这份资产可以作为入口。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp09-supplier-credential-security/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp09-supplier-credential-security/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：凭证安全必须覆盖所有秘密可能出现的位置。

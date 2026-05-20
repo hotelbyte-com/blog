@@ -19,5 +19,5 @@ HotelByte 的 HTTP 网关白皮书解释了为什么我们把入口控制能力�
 
 如果你正在评估酒店 API 基础设施，这份资产可以帮助你检查低延迟路由、可审计 middleware 和稳定 API 合约。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp01-http-gateway-routing/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp01-http-gateway-routing/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：酒店 API 网关应该是可见的控制面，而不是应用前面的黑盒。

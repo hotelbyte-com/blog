@@ -13,10 +13,6 @@ guide_url: /en/whitepapers/wp27-ai-native-engineering-operating-system/
 featured: true
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> This is the full WP27 whitepaper source for readers who want the complete framework, control planes, and governance model. For a reader-oriented explanation, start with the <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">whitepaper guide</a>.
-</div>
-
 **A Governed Operating Model for Human-AI Software Delivery / Version 1.0**
 
 

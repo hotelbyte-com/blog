@@ -7,7 +7,7 @@ permalink: /zh/series/
 
 <div class="series">
   <h1>专题目录</h1>
-  <p>这里按主题整理可连续阅读的文章，不再把所有内容混成一个“系列文章”。</p>
+  <p>按主题组织可连续阅读的文章。</p>
 
   <div class="series-section">
     <h2>酒店 API 集成避坑指南</h2>

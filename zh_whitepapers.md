@@ -1,6 +1,6 @@
 ---
 layout: home
-title: HotelByte 技术白皮书系列
+title: HotelByte 技术白皮书索引
 lang: zh
 permalink: /zh/whitepapers/
 ---
@@ -8,13 +8,13 @@ permalink: /zh/whitepapers/
 <section class="whitepaper-hub">
   <div class="whitepaper-hero">
     <div>
-      <h1>HotelByte 技术白皮书系列</h1>
-      <p>面向酒店分销团队、集成伙伴和技术评审者的系统化技术资产。每个主题都提供可快速判断价值的导读，以及可直接引用的白皮书原文。</p>
+      <h1>HotelByte 技术白皮书索引</h1>
+      <p>面向酒店分销团队、集成伙伴和技术评审者的技术资产。每个主题提供读者导读和可引用的白皮书原文。</p>
     </div>
     <div class="whitepaper-hero-panel">
-      <span>阅读顺序</span>
-      <strong>先读导读，再看原文</strong>
-      <p>导读负责把问题讲清楚；原文负责保留架构、控制点和证据锚点。</p>
+      <span>路径</span>
+      <strong>导读 / 原文</strong>
+      <p>先判断价值，再进入架构、控制点和证据细节。</p>
     </div>
   </div>
 

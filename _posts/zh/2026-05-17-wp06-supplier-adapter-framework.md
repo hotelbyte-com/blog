@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp06-supplier-adapter-framework/original/
 
 如果你的团队要评估酒店 API 平台如何吸收供应商复杂性，而不是抹平关键契约差异，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp06-supplier-adapter-framework/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp06-supplier-adapter-framework/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：标准化不应该丢掉影响预订正确性的供应商事实。

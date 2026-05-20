@@ -109,39 +109,74 @@ layout: null
 </footer>
 
 <script>
-  // Generate table of contents
   document.addEventListener('DOMContentLoaded', function() {
     const toc = document.getElementById('toc');
     if (!toc) return;
 
-    const headings = document.querySelectorAll('.post-content h2, .post-content h3, .post-content h4');
+    const headings = Array.from(document.querySelectorAll('.post-content h2, .post-content h3, .post-content h4'));
     if (headings.length === 0) return;
 
-    const ul = document.createElement('ul');
+    const root = document.createElement('ul');
+    root.className = 'toc-list toc-list-root';
+    const stack = [{ level: 1, list: root }];
 
     headings.forEach(heading => {
+      if (!heading.id) {
+        heading.id = heading.textContent
+          .trim()
+          .toLowerCase()
+          .replace(/[^\p{Letter}\p{Number}\s-]/gu, '')
+          .replace(/\s+/g, '-');
+      }
+
+      const level = Number(heading.tagName.substring(1));
+      while (stack.length > 1 && stack[stack.length - 1].level >= level) {
+        stack.pop();
+      }
+
       const li = document.createElement('li');
+      li.className = 'toc-item toc-level-' + level;
       const a = document.createElement('a');
       a.textContent = heading.textContent;
       a.href = '#' + heading.id;
-      
-      // Add ID if not present
-      if (!heading.id) {
-        heading.id = heading.textContent.toLowerCase().replace(/\s+/g, '-');
-      }
 
       li.appendChild(a);
-      ul.appendChild(li);
+      stack[stack.length - 1].list.appendChild(li);
 
-      // Smooth scroll
+      const childList = document.createElement('ul');
+      childList.className = 'toc-list';
+      li.appendChild(childList);
+      stack.push({ level: level, list: childList });
+
       a.addEventListener('click', function(e) {
         e.preventDefault();
         heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
 
-    toc.appendChild(ul);
+    toc.appendChild(root);
   });
+</script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+  const blocks = document.querySelectorAll('pre > code.language-mermaid');
+  blocks.forEach((block) => {
+    const container = document.createElement('div');
+    container.className = 'mermaid';
+    container.textContent = block.textContent;
+    block.parentElement.replaceWith(container);
+  });
+
+  if (blocks.length > 0) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      securityLevel: 'loose',
+      flowchart: { curve: 'basis', htmlLabels: true }
+    });
+    mermaid.run({ querySelector: '.mermaid' });
+  }
 </script>
   </body>
 </html>

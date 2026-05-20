@@ -13,7 +13,7 @@ original_url: /en/whitepapers/wp27-ai-native-engineering-operating-system/origin
 featured: true
 ---
 
-WP27 is the heaviest piece in the HotelByte technical whitepaper series. It is not about whether AI can write more code. It is about how an engineering organization turns AI into a governed, verified, and accountable delivery capability.
+WP27 is the heaviest piece in the HotelByte technical whitepaper index. It is not about whether AI can write more code. It is about how an engineering organization turns AI into a governed, verified, and accountable delivery capability.
 
 Earlier whitepapers mostly break down concrete technical problems inside hotel distribution. WP27 steps back and looks at the working system behind those problems: how humans define intent, how AI gathers context and executes work, how evidence is submitted, and how review, release control, and memory turn repeated experience into a stronger organization.
 

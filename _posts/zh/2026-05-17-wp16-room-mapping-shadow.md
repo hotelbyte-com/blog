@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp16-room-mapping-shadow/original/
 
 如果你的团队需要确认房型映射改进经过度量、审核并且可安全发布，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp16-room-mapping-shadow/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp16-room-mapping-shadow/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：映射质量需要真实数据 shadow 验证。

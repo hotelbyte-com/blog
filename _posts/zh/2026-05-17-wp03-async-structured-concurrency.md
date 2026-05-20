@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp03-async-structured-concurrency/original/
 
 如果你正在评估一个需要协调大量外部依赖的酒店 API 平台，这份资产可以帮助你检查后台任务泄漏和局部失败可见性。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp03-async-structured-concurrency/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp03-async-structured-concurrency/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：并发只有在可取消、可度量、可收敛时才有价值。

@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp15-pricing-rules/original/
 
 如果你的团队需要在信任自动定价前评估定价治理和规则可解释性，这份资产可以作为入口。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp15-pricing-rules/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp15-pricing-rules/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：规则引擎的价值在于解释价格为什么变化。

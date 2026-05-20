@@ -13,7 +13,7 @@ guide_url: /en/whitepapers/wp08-supplier-session-booking/
 ---
 
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp08-supplier-session-booking/">the blog guide</a>. Browse the full series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp08-supplier-session-booking/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
 # Supplier Session & Stateful Booking Whitepaper

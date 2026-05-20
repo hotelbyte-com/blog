@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp19-price-intelligence/original/
 
 如果你的团队需要可 review、可执行、并能回到商业结果的价格洞察，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp19-price-intelligence/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp19-price-intelligence/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：价格智能应该产生可追踪行动，而不只是图表。

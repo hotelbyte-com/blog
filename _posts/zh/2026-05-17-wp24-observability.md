@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp24-observability/original/
 
 如果你的团队需要面向供应商密集型 API 的 session 级调试和 dashboard 级质量信号，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp24-observability/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp24-observability/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：可观测性应该解释失败，而不只是统计失败。

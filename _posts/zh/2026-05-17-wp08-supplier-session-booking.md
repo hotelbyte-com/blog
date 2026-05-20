@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp08-supplier-session-booking/original/
 
 如果你的集成团队需要知道平台如何保护从搜索结果到确认订单的链路，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp08-supplier-session-booking/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp08-supplier-session-booking/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：预订流程是一条有状态交易链，不是无状态请求。

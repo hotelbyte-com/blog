@@ -13,10 +13,6 @@ guide_url: /zh/whitepapers/wp27-ai-native-engineering-operating-system/
 featured: true
 ---
 
-<div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是 WP27 中文白皮书原文，适合需要完整框架、控制面和工程治理细节的读者。更贴近读者视角的解释见 <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/">白皮书导读</a>。
-</div>
-
 **面向人机协作软件交付的受治理操作模型 / 版本 1.0**
 
 

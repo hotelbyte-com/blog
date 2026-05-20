@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp22-spec-driven-development/original/
 
 如果你的工程团队希望在供应商集成、定价、映射、财务和运营上交付更稳定，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp22-spec-driven-development/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp22-spec-driven-development/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：规格的价值在于变成可执行验证。

@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp11-real-time-search/original/
 
 如果你正在评估延迟压力下的供应商聚合能力，这份资产能提供比简单返回数量更有价值的证据。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp11-real-time-search/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp11-real-time-search/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：搜索平台需要解释 missed results，而不只是返回 hits。

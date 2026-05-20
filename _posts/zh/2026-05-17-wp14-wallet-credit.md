@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp14-wallet-credit/original/
 
 如果你的 review 需要检查预订扣款、退款、授信敞口和财务展示正确性，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp14-wallet-credit/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp14-wallet-credit/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：财务正确性从拒绝不完整总价开始。

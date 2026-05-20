@@ -13,7 +13,7 @@ original_url: /zh/whitepapers/wp27-ai-native-engineering-operating-system/origin
 featured: true
 ---
 
-WP27 是 HotelByte 技术白皮书系列里最重的一篇：它讨论的不是“AI 能不能多写点代码”，而是工程组织如何把 AI 变成可治理、可验证、可追责的交付能力。
+WP27 是 HotelByte 技术白皮书索引里最重的一篇：它讨论的不是“AI 能不能多写点代码”，而是工程组织如何把 AI 变成可治理、可验证、可追责的交付能力。
 
 如果说前面的白皮书更多在拆酒店分销系统里的具体技术问题，WP27 讨论的是这些问题背后的工作系统：人类如何定义意图，AI 如何获取上下文、执行任务、提交证据，组织又如何通过评审、发布控制和记忆沉淀把经验留下来。
 

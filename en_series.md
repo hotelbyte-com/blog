@@ -7,7 +7,7 @@ permalink: /en/series/
 
 <div class="series">
   <h1>Topic Guides</h1>
-  <p>Related articles grouped by topic, without treating every post as one generic series.</p>
+  <p>Related articles grouped by topic.</p>
 
   <div class="series-section">
     <h2>Hotel API Integration Field Notes</h2>

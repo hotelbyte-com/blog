@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp13-order-lifecycle/original/
 
 如果你的团队需要证明供应商响应延迟或不一致时，预订运营仍可审计、可恢复，这份资产可以作为入口。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp13-order-lifecycle/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp13-order-lifecycle/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：订单状态机必须区分供应商事实和平台事实。

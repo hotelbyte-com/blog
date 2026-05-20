@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp07-supplier-resilience/original/
 
 如果你需要证明供应商失败是有界、可观测、并且映射到正确业务结果的，这份资产可以作为检查入口。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp07-supplier-resilience/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp07-supplier-resilience/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：供应商韧性大多先是分类，然后才是重试。

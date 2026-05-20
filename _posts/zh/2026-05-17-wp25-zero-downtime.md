@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp25-zero-downtime/original/
 
 如果你的 SRE 或企业审核需要证明发布机制考虑了在线交易，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp25-zero-downtime/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp25-zero-downtime/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：部署安全也是预订产品的一部分。

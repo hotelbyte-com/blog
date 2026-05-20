@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp12-sse-streaming-search/original/
 
 如果你正在评估酒店搜索体验、前端流式协议或不均匀延迟下的供应商 fan-out，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp12-sse-streaming-search/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp12-sse-streaming-search/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：流式搜索只有在局部结果明确且受控时才真正有用。

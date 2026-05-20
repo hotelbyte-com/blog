@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp04-database-storage-resilience/original/
 
 如果你的团队要评估预订流程、财务控制、映射状态和运营诊断的存储韧性，这份资产可以作为检查入口。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp04-database-storage-resilience/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp04-database-storage-resilience/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：存储韧性从区分事实、指标和缓存状态开始。

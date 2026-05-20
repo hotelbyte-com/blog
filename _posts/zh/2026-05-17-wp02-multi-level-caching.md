@@ -19,5 +19,5 @@ original_url: /zh/whitepapers/wp02-multi-level-caching/original/
 
 如果你的团队要评估实时搜索性能，同时避免过期供应商数据或内容数据影响买家决策，这份资产值得阅读。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp02-multi-level-caching/original/)。查看完整系列：[HotelByte 技术白皮书系列](/zh/whitepapers/)。
+阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp02-multi-level-caching/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
 Twitter/X 角度：好的酒店 API 缓存是一套控制系统，不是 key-value 捷径。
