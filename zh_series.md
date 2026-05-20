@@ -1,17 +1,17 @@
 ---
 layout: post
-title: 系列文章
+title: 专题目录
 lang: zh
 permalink: /zh/series/
 ---
 
 <div class="series">
-  <h1>系列文章</h1>
-  <p>这里按主题整理了相关的系列文章，方便您系统性地阅读。</p>
+  <h1>专题目录</h1>
+  <p>这里按主题整理可连续阅读的文章，不再把所有内容混成一个“系列文章”。</p>
 
   <div class="series-section">
-    <h2>为什么酒店API集成这么难</h2>
-    <p class="series-desc">深入探讨酒店API集成的各种挑战，从认证到协议差异，从错误处理到性能优化。</p>
+    <h2>酒店 API 集成避坑指南</h2>
+    <p class="series-desc">用真实踩坑故事拆解酒店 API 集成的认证、数据、限流、错误处理、时区和房型映射问题。</p>
     <ul class="series-posts">
       <li>
         <div class="post-info">
@@ -25,14 +25,14 @@ permalink: /zh/series/
           <span class="part">第 2 部分</span>
           <a href="/zh/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-2/">为什么酒店API集成这么难？（2）数据混乱：同一家酒店，5种不同的数据格式</a>
         </div>
-        <p class="summary">除了认证方式不同，API协议也五花八门...</p>
+        <p class="summary">同一家酒店在不同供应商里可能有完全不同的数据结构和字段含义。</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 3 部分</span>
           <a href="/zh/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-3/">为什么酒店API集成这么难？（3）限流噩梦：上线第1天被拉黑3次</a>
         </div>
-        <p class="summary">同一个字段在不同供应商的API中可能有完全不同的含义...</p>
+        <p class="summary">供应商限流策略、热点检测和封禁规则不一致，搜索上线第一天就可能出事故。</p>
       </li>
       <li>
         <div class="post-info">
@@ -46,14 +46,14 @@ permalink: /zh/series/
           <span class="part">第 5 部分</span>
           <a href="/zh/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-5/">为什么酒店API集成这么难？（5）时区问题：用户订了昨天的酒店</a>
         </div>
-        <p class="summary">每个供应商都有不同的限流策略，需要精心设计...</p>
+        <p class="summary">UTC、酒店本地时间、用户本地时间和夏令时一起出现时，入住日期很容易错位。</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">第 6 部分</span>
           <a href="/zh/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-6/">为什么酒店API集成这么难？（6）房间映射：同一个房间，5种不同的名字</a>
         </div>
-        <p class="summary">酒店数据变化频率不同，需要智能的缓存策略...</p>
+        <p class="summary">同一个真实房间在不同供应商里有不同名称、图片和属性，直接影响用户体验。</p>
       </li>
       <li>
         <div class="post-info">

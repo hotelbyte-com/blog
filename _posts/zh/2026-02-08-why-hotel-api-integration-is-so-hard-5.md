@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, timezone, date-handling]
 author: "HotelByte Team"
 description: "酒店API集成的第五个噩梦：时区问题。3个时区（UTC、HotelLocal、UserLocal）、夏令时/冬令时切换、跨时区预订...用户选了明天入住，供应商以为是昨天。"
+series: "酒店 API 集成避坑指南"
+series_order: 5
 reading_time: "14分钟"
 ---
 

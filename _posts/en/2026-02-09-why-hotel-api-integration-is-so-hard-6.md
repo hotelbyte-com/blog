@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, room-mapping, giata]
 author: "HotelByte Team"
 description: "The sixth nightmare of hotel API integration: room mapping. 5 suppliers, 5 different room type names—King Room, Deluxe King, Superior King, Premium King... Is this the same room? Users complain that rooms don't match the photos."
+series: "Hotel API Integration Field Notes"
+series_order: 6
 reading_time: "18 minutes"
 ---
 

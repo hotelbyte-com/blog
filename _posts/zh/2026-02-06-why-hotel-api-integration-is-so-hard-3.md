@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, rate-limiting, hot-spot-detection]
 author: "HotelByte Team"
 description: "酒店API集成的第三个噩梦：限流。5家供应商，5种不同的限流规则——QPS限制、时间窗口、热点检测...上线第1天就被拉黑3次，搜索功能全部不可用。"
+series: "酒店 API 集成避坑指南"
+series_order: 3
 reading_time: "15分钟"
 ---
 

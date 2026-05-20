@@ -4,7 +4,7 @@
   {% assign whitepaper_guides = site.posts | where: "lang", current_lang | where: "whitepaper_kind", "guide" | sort: "permalink" %}
   <div class="series-navigation">
     <p class="rail-kicker">{% if current_lang == "en" %}Whitepaper Series{% else %}白皮书系列{% endif %}</p>
-    <h3>{% if current_lang == "en" %}Guide + Original{% else %}导读 + 原文{% endif %}</h3>
+    <h3>{% if current_lang == "en" %}Guide + Original{% else %}中文导读 + 英文原文{% endif %}</h3>
     <ul>
       {% for item in whitepaper_guides %}
         {% assign is_active = false %}
@@ -14,16 +14,16 @@
         <li{% if is_active %} class="active"{% endif %}>
           <a href="{{ item.url }}">{{ item.title | remove: "白皮书导读：" | remove: "Whitepaper Guide: " }}</a>
           <span class="desc">
-            {% if current_lang == "en" %}Reader guide and canonical text{% else %}读者视角导读和完整原文{% endif %}
+            {% if current_lang == "en" %}Reader guide and canonical text{% else %}读者视角导读和英文 canonical 原文{% endif %}
           </span>
         </li>
       {% endfor %}
     </ul>
   </div>
 {% elsif page.series %}
-  {% assign series_posts = site.posts | where: "lang", current_lang | where: "series", page.series | sort: "series_order" %}
+  {% assign series_posts = site.posts | where: "lang", current_lang | where: "series", page.series | sort: "date" %}
   <div class="series-navigation">
-    <p class="rail-kicker">{% if current_lang == "en" %}Series{% else %}系列{% endif %}</p>
+    <p class="rail-kicker">{% if current_lang == "en" %}Topic Guide{% else %}专题目录{% endif %}</p>
     <h3>{{ page.series }}</h3>
     <ul>
       {% for item in series_posts %}
@@ -41,8 +41,8 @@
   </div>
 {% elsif page.url contains "why-hotel-api-integration-is-so-hard" %}
   <div class="series-navigation">
-    <p class="rail-kicker">{% if current_lang == "en" %}Series{% else %}系列{% endif %}</p>
-    <h3>{% if current_lang == "en" %}Hotel API Integration{% else %}酒店 API 集成为什么这么难{% endif %}</h3>
+    <p class="rail-kicker">{% if current_lang == "en" %}Topic Guide{% else %}专题目录{% endif %}</p>
+    <h3>{% if current_lang == "en" %}Hotel API Integration Field Notes{% else %}酒店 API 集成避坑指南{% endif %}</h3>
     <ul>
       <li{% if page.url contains 'why-hotel-api-integration-is-so-hard/' and page.url != '/zh/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-2/' %} class="active"{% endif %}>
         <a href="{% if current_lang == 'en' %}/en/{% else %}/zh/{% endif %}developer-experience/api-integration/why-hotel-api-integration-is-so-hard/">{% if current_lang == "en" %}Part 1 · Authentication{% else %}第1篇 · 认证地狱{% endif %}</a>

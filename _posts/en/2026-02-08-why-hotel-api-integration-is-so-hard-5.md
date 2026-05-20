@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, timezone, date-handling]
 author: "HotelByte Team"
 description: "The fifth nightmare of hotel API integration: timezone issues. 3 timezones (UTC, HotelLocal, UserLocal), DST/standard time switching, cross-timezone bookings... User chose to check in tomorrow, supplier thinks it was yesterday."
+series: "Hotel API Integration Field Notes"
+series_order: 5
 reading_time: "14 minutes"
 ---
 

@@ -54,6 +54,13 @@ sass:
 # Google Analytics
 google_analytics: G-1ZJN193FS9
 
+# Giscus comments
+giscus:
+  repo: hotelbyte-com/blog
+  repo_id: R_kgDORItI5w
+  category: General
+  category_id: DIC_kwDORItI584C2Ccv
+
 # Defaults
 defaults:
   - scope:

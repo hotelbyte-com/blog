@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, hotelbyte, byol]
 author: "HotelByte Team"
 description: "为什么酒店API集成这么难？系列总结。回顾6大痛点（认证地狱、数据混乱、限流噩梦、错误处理、时区问题、房间映射），介绍我们的解决方案和BYOL模式。"
+series: "酒店 API 集成避坑指南"
+series_order: 7
 reading_time: "12分钟"
 ---
 

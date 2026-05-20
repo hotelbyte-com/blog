@@ -1,17 +1,17 @@
 ---
 layout: post
-title: Series
+title: Topic Guides
 lang: en
 permalink: /series/
 ---
 
 <div class="series">
-  <h1>Article Series</h1>
-  <p>Here you'll find related articles organized by topic, making it easier for you to read systematically.</p>
+  <h1>Topic Guides</h1>
+  <p>Related articles grouped by topic, without treating every post as one generic series.</p>
 
   <div class="series-section">
-    <h2>Why Hotel API Integration Is So Hard</h2>
-    <p class="series-desc">An in-depth exploration of various challenges in hotel API integration, from authentication to protocol differences, from error handling to performance optimization.</p>
+    <h2>Hotel API Integration Field Notes</h2>
+    <p class="series-desc">Real integration lessons across authentication, data normalization, rate limits, error handling, timezones, and room mapping.</p>
     <ul class="series-posts">
       <li>
         <div class="post-info">
@@ -25,14 +25,14 @@ permalink: /series/
           <span class="part">Part 2</span>
           <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-2/">Why Hotel API Integration Is So Hard (2): Data Chaos - Same Hotel, 5 Different Data Formats</a>
         </div>
-        <p class="summary">Besides different authentication methods, API protocols are also diverse...</p>
+        <p class="summary">The same hotel can arrive with different schemas, field meanings, and room structures from each supplier.</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 3</span>
           <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-3/">Why Hotel API Integration Is So Hard (3): Rate Limiting Nightmare - Blocked 3 Times on Day 1</a>
         </div>
-        <p class="summary">The same field may have completely different meanings across different supplier APIs...</p>
+        <p class="summary">Supplier rate limits, hotspot detection, and blocking behavior can break search on launch day.</p>
       </li>
       <li>
         <div class="post-info">
@@ -46,14 +46,14 @@ permalink: /series/
           <span class="part">Part 5</span>
           <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-5/">Why Hotel API Integration Is So Hard (5): Timezone Issues - User Booked Yesterday's Hotel</a>
         </div>
-        <p class="summary">Each supplier has different rate limiting policies, requiring careful design...</p>
+        <p class="summary">UTC, hotel-local time, user-local time, and daylight saving rules can shift stay dates.</p>
       </li>
       <li>
         <div class="post-info">
           <span class="part">Part 6</span>
           <a href="/en/developer-experience/api-integration/why-hotel-api-integration-is-so-hard-6/">Why Hotel API Integration Is So Hard (6): Room Mapping - Same Room, 5 Different Names</a>
         </div>
-        <p class="summary">Hotel data changes at different rates, requiring intelligent caching strategies...</p>
+        <p class="summary">The same physical room can have different names, photos, and attributes across suppliers.</p>
       </li>
       <li>
         <div class="post-info">

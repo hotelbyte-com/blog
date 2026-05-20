@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, data-normalization, room-mapping]
 author: "HotelByte Team"
 description: "The second nightmare of hotel API integration: data chaos. 5 suppliers, 5 different data formats - JSON/XML, nested structures, room names, price calculations... Have you written 50+ if/else statements?"
+series: "Hotel API Integration Field Notes"
+series_order: 2
 reading_time: "12 minutes"
 ---
 

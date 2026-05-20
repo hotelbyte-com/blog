@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "白皮书原文：实时搜索与分布式交易引擎白皮书"
+title: "英文 canonical 原文：实时搜索与分布式交易引擎白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
@@ -13,10 +13,10 @@ guide_url: /zh/whitepapers/wp03-async-structured-concurrency/
 ---
 
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是白皮书原文。想先快速判断和业务有什么关系，可以先读 <a href="/zh/whitepapers/wp03-async-structured-concurrency/">读者视角导读</a>。完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。
+  <strong>阅读路径：</strong>这是英文 canonical 原文。想先快速判断和业务有什么关系，可以先读 <a href="/zh/whitepapers/wp03-async-structured-concurrency/">读者视角导读</a>。完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。
 </div>
 
-# 实时搜索与分布式交易引擎白皮书
+# 英文 canonical 原文：实时搜索与分布式交易引擎白皮书
 
 **HotelByte Platform Technical Whitepaper — Search & Trade Engine**
 

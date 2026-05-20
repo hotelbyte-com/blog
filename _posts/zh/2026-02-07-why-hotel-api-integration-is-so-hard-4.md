@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, error-handling, retry-strategy]
 author: "HotelByte Team"
 description: "酒店API集成的第四个噩梦：错误处理。5家供应商，5种不同的HTTP状态码和错误消息——400、401、403、404、429...你写过100+行的错误码映射表吗？"
+series: "酒店 API 集成避坑指南"
+series_order: 4
 reading_time: "16分钟"
 ---
 

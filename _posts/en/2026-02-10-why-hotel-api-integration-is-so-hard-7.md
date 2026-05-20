@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, hotelbyte, byol]
 author: "HotelByte Team"
 description: "Why is hotel API integration so hard? Series summary. Reviewing 6 major pain points (authentication hell, data chaos, rate limiting nightmare, error handling, timezone issues, room mapping), introducing our solution and BYOL model."
+series: "Hotel API Integration Field Notes"
+series_order: 7
 reading_time: "12 minutes"
 ---
 

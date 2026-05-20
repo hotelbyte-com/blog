@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, error-handling, retry-strategy]
 author: "HotelByte Team"
 description: "The fourth nightmare of hotel API integration: error handling. 5 suppliers, 5 different HTTP status codes and error messages—400, 401, 403, 404, 429... Have you written a 100+ line error code mapping table?"
+series: "Hotel API Integration Field Notes"
+series_order: 4
 reading_time: "16 minutes"
 ---
 

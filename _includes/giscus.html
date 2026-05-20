@@ -26,12 +26,12 @@
   </noscript>
 {% else %}
   <div class="comment-fallback">
-    <h3>{% if page.lang == 'en' %}Discussion is on GitHub{% else %}评论暂时走 GitHub Discussions{% endif %}</h3>
+    <h3>{% if page.lang == 'en' %}Comments are being configured{% else %}评论正在接入中{% endif %}</h3>
     <p>
       {% if page.lang == 'en' %}
-        Inline comments are disabled until the repository's real Giscus IDs are configured. Use the public discussion board for questions and feedback.
+        Inline comments require the repository's Giscus app configuration. Use the public discussion board for questions and feedback while that is being completed.
       {% else %}
-        站内评论需要配置真实的 Giscus repo/category ID。配置完成前，不再加载会报错的 iframe；问题和反馈先集中到公开讨论区。
+        站内评论需要完成 Giscus App 配置。接入完成前，不再加载会报错的 iframe；问题和反馈先集中到公开讨论区。
       {% endif %}
     </p>
     <a href="https://github.com/hotelbyte-com/blog/discussions">

@@ -1,7 +1,7 @@
 ---
 
 layout: post
-title: "白皮书原文：供应商适配框架与标准化白皮书"
+title: "英文 canonical 原文：供应商适配框架与标准化白皮书"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
 tags: [酒店 API, 白皮书, 架构]
@@ -14,10 +14,10 @@ guide_url: /zh/whitepapers/wp06-supplier-adapter-framework/
 ---
 
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是白皮书原文页。中文导读在 <a href="/zh/whitepapers/wp06-supplier-adapter-framework/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布 canonical whitepaper 全文，避免再跳转到仓库相对目录。
+  <strong>阅读路径：</strong>这是英文 canonical 原文页。中文导读在 <a href="/zh/whitepapers/wp06-supplier-adapter-framework/">读者视角导读</a>；完整系列在 <a href="/zh/whitepapers/">HotelByte 技术白皮书系列</a>。下方发布英文 canonical whitepaper 全文，避免再跳转到仓库相对目录。
 </div>
 
-# 供应商适配框架与标准化白皮书
+# 英文 canonical 原文：供应商适配框架与标准化白皮书
 
 > 本页为公开博客版白皮书原文。当前 canonical 全文以英文维护，中文导读负责解释读者视角和业务价值；英文 canonical URL 为 [/en/whitepapers/wp06-supplier-adapter-framework/original/](/en/whitepapers/wp06-supplier-adapter-framework/original/)。
 

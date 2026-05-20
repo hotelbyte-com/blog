@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, authentication]
 author: "HotelByte Team"
 description: "The first nightmare of hotel API integration: authentication. 5 suppliers, 5 different authentication methods - Basic Auth, HMAC-SHA256, OAuth1, JWT... A 10-week plan, 24 weeks and still not done with the first supplier."
+series: "Hotel API Integration Field Notes"
+series_order: 1
 reading_time: "10 minutes"
 lang: en
 ---

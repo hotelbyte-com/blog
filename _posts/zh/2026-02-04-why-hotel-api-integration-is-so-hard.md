@@ -3,11 +3,12 @@ layout: post
 title: "为什么酒店API集成这么难？（1）认证地狱：10周计划，24周还没完成"
 date: 2026-02-04 18:30:00 +0000
 lang: zh
-lang: zh
 categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, authentication]
 author: "HotelByte Team"
 description: "酒店API集成的第一个噩梦：认证。5家供应商，5种不同的认证方式——Basic Auth、HMAC-SHA256、OAuth1、JWT...10周的计划，24周还没完成第一个供应商。"
+series: "酒店 API 集成避坑指南"
+series_order: 1
 ---
 
 > 3年前，我接到了一个任务：接入5家酒店供应商的API，让用户可以搜索全球酒店库存。

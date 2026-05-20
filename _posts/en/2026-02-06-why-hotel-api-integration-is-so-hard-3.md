@@ -7,6 +7,8 @@ categories: [developer-experience, api-integration]
 tags: [hotel-api, api-integration, rate-limiting, hot-spot-detection]
 author: "HotelByte Team"
 description: "The third nightmare of hotel API integration: rate limiting. 5 suppliers, 5 different rate limiting rules - QPS limits, time windows, hot spot detection... Blocked 3 times on day 1, search feature completely unavailable."
+series: "Hotel API Integration Field Notes"
+series_order: 3
 reading_time: "15 minutes"
 ---
 
