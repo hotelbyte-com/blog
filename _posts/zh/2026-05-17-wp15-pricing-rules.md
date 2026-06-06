@@ -1,23 +1,36 @@
 ---
-
 layout: post
 title: "白皮书导读：动态定价与业务规则引擎"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
-tags: [定价, 规则引擎, 收益]
+tags: [商业控制, 技术白皮书, HotelByte]
 author: "HotelByte Team"
-description: "HotelByte 动态定价与规则引擎导读。"
+description: "HotelByte 动态定价与业务规则引擎导读：动态定价需要规则引擎化：规则因素、作用范围、优先级、追踪和预览能力必须一起设计，才能让商业策略可控地进入交易链路。"
 lang: zh
 permalink: /zh/whitepapers/wp15-pricing-rules/
-source_asset: hotel-be/docs/whitepapers/15-dynamic-pricing-and-business-rules-engine.md
+source_asset: hotel-be/docs/whitepapers/zh/15-dynamic-pricing-and-business-rules-engine.md
 whitepaper_kind: guide
 original_url: /zh/whitepapers/wp15-pricing-rules/original/
 ---
-动态定价不是简单加一个 markup。它组合了客户策略、供应商策略、产品约束、财务边界和审计要求。
+# 白皮书导读：动态定价与业务规则引擎
 
-这份白皮书解释 HotelByte 如何把业务规则视为可 review、可测试、可追踪的模板和执行契约。
+**TL;DR：** 动态定价需要规则引擎化：规则因素、作用范围、优先级、追踪和预览能力必须一起设计，才能让商业策略可控地进入交易链路。
 
-如果你的团队需要在信任自动定价前评估定价治理和规则可解释性，这份资产可以作为入口。
+酒店分销价格会受租户、客户、供应商、酒店、市场、日期、房型和商业策略影响。把这些规则硬编码在服务逻辑里，会让价格不可解释、难以预览，也难以回答某个订单为什么得到这个 markup。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp15-pricing-rules/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
-Twitter/X 角度：规则引擎的价值在于解释价格为什么变化。
+## 谁应该读
+
+商业运营负责人、定价平台工程师、企业技术评审方 应该优先阅读这篇白皮书。它不是功能介绍，而是帮助技术评审者理解 HotelByte 如何把 商业控制 能力放进可验证的工程控制面。
+
+## 阅读重点
+
+- 看执行摘要，确认问题背景和中心判断。
+- 看架构机制，理解系统如何把复杂度拆成可治理的控制点。
+- 看验证路径，判断能力是否能被测试、回放、日志或审计证据证明。
+
+## 完整白皮书
+
+- [中文白皮书原文](/zh/whitepapers/wp15-pricing-rules/original/)
+- [English whitepaper](/en/whitepapers/wp15-pricing-rules/original/)
+
+Twitter/X 角度：动态定价的关键不是规则多，而是每个价格都能解释。

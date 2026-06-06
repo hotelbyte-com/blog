@@ -4,7 +4,7 @@ Owner: HotelByte Team
 Status: Ready for Growth sync
 Canonical public entry: `/zh/whitepapers/` and `/en/whitepapers/`
 
-This is the public blog-side matrix for the 25-asset whitepaper campaign. The Growth backend treats each row as a content asset and generates one Twitter/X thread, three short posts, one follow-up reply template, and one CTA after human review.
+This is the public blog-side matrix for the 27-asset whitepaper campaign. The Growth backend treats each row as a content asset and generates one Twitter/X thread, three short posts, one follow-up reply template, and one CTA after human review.
 
 | Asset ID | English Guide | Chinese Guide | Full Whitepaper | Twitter Pack |
 | --- | --- | --- | --- | --- |
@@ -33,6 +33,8 @@ This is the public blog-side matrix for the 25-asset whitepaper campaign. The Gr
 | wp23-real-data-testing | `/en/whitepapers/wp23-real-data-testing/` | `/zh/whitepapers/wp23-real-data-testing/` | `/zh/whitepapers/wp23-real-data-testing/original/` + `/en/whitepapers/wp23-real-data-testing/original/` | thread + 3 short + reply + CTA |
 | wp24-observability | `/en/whitepapers/wp24-observability/` | `/zh/whitepapers/wp24-observability/` | `/zh/whitepapers/wp24-observability/original/` + `/en/whitepapers/wp24-observability/original/` | thread + 3 short + reply + CTA |
 | wp25-zero-downtime | `/en/whitepapers/wp25-zero-downtime/` | `/zh/whitepapers/wp25-zero-downtime/` | `/zh/whitepapers/wp25-zero-downtime/original/` + `/en/whitepapers/wp25-zero-downtime/original/` | thread + 3 short + reply + CTA |
+| wp26-data-agent-operational-intelligence | `/en/whitepapers/wp26-data-agent-operational-intelligence/` | `/zh/whitepapers/wp26-data-agent-operational-intelligence/` | `/zh/whitepapers/wp26-data-agent-operational-intelligence/original/` + `/en/whitepapers/wp26-data-agent-operational-intelligence/original/` | thread + 3 short + reply + CTA |
+| wp27-ai-native-engineering-operating-system | `/en/whitepapers/wp27-ai-native-engineering-operating-system/` | `/zh/whitepapers/wp27-ai-native-engineering-operating-system/` | `/zh/whitepapers/wp27-ai-native-engineering-operating-system/original/` + `/en/whitepapers/wp27-ai-native-engineering-operating-system/original/` | thread + 3 short + reply + CTA |
 
 ## Publishing Plan
 

@@ -1,23 +1,36 @@
 ---
-
 layout: post
-title: "白皮书导读：金融级钱包与授信系统"
+title: "白皮书导读：金融级钱包与信用体系"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
-tags: [钱包, 授信, 财务, 酒店 API]
+tags: [财务与结算, 技术白皮书, HotelByte]
 author: "HotelByte Team"
-description: "HotelByte 钱包与授信控制导读。"
+description: "HotelByte 金融级钱包与信用体系导读：金融级钱包的基本单位是 `(Buyer, Seller, Currency)` 三元组，余额变更必须由原子更新、流水记录和补偿对账共同保护。"
 lang: zh
 permalink: /zh/whitepapers/wp14-wallet-credit/
-source_asset: hotel-be/docs/whitepapers/14-financial-grade-wallet-and-credit-system.md
+source_asset: hotel-be/docs/whitepapers/zh/14-financial-grade-wallet-and-credit-system.md
 whitepaper_kind: guide
 original_url: /zh/whitepapers/wp14-wallet-credit/original/
 ---
-酒店分销的财务表面不能依赖方便的 fallback。金额、币种、供应商成本、tenant 卖价、customer 买价和利润都有独立语义。
+# 白皮书导读：金融级钱包与信用体系
 
-这份白皮书解释 HotelByte 如何通过明确的金额语义和 incomplete financial data fail-closed 行为保护钱包与授信操作。
+**TL;DR：** 金融级钱包的基本单位是 `(Buyer, Seller, Currency)` 三元组，余额变更必须由原子更新、流水记录和补偿对账共同保护。
 
-如果你的 review 需要检查预订扣款、退款、授信敞口和财务展示正确性，这份资产值得阅读。
+B2B 酒店分销需要同时处理买方、卖方、币种、授信、冻结、扣减、退款和对账。若钱包只按用户余额建模，就无法表达多卖方、多币种和跨主体的资金责任，也难以在并发扣款时保证一致性。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp14-wallet-credit/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
-Twitter/X 角度：财务正确性从拒绝不完整总价开始。
+## 谁应该读
+
+财务系统负责人、平台架构师、合规审核方、企业客户技术团队 应该优先阅读这篇白皮书。它不是功能介绍，而是帮助技术评审者理解 HotelByte 如何把 财务与结算 能力放进可验证的工程控制面。
+
+## 阅读重点
+
+- 看执行摘要，确认问题背景和中心判断。
+- 看架构机制，理解系统如何把复杂度拆成可治理的控制点。
+- 看验证路径，判断能力是否能被测试、回放、日志或审计证据证明。
+
+## 完整白皮书
+
+- [中文白皮书原文](/zh/whitepapers/wp14-wallet-credit/original/)
+- [English whitepaper](/en/whitepapers/wp14-wallet-credit/original/)
+
+Twitter/X 角度：酒店 B2B 钱包不是一个余额字段，而是主体、卖方和币种的责任模型。

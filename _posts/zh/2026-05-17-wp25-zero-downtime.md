@@ -1,23 +1,36 @@
 ---
-
 layout: post
 title: "白皮书导读：零停机运行时与部署"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers]
-tags: [部署, 运行时, SRE]
+tags: [工程卓越, 技术白皮书, HotelByte]
 author: "HotelByte Team"
-description: "HotelByte 运行时与部署安全模型导读。"
+description: "HotelByte 零停机运行时与部署导读：零停机不是一句发布承诺，而是运行时、负载均衡、就绪探针、优雅关闭、金丝雀和回读验证共同构成的发布控制面。"
 lang: zh
 permalink: /zh/whitepapers/wp25-zero-downtime/
-source_asset: hotel-be/docs/whitepapers/25-zero-downtime-runtime-and-deployment.md
+source_asset: hotel-be/docs/whitepapers/zh/25-zero-downtime-runtime-and-deployment.md
 whitepaper_kind: guide
 original_url: /zh/whitepapers/wp25-zero-downtime/original/
 ---
-酒店分销发布需要在服务重启、配置变化和 worker 轮换时，保护正在进行的搜索和预订流量。
+# 白皮书导读：零停机运行时与部署
 
-这份白皮书解释 HotelByte 的运行时与部署模型，包括 master/worker 行为、readiness、health check 和支持回滚的运营方式。
+**TL;DR：** 零停机不是一句发布承诺，而是运行时、负载均衡、就绪探针、优雅关闭、金丝雀和回读验证共同构成的发布控制面。
 
-如果你的 SRE 或企业审核需要证明发布机制考虑了在线交易，这份资产值得阅读。
+酒店分销平台不能因为发布而中断搜索、验价或预订链路。传统重启如果没有就绪探针、优雅关闭和流量健康检查，容易让正在处理的请求被切断，也可能让尚未准备好的实例接收流量。
 
-阅读全文白皮书：[白皮书原文](/zh/whitepapers/wp25-zero-downtime/original/)。查看白皮书索引：[HotelByte 技术白皮书索引](/zh/whitepapers/)。
-Twitter/X 角度：部署安全也是预订产品的一部分。
+## 谁应该读
+
+平台工程师、SRE、发布负责人、企业技术评审方 应该优先阅读这篇白皮书。它不是功能介绍，而是帮助技术评审者理解 HotelByte 如何把 工程卓越 能力放进可验证的工程控制面。
+
+## 阅读重点
+
+- 看执行摘要，确认问题背景和中心判断。
+- 看架构机制，理解系统如何把复杂度拆成可治理的控制点。
+- 看验证路径，判断能力是否能被测试、回放、日志或审计证据证明。
+
+## 完整白皮书
+
+- [中文白皮书原文](/zh/whitepapers/wp25-zero-downtime/original/)
+- [English whitepaper](/en/whitepapers/wp25-zero-downtime/original/)
+
+Twitter/X 角度：零停机靠的不是运气，是 ready、drain、health check 和回读证据。

@@ -1,17 +1,16 @@
 ---
 layout: post
-title: "Whitepaper: Governed Data Agent for Operational Intelligence Whitepaper"
+title: "Whitepaper: Governed Data Agent for Operational Intelligence"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Data Intelligence]
+tags: [Hotel API, Data Agent, Operational Intelligence, AI Governance, Whitepaper]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP26 technical whitepaper: a governed conversational analytics layer for platform operations across MySQL, TDengine, repository evidence, masking, visual artifacts, and audit controls."
 lang: en
 permalink: /en/whitepapers/wp26-data-agent-operational-intelligence/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp26-data-agent-operational-intelligence/
 ---
-
 <div class="whitepaper-reader-note">
   <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp26-data-agent-operational-intelligence/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
@@ -24,7 +23,7 @@ HotelByte's Data Agent provides a governed conversational analytics layer for pl
 
 The key design choice is to treat the agent as an evidence assembly system rather than a raw SQL console. Natural-language prompts are converted into bounded query intent, source-specific read plans, repository evidence, masked result artifacts, and human-confirmable recommendations. This enables faster incident triage and data reconciliation without bypassing established operational controls.
 
-The first implementation slice is intentionally narrow and verifiable: platform-only users can ask supplier reliability questions; the backend executes a bounded TDengine `hb_log` aggregation, attempts the MySQL supplier snapshot read model, attaches repository evidence, masks supplier identifiers, and returns typed artifacts for the UI. Unsupported or unavailable sources are reported as evidence gaps.
+The first implementation slice is intentionally narrow and verifiable: platform-only users can ask supplier reliability questions; the backend reads retained TDengine supplier reliability aggregates, uses raw `hb_log` only for drilldown inside log retention, attaches repository evidence, masks supplier identifiers, and returns typed artifacts for the UI. Unsupported or unavailable sources are reported as evidence gaps.
 
 ## Scope
 
@@ -114,8 +113,8 @@ The MySQL adapter reads durable operational entities such as orders, suppliers, 
 Current verified behavior:
 
 - TDengine UAT read path returned real `hb_log` rows for the last-day hotelRates/rateCount aggregation on May 17, 2026.
-- MySQL source inventory showed a deployment split: one checked UAT DB had stale `inventory_quality_daily_supplier_snapshot` rows dated only `2026-04-25`, while the checked Prod DB had neither `inventory_quality_daily_supplier_snapshot` nor `supplier_daily_snapshot`.
-- The implemented MySQL read path probes a deterministic candidate catalog at runtime: repo-owned `supplier_daily_snapshot` first, then legacy `inventory_quality_daily_supplier_snapshot`. Missing, undeployed, or stale windows are reported as gaps rather than source-of-truth rows.
+- MySQL source inventory showed a deployment split: the checked UAT backend connects to `hoteldev`, where `supplier_daily_snapshot` is absent and legacy `inventory_quality_daily_supplier_snapshot` has only `2026-04-25` rows.
+- The supplier reliability path no longer probes MySQL snapshot candidates. It retains TDengine `hblog_ns.hb_log_supplier_reliability_daily` as the historical supplier SLA source, uses `hblog_ns.hb_log` for raw drilldown inside retention, and treats the snapshot tables as deleted/stale sources, not fallback truth.
 - The frontend renders only returned `data_ops_result` artifacts; it does not render static sample result rows.
 
 ### Sanitizer and Artifact Builder
@@ -136,7 +135,7 @@ The LLM is downstream of retrieval and policy. It receives a governed evidence p
 
 ### Knowledge Catalog
 
-The agent knows where to look through a maintained source catalog that maps question families to data sources, schemas, dimensions, metrics, and repository anchors. For example, hotelRates supplier reliability maps first to TDengine `hblog_ns.hb_log` for live facts, then to MySQL read-model candidates only when runtime schema and freshness probes pass. This is deterministic adapter routing, not LLM table inference. The catalog must be updated alongside migrations and business-rule changes.
+The agent knows where to look through a maintained source catalog that maps question families to data sources, schemas, dimensions, metrics, and repository anchors. For example, hotelRates supplier reliability maps first to TDengine `hblog_ns.hb_log_supplier_reliability_daily` for retained supplier history, with `hblog_ns.hb_log` reserved for recent drilldown. This is deterministic adapter routing, not LLM table inference. The catalog must be updated alongside migrations and business-rule changes.
 
 ## Implemented Control Summary
 
@@ -211,4 +210,3 @@ The Data Agent combines these surfaces: dashboard-like visualization, SQL-like f
 | ISO/IEC 42001 AI management systems | Audit records, performance evidence, and decision traceability support AI management review. |
 | Database least-privilege practice | Read-only credentials, schema allowlists, bounded queries, and DML rejection reduce blast radius. |
 | Data minimization practice | The sanitizer and artifact builder expose only the fields needed for the operational question. |
-
