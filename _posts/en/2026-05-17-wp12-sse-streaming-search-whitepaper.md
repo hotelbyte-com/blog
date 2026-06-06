@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: SSE Streaming Search Architecture Whitepaper"
+title: "Whitepaper: SSE Streaming Search Architecture"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Search and Trade]
+tags: ["Search", "Booking", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP12 technical whitepaper: Streaming search turns waiting into visible incremental state."
 lang: en
 permalink: /en/whitepapers/wp12-sse-streaming-search/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp12-sse-streaming-search/
+source_asset: hotel-be/docs/whitepapers/12-sse-streaming-search-architecture.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp12-sse-streaming-search/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP12 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp12-sse-streaming-search/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# SSE Streaming Search Architecture Whitepaper
+# SSE Streaming Search Architecture
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -167,7 +167,7 @@ A typical stream progresses through the following lifecycle:
 
 External reviewers and enterprise customers can verify HotelByte streaming search controls through the following mechanisms:
 
-1. **Structured Stream Logs (HBLog)** — Every stream emits a structured log object via `GetLogData()` containing event count, byte count, total suppliers, success/failure breakdowns by supplier, credential, and batch, and a chronological event journal. These logs are retained and available for audit export.
+1. **Structured Stream Logs** — Every stream emits a structured log object via `GetLogData()` containing event count, byte count, total suppliers, success/failure breakdowns by supplier, credential, and batch, and a chronological event journal. These logs are retained and available for audit export.
 
 2. **Trace ID Correlation** — The `traceId` returned in the HTTP `Trace-Id` header is identical to the `traceId` field in every SSE event. Reviewers can correlate the parent HTTP request with each incremental event in log aggregation tools.
 
@@ -195,4 +195,3 @@ External reviewers and enterprise customers can verify HotelByte streaming searc
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
-

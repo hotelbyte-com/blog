@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Dynamic Pricing & Business Rules Engine Whitepaper"
+title: "Whitepaper: Dynamic Pricing & Business Rules Engine"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Commercial Controls]
+tags: ["Pricing", "Business Rules", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP15 technical whitepaper: Dynamic pricing becomes governable when every price can explain which rules shaped it."
 lang: en
 permalink: /en/whitepapers/wp15-pricing-rules/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp15-pricing-rules/
+source_asset: hotel-be/docs/whitepapers/15-dynamic-pricing-and-business-rules-engine.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp15-pricing-rules/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP15 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp15-pricing-rules/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Dynamic Pricing & Business Rules Engine Whitepaper
+# Dynamic Pricing & Business Rules Engine
 
 ## Executive Summary
 
@@ -228,4 +228,3 @@ All rule mutations—creation, update, deletion, and toggle—are attributed to 
 | **IEEE Software, "Rule-Based Systems: A Taxonomy"** | "A rule engine should provide traceability of rule firing, explainability of conclusions, and support for forward and backward chaining." | The engine provides traceability through `MarkupProcess` and `MarkupStrategies`. Explainability is supported via simulation responses that show exactly which conditions passed and which actions fired. Forward chaining is implemented through sequential action execution within a matched rule. |
 | **ISO 4217 (Currency Codes)** | "ISO 4217 provides standard three-letter alphabetic codes for currencies." | The currency factor in the Request scope uses ISO 4217 standard codes (USD, EUR, CNY, AED, etc.) as static enumerated values, ensuring that currency-based rules are expressed in an internationally recognized vocabulary. |
 | **OWASP, "Input Validation Cheat Sheet"** | "All input should be validated against a strict specification… Numeric inputs should have defined minimum and maximum bounds." | The markup validation layer enforces strict bounds: percentage markups are constrained between -99% and +1000%, multipliers between 0× and 10×, fixed amounts must be non-negative, and tier intervals must be well-formed. All parameters are validated at rule persistence time, simulation time, and execution time. |
-

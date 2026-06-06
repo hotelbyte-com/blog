@@ -3,16 +3,17 @@ layout: post
 title: "白皮书：面向运营智能的受治理数据智能体"
 date: 2026-06-05
 categories: [HotelByte, Whitepapers, Data Intelligence]
-tags: [Hotel API, Data Agent, Operational Intelligence, AI Governance, Whitepaper]
+tags: ["数据智能", "分析", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "WP26 中文白皮书：一个面向平台运营的受治理会话式数据分析层，覆盖 MySQL、TDengine、仓库证据、脱敏、可视化 artifact 与审计控制。"
+description: "WP26 中文白皮书: 受治理的数据智能体不是 SQL 聊天窗口，而是面向运营的证据打包层。"
 lang: zh
 permalink: /zh/whitepapers/wp26-data-agent-operational-intelligence/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp26-data-agent-operational-intelligence/
+source_asset: hotel-be/docs/whitepapers/zh/26-data-agent-governed-operational-intelligence.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp26-data-agent-operational-intelligence/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP26 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp26-data-agent-operational-intelligence/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
 # 面向运营智能的受治理数据智能体

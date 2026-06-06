@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Five-Dimensional Observability Whitepaper"
+title: "Whitepaper: Five-Dimensional Observability"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["Engineering Excellence", "Quality", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP24 technical whitepaper: Observability works when errors, traces, profiles, metrics, and audit logs can explain the same incident."
 lang: en
 permalink: /en/whitepapers/wp24-observability/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp24-observability/
+source_asset: hotel-be/docs/whitepapers/24-five-dimensional-observability.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp24-observability/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP24 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp24-observability/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Five-Dimensional Observability Whitepaper
+# Five-Dimensional Observability
 
 **HotelByte Platform | Technical Whitepaper | v2.0**
 
@@ -202,4 +202,3 @@ HotelByte's observability framework provides multiple verification mechanisms to
 ---
 
 *This whitepaper represents the current state of HotelByte's observability capabilities. The architecture is continuously evolved in response to operational experience, customer requirements, and advances in telemetry technology.*
-

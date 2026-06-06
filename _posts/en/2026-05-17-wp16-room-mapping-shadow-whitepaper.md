@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Room Mapping with Shadow Mode Whitepaper"
+title: "Whitepaper: Room Mapping with Shadow Mode"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Data Intelligence]
+tags: ["Data Intelligence", "Analytics", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP16 technical whitepaper: Shadow mode lets mapping algorithms learn from real traffic before they can affect booking."
 lang: en
 permalink: /en/whitepapers/wp16-room-mapping-shadow/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp16-room-mapping-shadow/
+source_asset: hotel-be/docs/whitepapers/16-room-mapping-with-shadow-mode.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp16-room-mapping-shadow/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP16 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp16-room-mapping-shadow/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Room Mapping with Shadow Mode Whitepaper
+# Room Mapping with Shadow Mode
 
 **Version:** 2.0  
 **Classification:** External — Customer-Facing  
@@ -202,4 +202,3 @@ The following authoritative sources inform the design, evaluation, and governanc
 ---
 
 *© 2026 HotelByte. All rights reserved. This whitepaper is provided for informational purposes and does not constitute a binding service-level agreement.*
-

@@ -1,23 +1,57 @@
 ---
-
 layout: post
 title: "Whitepaper Guide: Time-Series BI Analytics"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [BI, Observability, Time Series]
+categories: [HotelByte, Whitepapers, Data Intelligence]
+tags: ["Data Intelligence", "Analytics", "Whitepaper Guide", "HotelByte"]
 author: "HotelByte Team"
-description: "A guide to HotelByte's time-series BI analytics for operations."
+description: "WP18 guide: Operational BI needs a time-window evidence layer, not ad-hoc queries against the business database."
 lang: en
 permalink: /en/whitepapers/wp18-time-series-bi/
-source_asset: hotel-be/docs/en/whitepapers/18-time-series-bi-analytics.md
+source_asset: hotel-be/docs/whitepapers/18-time-series-bi-analytics.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp18-time-series-bi/original/
 ---
-Hotel operations need time-series visibility across request volume, supplier latency, error mix, session quality, and business outcomes.
+# Whitepaper Guide: Time-Series BI Analytics
 
-This whitepaper explains how HotelByte turns operational logs into BI surfaces that support troubleshooting and trend analysis without overstating root cause.
+Most technical whitepapers fail in the same way: they describe a component, but they do not tell the reader what engineering risk the component is meant to remove.
 
-Read this asset if your team needs dashboards that connect platform behavior, supplier behavior, and data quality.
+WP18 is different. It should be read as a control design for data intelligence: where the system draws boundaries, which facts must be preserved, how failure is classified, and what evidence proves the capability works.
 
-Read the full whitepaper on the blog: [Original whitepaper](/en/whitepapers/wp18-time-series-bi/original/). Browse the series: [HotelByte Whitepapers](/en/whitepapers/).
-Twitter/X angle: BI is useful when it preserves operational context.
+**TL;DR:** Operational BI needs a time-window evidence layer, not ad-hoc queries against the business database.
+
+## Why This Matters
+
+Hotel distribution is a hostile environment for vague architecture. Supplier behavior changes, prices move, inventory expires, credentials differ by channel, and operational evidence is scattered across requests, logs, orders, caches, and human review. A design that only works in a happy-path diagram will fail during integration, certification, or production support.
+
+This guide gives you the reader's path into the full whitepaper. Use it to understand the argument first, then read the original for the concrete mechanisms, diagrams, and validation model.
+
+## The Engineering Question
+
+The question behind this asset is not "does HotelByte have Time-Series BI Analytics?" The better question is:
+
+> What must be governed so this capability remains reliable when supplier variance, tenant boundaries, operational pressure, and production evidence all collide?
+
+That framing is important. It moves the discussion away from feature inventory and toward system behavior under stress.
+
+## What To Look For In The Full Whitepaper
+
+- **Boundary design:** which layer owns the decision and which layer only adapts data.
+- **Failure semantics:** what counts as retryable, terminal, stale, unsafe, or incomplete.
+- **Evidence path:** which logs, tests, records, metrics, or replay artifacts prove the claim.
+- **Operational control:** how the design behaves during incidents, supplier drift, partial data, or rollout.
+- **Reviewability:** whether a buyer, auditor, or engineer can explain why the system made a decision.
+
+## How HotelByte Approaches It
+
+HotelByte treats Time-Series BI Analytics as part of a broader governed platform, not as an isolated implementation detail. The architecture is expected to leave a trail: normalized contracts, explicit ownership, testable behavior, and production evidence that can be inspected after the fact.
+
+That is the recurring pattern across the whitepaper series. The platform is not trying to hide complexity behind a clean demo. It is trying to make complexity governable.
+
+## Read The Full Whitepaper
+
+The complete paper expands the architecture, control points, and verification path:
+
+- [Full English whitepaper](/en/whitepapers/wp18-time-series-bi/original/)
+- [Chinese version](/zh/whitepapers/wp18-time-series-bi/original/)
+- [Whitepaper index](/en/whitepapers/)

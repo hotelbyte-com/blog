@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "价格智能与竞争基准白皮书"
+title: "白皮书：价格智能与竞争基准"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 数据智能, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Data Intelligence]
+tags: ["数据智能", "分析", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 价格智能与竞争基准中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP19 中文白皮书: 价格智能不是截图比价，而是可追溯的竞争事实系统。"
 lang: zh
 permalink: /zh/whitepapers/wp19-price-intelligence/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp19-price-intelligence/
+source_asset: hotel-be/docs/whitepapers/zh/19-price-intelligence-and-competitive-benchmarking.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp19-price-intelligence/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP19 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp19-price-intelligence/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 价格智能与竞争基准白皮书
+# 价格智能与竞争基准
 
 英文版本：[../19-price-intelligence-and-competitive-benchmarking.md](../19-price-intelligence-and-competitive-benchmarking.md)
 

@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Financial-Grade Wallet & Credit System Whitepaper"
+title: "Whitepaper: Financial-Grade Wallet & Credit System"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Finance]
+tags: ["Finance", "Wallet", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP14 technical whitepaper: A B2B wallet should model responsibility across buyer, seller, and currency."
 lang: en
 permalink: /en/whitepapers/wp14-wallet-credit/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp14-wallet-credit/
+source_asset: hotel-be/docs/whitepapers/14-financial-grade-wallet-and-credit-system.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp14-wallet-credit/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP14 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp14-wallet-credit/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Financial-Grade Wallet & Credit System Whitepaper
+# Financial-Grade Wallet & Credit System
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -268,4 +268,3 @@ The `GetCreditLedger` API supports paginated retrieval with time-range and opera
 | **ACID Transaction Semantics** | "A transaction is a single logical unit of work that takes the database from one consistent state to another." (Silberschatz, Korth, & Sudarshan, *Database System Concepts*) | `SetCreditLimit` and reconciliation compensation wrap entity updates, wallet updates, and ledger insertions in database transactions, guaranteeing atomicity and consistency. |
 | **Payment Card Industry — Data Integrity Best Practices** | "Systems should employ defense-in-depth strategies including input validation, boundary checks, and self-healing recovery mechanisms." (PCI SSC Guidance) | The `execRefundUsedLimitClamp` applies `GREATEST(0, used_limit + delta)` at the database level, providing a self-healing boundary that clamps anomalous states to zero rather than propagating corruption. |
 | **IEEE 830-1998 (Software Requirements Specifications)** | "Traceability ensures that each requirement can be traced forward to design, code, and test cases." (IEEE) | `Reference`-indexed holds and reconciliation-compensation entries enable forward and backward traceability from any booking ID to every wallet mutation and ledger record that affected it. |
-

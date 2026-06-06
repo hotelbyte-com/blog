@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "五维可观测性白皮书"
+title: "白皮书：五维可观测性"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 工程卓越, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["工程卓越", "质量", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 五维可观测性中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP24 中文白皮书: 可观测性有价值，是因为错误、链路、性能、指标和审计日志能解释同一个事故。"
 lang: zh
 permalink: /zh/whitepapers/wp24-observability/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp24-observability/
+source_asset: hotel-be/docs/whitepapers/zh/24-five-dimensional-observability.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp24-observability/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP24 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp24-observability/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 五维可观测性白皮书
+# 五维可观测性
 
 英文版本：[../24-five-dimensional-observability.md](../24-five-dimensional-observability.md)
 

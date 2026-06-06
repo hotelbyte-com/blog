@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "供应商凭证安全白皮书"
+title: "白皮书：供应商凭证安全"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 安全与供应商集成, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Security]
+tags: ["安全", "供应商集成", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 供应商凭证安全中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP09 中文白皮书: 供应商凭证安全不能靠评审提醒，而要成为默认平台路径。"
 lang: zh
 permalink: /zh/whitepapers/wp09-supplier-credential-security/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp09-supplier-credential-security/
+source_asset: hotel-be/docs/whitepapers/zh/09-supplier-credential-security.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp09-supplier-credential-security/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP09 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp09-supplier-credential-security/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 供应商凭证安全白皮书
+# 供应商凭证安全
 
 英文版本：[../09-supplier-credential-security.md](../09-supplier-credential-security.md)
 

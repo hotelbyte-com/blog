@@ -3,19 +3,20 @@ layout: post
 title: "Whitepaper: Governed Data Agent for Operational Intelligence"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers, Data Intelligence]
-tags: [Hotel API, Data Agent, Operational Intelligence, AI Governance, Whitepaper]
+tags: ["Data Intelligence", "Analytics", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "WP26 technical whitepaper: a governed conversational analytics layer for platform operations across MySQL, TDengine, repository evidence, masking, visual artifacts, and audit controls."
+description: "WP26 technical whitepaper: A governed data agent is not a SQL chatbot; it is an evidence-packaging layer for operations."
 lang: en
 permalink: /en/whitepapers/wp26-data-agent-operational-intelligence/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp26-data-agent-operational-intelligence/
+source_asset: hotel-be/docs/whitepapers/26-data-agent-governed-operational-intelligence.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp26-data-agent-operational-intelligence/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP26 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp26-data-agent-operational-intelligence/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Governed Data Agent for Operational Intelligence Whitepaper
+# Governed Data Agent for Operational Intelligence
 
 ## Executive Summary
 

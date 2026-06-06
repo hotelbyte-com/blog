@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: HotelByte Supplier Credential Security Whitepaper"
+title: "Whitepaper: HotelByte Supplier Credential Security"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Security]
+tags: ["Security", "Supplier Integration", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP09 technical whitepaper: Credential security has to be a default platform path, not a reminder in review."
 lang: en
 permalink: /en/whitepapers/wp09-supplier-credential-security/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp09-supplier-credential-security/
+source_asset: hotel-be/docs/whitepapers/09-supplier-credential-security.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp09-supplier-credential-security/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP09 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp09-supplier-credential-security/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# HotelByte Supplier Credential Security Whitepaper
+# HotelByte Supplier Credential Security
 
 ## Executive Summary
 
@@ -178,4 +178,3 @@ HotelByte's credential security design is informed by the following authoritativ
 ## Closing
 
 Supplier credential security is not a single feature. It is a control system that spans product design, engineering implementation, and operational workflows. Through default masking, runtime isolation, audit-safe copies, reference-based configuration, log query sanitization, and schema-driven governance, HotelByte continuously reduces unnecessary credential exposure in the hotel supply chain while providing customers and suppliers with a stable and trusted connectivity foundation.
-

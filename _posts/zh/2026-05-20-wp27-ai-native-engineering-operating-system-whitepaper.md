@@ -1,16 +1,25 @@
 ---
 layout: post
-title: "AI 原生工程操作系统"
+title: "白皮书：AI 原生工程操作系统"
 date: 2026-05-20
-categories: [HotelByte, Whitepapers, AI Engineering]
-tags: [AI 原生工程, Engineering OS, AI Agent, 白皮书]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["工程卓越", "质量", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "WP27 重量级白皮书：以 HotelByte 为案例，提出受治理的人机协作软件交付操作系统。"
+description: "WP27 中文白皮书: AI 原生工程不是让 AI 多写代码，而是让组织安全吸收 AI 工作的受治理闭环。"
 lang: zh
 permalink: /zh/whitepapers/wp27-ai-native-engineering-operating-system/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp27-ai-native-engineering-operating-system/
-featured: true
+source_asset: hotel-be/docs/whitepapers/zh/27-ai-native-engineering-operating-system.md
+---
+<div class="whitepaper-reader-note">
+  <strong>阅读路径：</strong>这是 WP27 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+</div>
+
+# AI 原生工程操作系统
+
+英文版本：[../27-ai-native-engineering-operating-system.md](../27-ai-native-engineering-operating-system.md)
+
 ---
 
 ## 执行摘要

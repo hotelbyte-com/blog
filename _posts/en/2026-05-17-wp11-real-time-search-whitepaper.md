@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Real-Time Search Aggregation Whitepaper"
+title: "Whitepaper: Real-Time Search Aggregation"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Search and Trade]
+tags: ["Search", "Booking", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP11 technical whitepaper: Real-time search is a controlled competition among suppliers, not a simple fan-out."
 lang: en
 permalink: /en/whitepapers/wp11-real-time-search/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp11-real-time-search/
+source_asset: hotel-be/docs/whitepapers/11-real-time-search-aggregation.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp11-real-time-search/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP11 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp11-real-time-search/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Real-Time Search Aggregation Whitepaper
+# Real-Time Search Aggregation
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -87,16 +87,15 @@ Cache entries are treated as materialized views with bounded staleness, not as a
 
 The aggregation system is organized into four architectural layers, each with a distinct responsibility and failure domain.
 
-### Fanout Layer: Multi-Supplier Concurrent Dispatch
+### Dispatch Layer: Multi-Supplier Concurrent Execution
 
-When a search request arrives, the fanout layer resolves the set of eligible suppliers for the buyer's context and dispatches availability queries to all of them simultaneously. Each supplier request operates within a shared parent context that enforces a global timeout and cancellation signal.
+When a search request arrives, the dispatch layer resolves the set of eligible suppliers for the buyer's context and issues availability queries to all of them simultaneously. Each supplier request operates within a shared parent context that enforces a global timeout and cancellation signal.
 
-The fanout layer applies the following controls:
+The dispatch layer applies the following controls:
 
-- **Concurrent dispatch:** All supplier queries are launched together; no supplier blocks another.
-- **Credential-level parallelism:** Suppliers with multiple active credentials may issue parallel sub-requests, further increasing coverage without adding latency.
-- **Timeout isolation:** Per-supplier timeouts prevent a single slow supplier from delaying the overall response.
-- **Structured cancellation:** If the buyer connection drops or the global deadline expires, all in-flight supplier requests receive a cancellation signal, preventing wasted work.
+- **Targeted Resolution:** Only suppliers configured with appropriate credentials and matching the customer's geographic and currency profile are queried.
+- **Adaptive Timeout:** Supplier-specific timeout profiles are applied; chronically slow suppliers are truncated earlier to preserve overall search responsiveness.
+- **Circuit Breaker Integration:** If a supplier's error rate exceeds established thresholds, the dispatch layer automatically short-circuits the request, saving internal resources and protecting the supplier from further overload.
 
 ### Merge Layer: Unified Catalog Construction
 
@@ -157,7 +156,7 @@ A typical search request traverses the following lifecycle:
 
 | Control | Customer Value |
 |---|---|
-| **Multi-Supplier Concurrent Fanout** | All eligible suppliers are queried simultaneously; response latency is bounded by the slowest successful supplier, not the sum of requests. |
+| **Multi-Supplier Concurrent Dispatch** | All eligible suppliers are queried simultaneously; response latency is bounded by the slowest successful supplier, not the sum of requests. |
 | **Credential-Level Parallelism** | Suppliers with multiple credentials parallelize internal requests, maximizing inventory coverage without increasing perceived latency. |
 | **Structured Timeout and Cancellation** | Per-supplier timeouts and global cancellation prevent slow or orphaned requests from degrading the overall search experience. |
 | **Supplier-to-Master Hotel ID Mapping** | Disparate supplier identifiers for the same physical property are resolved into a single canonical entry, eliminating duplicate listings. |
@@ -178,7 +177,7 @@ A typical search request traverses the following lifecycle:
 
 External reviewers and enterprise customers can verify HotelByte's search aggregation controls through the following mechanisms:
 
-1. **Distributed Trace Correlation.** Every search request carries a unique trace identifier through the fanout, merge, processing, and caching layers. Reviewers can correlate logs to reconstruct the complete lifecycle of any query.
+1. **Distributed Trace Correlation.** Every search request carries a unique trace identifier through the dispatch, merge, processing, and caching layers. Reviewers can correlate logs to reconstruct the complete lifecycle of any query.
 
 2. **Structured Quality Metrics.** The platform exposes Prometheus-compatible counters and histograms covering supplier response times, timeout rates, mapping success rates, cache hit ratios, and rule-engine execution counts. These metrics support independent monitoring and SLA verification.
 
@@ -188,7 +187,7 @@ External reviewers and enterprise customers can verify HotelByte's search aggreg
 
 5. **Source Code Verification.** The aggregation pipeline is implemented in the platform's core search layer, subject to the same code review, static analysis, and integration test coverage as the rest of the platform.
 
-6. **Integration Tests.** The search layer includes tests covering concurrent fanout behavior, merge deduplication, room mapping integration, sorting and limiting logic, rule engine application, and cache fallback paths.
+6. **Integration Tests.** The search layer includes tests covering concurrent dispatch behavior, merge deduplication, room mapping integration, sorting and limiting logic, rule engine application, and cache fallback paths.
 
 ---
 
@@ -196,14 +195,13 @@ External reviewers and enterprise customers can verify HotelByte's search aggreg
 
 | Source | Original Excerpt | HotelByte Control Mapping |
 |---|---|---|
-| **Dean, J. & Ghemawat, S. — "MapReduce: Simplified Data Processing on Large Clusters" (OSDI 2004)** | "The MapReduce library in the user program first splits the input files into M pieces... then starts up many copies of the program on a cluster of machines." | HotelByte's fanout layer applies the same divide-and-conquer parallelism principle: a single search query is decomposed into concurrent supplier sub-queries that are executed in parallel and then merged into a unified result. |
+| **Dean, J. & Ghemawat, S. — "MapReduce: Simplified Data Processing on Large Clusters" (OSDI 2004)** | "The MapReduce library in the user program first splits the input files into M pieces... then starts up many copies of the program on a cluster of machines." | HotelByte's dispatch layer applies the same divide-and-conquer parallelism principle: a single search query is decomposed into concurrent supplier sub-queries that are executed in parallel and then merged into a unified result. |
 | **Gamma, E. et al. — "Design Patterns: Elements of Reusable Object-Oriented Software" (GoF, 1994) — Adapter Pattern** | "Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces." | The merge and room mapping layers act as adapter pipelines, converting heterogeneous supplier data models and identifier schemes into a single canonical interface that buyers can consume uniformly. |
 | **Fowler, M. — "Patterns of Enterprise Application Architecture" — Repository Pattern** | "Mediates between the domain and data mapping layers using a collection-like interface for accessing domain objects." | HotelByte's dual-dimension caching and session fallback mechanisms provide a collection-like abstraction over distributed supplier data, shielding buyers from the complexity of multi-source retrieval and transient unavailability. |
 | **NIST SP 800-53 Rev. 5 — SC-5 (Denial of Service Protection)** | "The information system protects against or limits the effects of... denial of service attacks." | Per-supplier timeouts, concurrent request isolation, and caching fallback mechanisms collectively limit the impact of slow or unresponsive suppliers, preventing a single dependency failure from denying service to the buyer. |
 | **Brewer, E. — "CAP Twelve Years Later: How the 'Rules' Have Changed" (IEEE Computer, 2012)** | "The CAP theorem prohibits only a tiny part of the design space: perfect availability and consistency in the presence of partitions, which are rare." | HotelByte's search aggregation prioritizes availability and partition tolerance during supplier degradation: partial results are returned with quality metadata rather than failing the entire query, aligning with the operational reality that transient supplier partitions are common. |
-| **OWASP Cheat Sheet Series — Denial of Service** | "Implement rate limiting to prevent abuse and ensure fair resource allocation." | The per-hotel rate package limit and concurrent fanout with timeout controls enforce bounded resource consumption per query, preventing any single request from generating unbounded downstream load or response payload size. |
+| **OWASP Cheat Sheet Series — Denial of Service** | "Implement rate limiting to prevent abuse and ensure fair resource allocation." | The per-hotel rate package limit and concurrent dispatch with timeout controls enforce bounded resource consumption per query, preventing any single request from generating unbounded downstream load or response payload size. |
 
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
-

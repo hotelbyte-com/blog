@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "全球内容管理与分发白皮书"
+title: "白皮书：全球内容管理与分发"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 内容与地理, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Content and Geography]
+tags: ["内容", "地理", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 全球内容管理与分发中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP20 中文白皮书: 全球酒店内容分发的难点，是来源、覆盖、过期和多语言治理。"
 lang: zh
 permalink: /zh/whitepapers/wp20-content-distribution/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp20-content-distribution/
+source_asset: hotel-be/docs/whitepapers/zh/20-global-content-management-and-distribution.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp20-content-distribution/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP20 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp20-content-distribution/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 全球内容管理与分发白皮书
+# 全球内容管理与分发
 
 英文版本：[../20-global-content-management-and-distribution.md](../20-global-content-management-and-distribution.md)
 

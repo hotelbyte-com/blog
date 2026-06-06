@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Multi-Supplier Price Normalization Whitepaper"
+title: "Whitepaper: Multi-Supplier Price Normalization"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Supplier Integration]
+tags: ["Supplier Integration", "Hotel API", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP10 technical whitepaper: Price normalization must preserve money semantics, not merely rename fields."
 lang: en
 permalink: /en/whitepapers/wp10-price-normalization/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp10-price-normalization/
+source_asset: hotel-be/docs/whitepapers/10-multi-supplier-price-normalization.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp10-price-normalization/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP10 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp10-price-normalization/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Multi-Supplier Price Normalization Whitepaper
+# Multi-Supplier Price Normalization
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -174,7 +174,7 @@ External reviewers and enterprise customers can verify HotelByte price normaliza
 
 2. **Quality Incorrect Rate Metrics** — The `go_quality_incorrect_rate_total` counter is tagged by supplier, customer, tenant, and anomaly reason (duplicate identifier, rate price error, total rate price error). These metrics are exportable and can be used to independently verify supplier data quality trends.
 
-3. **HBLog Structured Logging** — Every booking request emits a structured log record containing credential mode, environment, test order classification, refundable mode, and any safety blocks triggered. These logs support audit export and compliance review.
+3. **Structured Audit Logging** — Every booking request emits a structured log record containing credential mode, environment, test order classification, refundable mode, and any safety blocks triggered. These logs support audit export and compliance review.
 
 4. **Source Code Verification** — The normalization pipeline and booking safety controls are implemented in the supplier proxy layer, which is subject to the same code review, static analysis, and integration test coverage as the rest of the platform.
 
@@ -196,4 +196,3 @@ External reviewers and enterprise customers can verify HotelByte price normaliza
 | **Financial Data Quality Standards (EDM Council)** — Data Integrity Principles | "Data must be complete, valid, consistent, and traceable across its lifecycle." | The four-stage normalization pipeline (validation, derivation, conversion, buffer application) enforces completeness, consistency, and traceability through preserved original values, decimal arithmetic, and structured quality metrics. |
 
 ---
-

@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "零停机运行时与部署白皮书"
+title: "白皮书：零停机运行时与部署"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 工程卓越, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["工程卓越", "质量", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 零停机运行时与部署中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP25 中文白皮书: 零停机不是发布口号，而是优雅关闭、连接排空、发布证据和回滚准备的运行时纪律。"
 lang: zh
 permalink: /zh/whitepapers/wp25-zero-downtime/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp25-zero-downtime/
+source_asset: hotel-be/docs/whitepapers/zh/25-zero-downtime-runtime-and-deployment.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp25-zero-downtime/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP25 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp25-zero-downtime/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 零停机运行时与部署白皮书
+# 零停机运行时与部署
 
 英文版本：[../25-zero-downtime-runtime-and-deployment.md](../25-zero-downtime-runtime-and-deployment.md)
 

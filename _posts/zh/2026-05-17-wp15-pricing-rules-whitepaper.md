@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "动态定价与业务规则引擎白皮书"
+title: "白皮书：动态定价与业务规则引擎"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 商业控制, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Commercial Controls]
+tags: ["定价", "业务规则", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 动态定价与业务规则引擎中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP15 中文白皮书: 动态定价可治理的前提，是每一个价格都能解释哪些规则塑造了它。"
 lang: zh
 permalink: /zh/whitepapers/wp15-pricing-rules/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp15-pricing-rules/
+source_asset: hotel-be/docs/whitepapers/zh/15-dynamic-pricing-and-business-rules-engine.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp15-pricing-rules/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP15 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp15-pricing-rules/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 动态定价与业务规则引擎白皮书
+# 动态定价与业务规则引擎
 
 英文版本：[../15-dynamic-pricing-and-business-rules-engine.md](../15-dynamic-pricing-and-business-rules-engine.md)
 

@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Real-Data Testing Culture Whitepaper"
+title: "Whitepaper: Real-Data Testing Culture"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["Engineering Excellence", "Quality", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP23 technical whitepaper: Real-data testing exposes supplier truth before it reaches UAT or production."
 lang: en
 permalink: /en/whitepapers/wp23-real-data-testing/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp23-real-data-testing/
+source_asset: hotel-be/docs/whitepapers/23-real-data-testing-culture.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp23-real-data-testing/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP23 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp23-real-data-testing/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Real-Data Testing Culture Whitepaper
+# Real-Data Testing Culture
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -189,4 +189,3 @@ External reviewers and enterprise customers can verify HotelByte's testing contr
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
-

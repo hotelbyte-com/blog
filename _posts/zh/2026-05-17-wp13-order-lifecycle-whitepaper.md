@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "订单生命周期状态机白皮书"
+title: "白皮书：订单生命周期状态机"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 订单与交易, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Search and Trade]
+tags: ["搜索", "交易", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 订单生命周期状态机中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP13 中文白皮书: 订单状态不是普通枚举字段，而是交易边界。"
 lang: zh
 permalink: /zh/whitepapers/wp13-order-lifecycle/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp13-order-lifecycle/
+source_asset: hotel-be/docs/whitepapers/zh/13-order-lifecycle-state-machine.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp13-order-lifecycle/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP13 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp13-order-lifecycle/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 订单生命周期状态机白皮书
+# 订单生命周期状态机
 
 英文版本：[../13-order-lifecycle-state-machine.md](../13-order-lifecycle-state-machine.md)
 

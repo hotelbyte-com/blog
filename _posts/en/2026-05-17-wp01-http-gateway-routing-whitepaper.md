@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: HTTP Gateway & In-Process API Routing Whitepaper"
+title: "Whitepaper: HTTP Gateway & In-Process API Routing"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Infrastructure]
+tags: ["Infrastructure", "Platform Engineering", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP01 technical whitepaper: A hotel API gateway is not just ingress plumbing. It is the first governed control plane for authentication, authorization, caching, streaming, field shaping, and request evidence."
 lang: en
 permalink: /en/whitepapers/wp01-http-gateway-routing/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp01-http-gateway-routing/
+source_asset: hotel-be/docs/whitepapers/01-http-gateway-and-in-process-routing.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp01-http-gateway-routing/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP01 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp01-http-gateway-routing/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# HTTP Gateway & In-Process API Routing Whitepaper
+# HTTP Gateway & In-Process API Routing
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -24,7 +24,7 @@ guide_url: /en/whitepapers/wp01-http-gateway-routing/
 
 ## Executive Summary
 
-HotelByte is a global hotel API distribution platform built in Go 1.26.1 with the go-zero microservices framework. Rather than relying on external API gateways or service mesh sidecars, HotelByte developed an in-process HTTP dispatcher (`httpdispatcher`) that embeds gateway functionality directly into every service process. This architecture eliminates network hop overhead, reduces P99 latency, and enables a unified, defense-in-depth security model.
+HotelByte is a global hotel API distribution platform. Rather than relying on external API gateways or service mesh sidecars, HotelByte developed an in-process HTTP dispatcher that embeds gateway functionality directly into every service process. This architectural trade-off eliminates network hop overhead, reduces P99 latency, and enables a unified, defense-in-depth security model.
 
 This whitepaper describes the design principles, layered middleware architecture, and production-validated controls that govern how every API request is received, authenticated, authorized, rate-limited, cached, and responded to. It is intended for security auditors, integration partners, and enterprise customers who require transparency into the platform's ingress handling and access control posture.
 
@@ -34,7 +34,7 @@ This whitepaper describes the design principles, layered middleware architecture
 
 This document covers the HotelByte HTTP gateway layer only:
 
-- In-process HTTP service dispatch (`common/httpdispatcher/`)
+- In-process HTTP service dispatch logic
 - Ten-layer onion middleware chain
 - Authentication (JWT and Short Token Mode)
 - Authorization (RBAC and OpenAPI whitelist)
@@ -60,19 +60,19 @@ It does not cover supplier-facing outbound adapters, search engine internals, or
 
 ### Embed Over Proxy
 
-Traditional API gateways (Kong, Envoy, Nginx) or service mesh sidecars introduce at least one additional network hop per request. In a hotel distribution platform where a single search may fan out to dozens of internal calls, these hops compound into measurable latency inflation. HotelByte compiles the gateway directly into each service process. Go reflection maps service interface methods to HTTP routes at startup, eliminating runtime route resolution cost and ensuring the routing table is always consistent with the deployed code.
+Traditional API gateways or service mesh sidecars introduce at least one additional network hop per request. In a hotel distribution platform where a single search may fan out to dozens of internal calls, these hops compound into measurable latency inflation. To address this, HotelByte compiles the gateway directly into each service process. Startup-time service introspection maps business interfaces to HTTP routes, eliminating runtime route resolution cost. While this tight language coupling limits polyglot microservice adoption and requires full-service redeployments for gateway policy updates, the latency savings are critical for a high fan-out aggregation engine where P99 tail latency dictates business success. The resource contention between gateway logic and core business logic within the same process is mitigated through strict capacity planning.
 
 ### Query-Parameter-Only Routing
 
-HotelByte intentionally avoids REST-style path parameters (`/hotels/{id}`). All request arguments are expressed as query parameters. This decision simplifies cache key generation (deterministic ordering, no path ambiguity), strengthens log parsing (uniform access patterns), and reduces the attack surface for path traversal or parameter smuggling.
+HotelByte intentionally avoids REST-style path parameters (`/hotels/{id}`), expressing all request arguments as query parameters instead. While this approach deviates from RESTful purism and can hinder the out-of-the-box utility of standard OpenAPI client generators, it fundamentally simplifies cache key generation by ensuring deterministic ordering and no path ambiguity. It also strengthens log parsing through uniform access patterns and reduces the attack surface for path traversal or parameter smuggling. For highly complex queries that might hit edge infrastructure URL length limits (typically 2KB-8KB), the system gracefully falls back to POST payloads.
 
 ### Short Token Security Model
 
-Standard JWT embeds claims directly in the token string, causing token size to grow with permission scope and making server-side revocation impractical until natural expiration. HotelByte stores JWT claims in Redis and transmits only a short Token ID to the client. This reduces header overhead, enables instantaneous revocation, and supports sliding expiration tied to Redis access records.
+Standard JWT embeds claims directly in the token string. This causes the token size to grow with permission scope and makes server-side revocation impractical until natural expiration. In a B2B hotel distribution context where compromised enterprise API keys must be revoked in milliseconds, stateless validation becomes a liability rather than a feature. HotelByte addresses this by storing JWT claims in Redis and transmitting only a short Token ID to the client. Although this introduces a hard dependency on distributed cache availability and a microsecond-level network latency penalty for validation lookups, it drastically reduces header overhead and enables instantaneous revocation. The availability risk is strictly mitigated through highly available Redis clusters and in-memory local caching fallbacks.
 
 ### Structured Concurrency for Cache Invalidation
 
-Write operations asynchronously trigger cache invalidation via a fanout worker pool rather than blocking the response path. This decouples mutation latency from cache consistency, bounded by a worker pool with backpressure-aware semantics. Field collection caches are similarly invalidated to ensure downstream consumers never observe stale partial data.
+Write operations asynchronously trigger cache invalidation via a bounded worker pool rather than blocking the response path. This decouples mutation latency from cache consistency, restricted by a worker pool with backpressure-aware semantics. Field collection caches are similarly invalidated to ensure downstream consumers never observe stale partial data.
 
 ### Normalize, Don't Leak
 
@@ -82,7 +82,7 @@ Unclassified network, timeout, or connection errors are automatically mapped to 
 
 ## Layered Architecture
 
-The `httpdispatcher` processes every request through a strict, ordered ten-layer onion middleware chain. Each layer has a single responsibility and can short-circuit the pipeline when a control violation is detected.
+The in-process dispatcher processes every request through a strict, ordered ten-layer onion middleware chain. Each layer has a single responsibility and can short-circuit the pipeline when a control violation is detected.
 
 ```
 Recovery
@@ -167,7 +167,7 @@ The innermost layer constructs the unified response envelope, writes cache entri
 
 External reviewers and enterprise customers can verify HotelByte gateway controls through the following mechanisms:
 
-1. **Structured Access Logs (HBLog)** — Every request emits a structured log record containing path, service, method, tenant, customer, API key, cache hit/miss status, cost time, and error classification. These logs are retained and available for audit export.
+1. **Structured Access Logs** — Every request emits a structured log record containing path, service, method, tenant, customer, API key, cache hit/miss status, cost time, and error classification. These logs are retained and available for audit export.
 
 2. **Metrics Export** — `APICallTiming` and `APICallCount` metrics are tagged by service, method, tenant, customer, API key, and cache status. Reviewers with metric access can independently validate rate-limit effectiveness, cache hit ratios, and latency distributions.
 
@@ -177,9 +177,9 @@ External reviewers and enterprise customers can verify HotelByte gateway control
 
 5. **Token Store Audit** — Short Token access records (last access time, IP, user agent, access count) are stored in Redis and can be queried to verify token usage patterns and sliding expiration behavior.
 
-6. **Source Annotations** — API methods declare authentication requirements (`@auth`), permissions (`@permission`), and cache behavior (`@cache`) in source code. These annotations are parsed at build time and can be statically audited to verify that controls match published API documentation.
+6. **Source-Level Declarative Policies** — API methods declare authentication requirements, permissions, and cache behavior in source code annotations. These annotations are parsed at build time and can be statically audited to verify that controls match published API documentation.
 
-7. **Integration Tests** — The `httpdispatcher` package includes comprehensive tests covering cache invalidation, rate limiting, JWT short-token flows, field filtering, authorization, and error normalization. Reviewers can execute these tests to reproduce control behavior in a local environment.
+7. **Integration Tests** — The gateway core module includes comprehensive tests covering cache invalidation, rate limiting, JWT short-token flows, field filtering, authorization, and error normalization. Reviewers can execute these tests to reproduce control behavior in a local environment.
 
 ---
 
@@ -197,4 +197,3 @@ External reviewers and enterprise customers can verify HotelByte gateway control
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
-

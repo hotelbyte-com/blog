@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "真实数据测试文化白皮书"
+title: "白皮书：真实数据测试文化"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 工程卓越, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["工程卓越", "质量", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 真实数据测试文化中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP23 中文白皮书: 真实数据测试的价值，是让供应商差异在 UAT 或生产之前暴露。"
 lang: zh
 permalink: /zh/whitepapers/wp23-real-data-testing/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp23-real-data-testing/
+source_asset: hotel-be/docs/whitepapers/zh/23-real-data-testing-culture.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp23-real-data-testing/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP23 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp23-real-data-testing/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 真实数据测试文化白皮书
+# 真实数据测试文化
 
 英文版本：[../23-real-data-testing-culture.md](../23-real-data-testing-culture.md)
 

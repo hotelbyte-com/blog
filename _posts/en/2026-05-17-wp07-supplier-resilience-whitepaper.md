@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Supplier Resilience Engineering Whitepaper"
+title: "Whitepaper: Supplier Resilience Engineering"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Supplier Integration]
+tags: ["Supplier Integration", "Hotel API", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP07 technical whitepaper: Supplier resilience starts with failure classification before retry policy."
 lang: en
 permalink: /en/whitepapers/wp07-supplier-resilience/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp07-supplier-resilience/
+source_asset: hotel-be/docs/whitepapers/07-supplier-resilience-engineering.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp07-supplier-resilience/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP07 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp07-supplier-resilience/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Supplier Resilience Engineering Whitepaper
+# Supplier Resilience Engineering
 
 **Document Version:** 2.0  
 **Classification:** External — Technical Whitepaper  
@@ -136,7 +136,7 @@ cache → rate limit → circuit breaker → proxy → HTTP → error mapping �
 
 This ordering is deliberate: cache lookups bypass all downstream controls for efficiency; rate limiting is applied before circuit breaker evaluation so that queued requests are not prematurely rejected; the circuit breaker protects the actual HTTP transport; error mapping translates supplier-specific responses into platform-standard outcomes; and cache writes populate the result cache for subsequent identical requests.
 
-Request and response logging middleware captures structured logs for every interaction. An `OnError` hook ensures that error paths are logged with the same fidelity as success paths. All logs are automatically populated with HBLog identifiers, and credential information is desensitized before emission.
+Request and response logging middleware captures structured logs for every interaction. An `OnError` hook ensures that error paths are logged with the same fidelity as success paths. All logs are automatically populated with standardized correlation identifiers, and credential information is desensitized before emission.
 
 ---
 
@@ -171,7 +171,7 @@ These metrics enable SRE teams to verify that controls are active and quantify t
 
 ### Structured Logging
 
-All supplier interactions are logged with consistent structure via `HBLog` records. Logs include request identifiers, supplier names, API names, response status, duration, and resilience control outcomes. Credential data is desensitized before logging to prevent credential leakage in log stores.
+All supplier interactions are logged with consistent structure via structured audit records. Logs include request identifiers, supplier names, API names, response status, duration, and resilience control outcomes. Credential data is desensitized before logging to prevent credential leakage in log stores.
 
 ### Traffic Recording
 
@@ -200,7 +200,6 @@ The dual-engine rate limiter and other configurable behaviors are controlled by 
 | **Google SRE Book** — Error Budgets | "Error budgets protect customers from repeated SLO violations and cover the product team from over-prioritizing reliability work." | Per-supplier circuit breakers act as automatic error-budget enforcers: once a supplier exceeds its acceptable failure rate, traffic is shed until it recovers. |
 | **OWASP API Security Top 10 (2023)** — API4:2023 Unrestricted Resource Consumption | "APIs do not always impose restrictions on the size or number of resources that can be requested by the client/user... The lack of, or misconfigured, rate limiting can allow attackers to perform Denial of Service (DoS) attacks." | HotelByte's credential-level and adaptive rate limiting directly addresses this risk by enforcing consumption boundaries on all outbound supplier traffic. |
 | **OWASP API Security Top 10 (2023)** — API10:2023 Unsafe Consumption of APIs | "Developers tend to trust data received from third-party APIs... Attackers can identify third-party service providers and try to compromise them to compromise the target API." | Traffic recording with sanitization and circuit breaker isolation limits exposure to compromised or misbehaving supplier endpoints by detecting anomalies and preventing sensitive data leakage. |
-| **OWASP Cheat Sheet Series** — Logging | "Log entries should include timestamps, user context, event descriptions, and outcomes... Sensitive data should never be logged." | HotelByte's HBLog structured logging includes all required fields, and credential desensitization ensures that secrets are not persisted in logs or replay stores. |
+| **OWASP Cheat Sheet Series** — Logging | "Log entries should include timestamps, user context, event descriptions, and outcomes... Sensitive data should never be logged." | HotelByte's structured audit logging includes all required fields, and credential desensitization ensures that secrets are not persisted in logs or replay stores. |
 | **Martin Fowler — Circuit Breaker Pattern** | "The basic idea behind the circuit breaker is very simple. You wrap a protected function call in a circuit breaker object, which monitors for failures. Once the failures reach a certain threshold, the circuit breaker trips." | HotelByte circuit breakers follow this exact pattern, with the addition of 4xx/5xx classification to avoid tripping on expected business errors. |
 | **AWS Well-Architected Framework** — Reliability Pillar | "Control and limit retry calls to prevent additional load on an already stressed system. Use jittered exponential backoff to space out retry attempts." | HotelByte's strict QPM scheduler and adaptive rate limiting provide equivalent load-spreading behavior, with the added benefit of automatic threshold learning. |
-

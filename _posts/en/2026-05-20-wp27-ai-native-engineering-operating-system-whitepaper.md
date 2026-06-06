@@ -2,15 +2,24 @@
 layout: post
 title: "Whitepaper: AI-Native Engineering Operating System"
 date: 2026-05-20
-categories: [HotelByte, Whitepapers, AI Engineering]
-tags: [AI-Native Engineering, Engineering OS, AI Agents, Whitepaper]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["Engineering Excellence", "Quality", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "WP27 heavyweight whitepaper: a governed operating model for human-AI software delivery, using HotelByte as the case study."
+description: "WP27 technical whitepaper: AI-native engineering is not about more generated code; it is a governed loop for absorbing AI work safely."
 lang: en
 permalink: /en/whitepapers/wp27-ai-native-engineering-operating-system/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp27-ai-native-engineering-operating-system/
-featured: true
+source_asset: hotel-be/docs/whitepapers/27-ai-native-engineering-operating-system.md
+---
+<div class="whitepaper-reader-note">
+  <strong>Reading path:</strong> this is the full WP27 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+</div>
+
+# AI-Native Engineering Operating System
+
+Chinese version: [zh/27-ai-native-engineering-operating-system.md](./zh/27-ai-native-engineering-operating-system.md)
+
 ---
 
 ## Executive Summary

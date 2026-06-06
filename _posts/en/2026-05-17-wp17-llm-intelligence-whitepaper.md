@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: LLM-Augmented Intelligence Engine Whitepaper"
+title: "Whitepaper: LLM-Augmented Intelligence Engine"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, AI Operations]
+tags: ["AI Operations", "LLM", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP17 technical whitepaper: Enterprise LLM systems need routing, budget, evidence, and safety boundaries before generation."
 lang: en
 permalink: /en/whitepapers/wp17-llm-intelligence/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp17-llm-intelligence/
+source_asset: hotel-be/docs/whitepapers/17-llm-augmented-intelligence-engine.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp17-llm-intelligence/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP17 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp17-llm-intelligence/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# LLM-Augmented Intelligence Engine Whitepaper
+# LLM-Augmented Intelligence Engine
 
 ## Executive Summary
 
@@ -159,4 +159,3 @@ These mechanisms collectively satisfy requirements for operational audit, compli
 | **Google Cloud — Responsible AI: Cost Management** | "Implement budget alerts, quota limits, and fallback mechanisms to prevent runaway inference costs in production systems." | Per-request, daily, and monthly budget ceilings are enforced with automatic model downgrade and algorithmic fallback paths, ensuring costs remain bounded even under anomalous traffic spikes. |
 | **ISO/IEC 42001:2023 — AI Management Systems** | "Organizations shall maintain documented information about AI system performance, including monitoring, measurement, and traceability of AI-generated decisions." | Comprehensive metrics (routing stats, token counts, latency percentiles, cost attribution) and decision logs with unique identifiers provide the documented traceability required for AI management system audits. |
 | **CloudWeGo Eino Documentation — Structured Generation** | "Eino components support structured output through schema definitions, enabling reliable integration of LLM capabilities into business workflows." | The engine leverages CloudWeGo Eino's component model to enforce structured generation across all LLM interactions, separating provider-specific transport from business logic and enabling provider portability. |
-

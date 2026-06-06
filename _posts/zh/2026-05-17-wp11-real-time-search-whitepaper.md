@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "实时搜索聚合白皮书"
+title: "白皮书：实时搜索聚合"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 搜索与交易, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Search and Trade]
+tags: ["搜索", "交易", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 实时搜索聚合中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP11 中文白皮书: 实时搜索不是简单 fan-out，而是一场受控、可解释的多供应商竞争。"
 lang: zh
 permalink: /zh/whitepapers/wp11-real-time-search/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp11-real-time-search/
+source_asset: hotel-be/docs/whitepapers/zh/11-real-time-search-aggregation.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp11-real-time-search/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP11 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp11-real-time-search/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 实时搜索聚合白皮书
+# 实时搜索聚合
 
 英文版本：[../11-real-time-search-aggregation.md](../11-real-time-search-aggregation.md)
 

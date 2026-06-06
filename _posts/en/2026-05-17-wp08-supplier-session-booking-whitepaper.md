@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Supplier Session & Stateful Booking Whitepaper"
+title: "Whitepaper: Supplier Session & Stateful Booking"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Supplier Integration]
+tags: ["Supplier Integration", "Hotel API", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP08 technical whitepaper: Stateful booking is safe only when session ownership and credential namespaces are explicit."
 lang: en
 permalink: /en/whitepapers/wp08-supplier-session-booking/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp08-supplier-session-booking/
+source_asset: hotel-be/docs/whitepapers/08-supplier-session-and-stateful-booking.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp08-supplier-session-booking/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP08 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp08-supplier-session-booking/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Supplier Session & Stateful Booking Whitepaper
+# Supplier Session & Stateful Booking
 
 ## Executive Summary
 
@@ -186,4 +186,3 @@ HotelByte's session architecture provides comprehensive auditability through mul
 | NIST SP 800-53 Rev. 5 — AU-6 (Audit Review) | "The organization reviews and analyzes information system audit records for indications of inappropriate or unusual activity." | Immutable snapshot entries and centralized key definitions provide structured audit records that enable automated anomaly detection and manual forensic review of booking state transitions. |
 | Hohpe & Woolf — Enterprise Integration Patterns, "Claim Check" | "Store message data in a persistent store and pass a reference to subsequent processing steps, reducing payload size while maintaining state accessibility." | HotelByte's session snapshot pattern applies the Claim Check principle: rate and availability snapshots are stored centrally, and subsequent phases reference them through credential-scoped keys rather than carrying full payload state. |
 | OWASP Application Security Verification Standard (ASVS) V3.1 | "Verify that session tokens are generated using approved cryptographic algorithms and that session management is handled server-side." | While ASVS focuses on authentication tokens, HotelByte extends the same server-side authority principle to booking session state: the proxy layer is the sole server-side authority for session persistence, with supplier layers prohibited from direct session mutation. |
-

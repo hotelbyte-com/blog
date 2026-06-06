@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Spec-Driven Development Whitepaper"
+title: "Whitepaper: Spec-Driven Development"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["Engineering Excellence", "Quality", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP22 technical whitepaper: Spec-driven development is a gate that connects intent, acceptance, implementation, and archive."
 lang: en
 permalink: /en/whitepapers/wp22-spec-driven-development/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp22-spec-driven-development/
+source_asset: hotel-be/docs/whitepapers/22-spec-driven-development.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp22-spec-driven-development/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP22 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp22-spec-driven-development/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Spec-Driven Development Whitepaper
+# Spec-Driven Development
 
 ## Executive Summary
 
@@ -136,4 +136,3 @@ Together, these methods ensure that any change can be traced from business inten
 | **ITIL 4: Change Control Practice** | "The purpose of the change control practice is to maximize the number of successful service and product changes by ensuring that risks have been properly assessed, authorizing changes to proceed, and managing the change schedule." | HotelByte's proposal review gate performs risk assessment and stakeholder alignment; the archive layer maintains the change schedule and historical record; together they implement ITIL-aligned change control. |
 | **MECE Principle** — *Barbara Minto, The Pyramid Principle* | "The grouping must be Mutually Exclusive and Collectively Exhaustive... the ideas must not overlap, and they must cover all the relevant possibilities." | Documentation Architecture control applies MECE to capability organization, ensuring that every spec has a single, exhaustive home without overlap or omission. |
 | **ISO 9001:2015** — *Quality management systems* | "The organization shall retain documented information to the extent necessary to have confidence that the processes have been carried out as planned." | The Archive Layer and immutable snapshot policy retain complete documented information for every change, providing the evidentiary basis for quality system confidence. |
-

@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Geographic Search Intelligence Whitepaper"
+title: "Whitepaper: Geographic Search Intelligence"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Content and Geography]
+tags: ["Content", "Geography", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP21 technical whitepaper: Geographic search needs multilingual, multipath recall with ranking controls."
 lang: en
 permalink: /en/whitepapers/wp21-geographic-search/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp21-geographic-search/
+source_asset: hotel-be/docs/whitepapers/21-geographic-search-intelligence.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp21-geographic-search/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP21 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp21-geographic-search/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Geographic Search Intelligence Whitepaper
+# Geographic Search Intelligence
 
 ## Executive Summary
 
@@ -202,4 +202,3 @@ The geographic search system provides multiple mechanisms for operational verifi
 | *Information Retrieval: Implementing and Evaluating Search Engines* (Buttcher, Clarke, Cormack, 2016), Section 4.3: "Query Expansion and Reformulation" | "Multiple retrieval strategies can be combined through query expansion, where the original query is augmented with additional terms or alternative formulations to improve recall." | The multi-recall architecture implements query expansion through six independent query formulations (exact, prefix, N-gram, fuzzy, suffix, Chinese), executed as a prioritized cascade with early termination. |
 | Chinese Academy of Sciences, "Jieba Chinese Text Segmentation" (open-source project documentation) | "Jieba supports three segmentation modes: precise mode, full mode, and search engine mode. The search engine mode is suitable for search engines by segmenting the sentence into as many words as possible." | The Chinese query path includes a Jieba-segmented field (`nameZh.jieba`) with search-engine mode segmentation, enabling phrase-level matching for multi-character Chinese destination names. |
 | ACM Computing Surveys, "A Survey of Result Ranking Techniques in Web Search Engines" (2017) | "Effective ranking in search engines typically combines multiple signals—textual relevance, popularity, freshness, and user behavior—into a single composite score." | The composite scoring pipeline integrates exact/prefix/substring text signals, static popularity, region type, query-length heuristics, and a no-match penalty into a unified relevance score. |
-

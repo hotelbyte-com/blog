@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Time-Series BI Analytics Whitepaper"
+title: "Whitepaper: Time-Series BI Analytics"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Data Intelligence]
+tags: ["Data Intelligence", "Analytics", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP18 technical whitepaper: Operational BI needs a time-window evidence layer, not ad-hoc queries against the business database."
 lang: en
 permalink: /en/whitepapers/wp18-time-series-bi/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp18-time-series-bi/
+source_asset: hotel-be/docs/whitepapers/18-time-series-bi-analytics.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp18-time-series-bi/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP18 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp18-time-series-bi/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Time-Series BI Analytics Whitepaper
+# Time-Series BI Analytics
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -197,4 +197,3 @@ External reviewers and enterprise customers can verify HotelByte's time-series a
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
-

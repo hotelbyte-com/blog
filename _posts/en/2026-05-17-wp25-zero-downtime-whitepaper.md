@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Zero-Downtime Runtime & Deployment Whitepaper"
+title: "Whitepaper: Zero-Downtime Runtime & Deployment"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Engineering Excellence]
+tags: ["Engineering Excellence", "Quality", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP25 technical whitepaper: Zero downtime is a runtime discipline: graceful shutdown, connection draining, rollout evidence, and rollback readiness."
 lang: en
 permalink: /en/whitepapers/wp25-zero-downtime/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp25-zero-downtime/
+source_asset: hotel-be/docs/whitepapers/25-zero-downtime-runtime-and-deployment.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp25-zero-downtime/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP25 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp25-zero-downtime/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Zero-Downtime Runtime & Deployment Whitepaper
+# Zero-Downtime Runtime & Deployment
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -188,4 +188,3 @@ External reviewers and enterprise customers can verify HotelByte's zero-downtime
 | **RFC 7231 — HTTP/1.1 Semantics and Content (503 Service Unavailable)** | "The 503 status code indicates that the server is currently unable to handle the request due to temporary overloading or maintenance." | The `/ready` endpoint returns 503 during startup and shutdown, signaling Nginx and load balancers to route traffic away from the worker without dropping existing connections. |
 
 ---
-

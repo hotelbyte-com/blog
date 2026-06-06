@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "SSE 流式搜索架构白皮书"
+title: "白皮书：SSE 流式搜索架构"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 搜索与用户体验, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Search and Trade]
+tags: ["搜索", "交易", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte SSE 流式搜索架构中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP12 中文白皮书: 流式搜索不是提前返回一点结果，而是把等待变成可理解的增量状态。"
 lang: zh
 permalink: /zh/whitepapers/wp12-sse-streaming-search/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp12-sse-streaming-search/
+source_asset: hotel-be/docs/whitepapers/zh/12-sse-streaming-search-architecture.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp12-sse-streaming-search/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP12 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp12-sse-streaming-search/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# SSE 流式搜索架构白皮书
+# SSE 流式搜索架构
 
 英文版本：[../12-sse-streaming-search-architecture.md](../12-sse-streaming-search-architecture.md)
 

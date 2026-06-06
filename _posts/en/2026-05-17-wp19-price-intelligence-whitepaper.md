@@ -1,22 +1,22 @@
 ---
 layout: post
-title: "Whitepaper: Price Intelligence & Competitive Benchmarking Whitepaper"
+title: "Whitepaper: Price Intelligence & Competitive Benchmarking"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [Hotel API, Whitepaper, Architecture]
+categories: [HotelByte, Whitepapers, Data Intelligence]
+tags: ["Data Intelligence", "Analytics", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "Full HotelByte technical whitepaper published on the blog for readable public access."
+description: "WP19 technical whitepaper: Price intelligence is a traceable fact system, not screenshot comparison."
 lang: en
 permalink: /en/whitepapers/wp19-price-intelligence/original/
 whitepaper_kind: original
 guide_url: /en/whitepapers/wp19-price-intelligence/
+source_asset: hotel-be/docs/whitepapers/19-price-intelligence-and-competitive-benchmarking.md
 ---
-
 <div class="whitepaper-reader-note">
-  <strong>Reading path:</strong> this is the full whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp19-price-intelligence/">the blog guide</a>. Browse the whitepaper index at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
+  <strong>Reading path:</strong> this is the full WP19 whitepaper. For a shorter reader-facing guide, start with <a href="/en/whitepapers/wp19-price-intelligence/">the blog guide</a>. Browse the series at <a href="/en/whitepapers/">HotelByte Whitepapers</a>.
 </div>
 
-# Price Intelligence & Competitive Benchmarking Whitepaper
+# Price Intelligence & Competitive Benchmarking
 
 **HotelByte Technical Whitepaper | Version 2.0**
 
@@ -199,4 +199,3 @@ External reviewers and enterprise customers can verify HotelByte's price intelli
 | **NIST SP 800-53 Rev. 5 AU-6 — Audit Record Review** | "The organization reviews and analyzes audit records for indications of inappropriate or unusual activity." | The system generates structured audit events for every significant operation, with actor attribution, timestamps, and machine-readable detail JSON, enabling independent review and anomaly detection. |
 | **ISO/IEC 27001:2022, Annex A.8.2 — Information Removal** | "Information stored in information systems shall be securely removed when no longer required." | Expired report files are automatically purged after 90 days through a scheduled cleanup task, and download URLs carry time-bounded signatures, ensuring that competitive data does not persist beyond its operational necessity. |
 | **Porter, M.E., *Competitive Strategy* — Price Signaling and Market Monitoring** | "Firms must continuously monitor competitor pricing to detect strategic moves and market shifts." | HotelByte's dynamic query frequency and threshold-based alerting system operationalize continuous competitive monitoring, concentrating query resources on near-term bookings where strategic price signals are most actionable. |
-

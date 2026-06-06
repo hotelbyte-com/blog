@@ -1,21 +1,22 @@
 ---
 layout: post
-title: "多供应商价格标准化白皮书"
+title: "白皮书：多供应商价格标准化"
 date: 2026-05-17
-categories: [HotelByte, Whitepapers]
-tags: [酒店 API, 供应商集成与商业控制, 白皮书, 架构]
+categories: [HotelByte, Whitepapers, Supplier Integration]
+tags: ["供应商集成", "酒店 API", "Whitepaper", "HotelByte"]
 author: "HotelByte Team"
-description: "HotelByte 多供应商价格标准化中文白皮书，按 wp27 范文结构润色，覆盖问题定义、治理控制、验证路径和外部评审证据。"
+description: "WP10 中文白皮书: 价格标准化的底线是保留金额语义，而不是把字段名变得整齐。"
 lang: zh
 permalink: /zh/whitepapers/wp10-price-normalization/original/
 whitepaper_kind: original
 guide_url: /zh/whitepapers/wp10-price-normalization/
+source_asset: hotel-be/docs/whitepapers/zh/10-multi-supplier-price-normalization.md
 ---
 <div class="whitepaper-reader-note">
-  <strong>阅读路径：</strong>这是完整白皮书。若需要更短的读者导读，请先阅读 <a href="/zh/whitepapers/wp10-price-normalization/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
+  <strong>阅读路径：</strong>这是 WP10 完整白皮书。若需要更短的读者入口，请先阅读 <a href="/zh/whitepapers/wp10-price-normalization/">博客导读</a>。也可以浏览 <a href="/zh/whitepapers/">HotelByte 白皮书索引</a>。
 </div>
 
-# 多供应商价格标准化白皮书
+# 多供应商价格标准化
 
 英文版本：[../10-multi-supplier-price-normalization.md](../10-multi-supplier-price-normalization.md)
 
