@@ -194,9 +194,9 @@ HotelByte's content management layer is designed to be fully auditable through a
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Global Content Management & Distribution through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Global Content Management & Distribution through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

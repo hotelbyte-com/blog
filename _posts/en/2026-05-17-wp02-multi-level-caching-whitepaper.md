@@ -183,9 +183,9 @@ HotelByte's caching layer is designed to be fully auditable through a combinatio
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Multi-Level Caching Architecture through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Multi-Level Caching Architecture through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

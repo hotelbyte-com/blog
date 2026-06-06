@@ -199,9 +199,9 @@ The resilience layer includes tests that simulate transient failures (network er
 | **RFC 7231 (HTTP/1.1: Semantics and Content) — Section 6.5.4 (404 Not Found)** | "The 404 (Not Found) status code indicates that the origin server did not find a current representation for the target resource." | The database `NotFound` auto-conversion maps database not-found conditions to platform-standard empty-result errors, ensuring consistent 404 HTTP responses across all HotelByte APIs. |
 | **RFC 8305 (Happy Eyeballs Version 2)** | "Reducing the user-visible delay... by attempting connections to multiple addresses in parallel." | While HotelByte operates at the application layer, the principle of reducing user-visible delay through intelligent connection management is applied via database pool deduplication, cache retry hooks, and storage connection pool optimization. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Database & Storage Resilience Layer through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Database & Storage Resilience Layer through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

@@ -209,9 +209,9 @@ The following authoritative sources inform the design, evaluation, and governanc
 
 *© 2026 HotelByte. All rights reserved. This whitepaper is provided for informational purposes and does not constitute a binding service-level agreement.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Room Mapping with Shadow Mode through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Room Mapping with Shadow Mode through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

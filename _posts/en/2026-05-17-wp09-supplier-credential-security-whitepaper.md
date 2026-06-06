@@ -185,9 +185,9 @@ HotelByte's credential security design is informed by the following authoritativ
 
 Supplier credential security is not a single feature. It is a control system that spans product design, engineering implementation, and operational workflows. Through default masking, runtime isolation, audit-safe copies, reference-based configuration, log query sanitization, and schema-driven governance, HotelByte continuously reduces unnecessary credential exposure in the hotel supply chain while providing customers and suppliers with a stable and trusted connectivity foundation.
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read HotelByte Supplier Credential Security through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read HotelByte Supplier Credential Security through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

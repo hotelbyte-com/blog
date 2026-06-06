@@ -219,9 +219,9 @@ External reviewers and enterprise customers can verify HotelByte order state con
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Order Lifecycle State Machine through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Order Lifecycle State Machine through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

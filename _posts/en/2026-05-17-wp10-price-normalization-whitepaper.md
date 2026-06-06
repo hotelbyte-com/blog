@@ -203,9 +203,9 @@ External reviewers and enterprise customers can verify HotelByte price normaliza
 
 ---
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Multi-Supplier Price Normalization through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Multi-Supplier Price Normalization through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

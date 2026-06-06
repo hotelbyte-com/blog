@@ -206,9 +206,9 @@ External reviewers and enterprise customers can verify HotelByte's price intelli
 | **ISO/IEC 27001:2022, Annex A.8.2 — Information Removal** | "Information stored in information systems shall be securely removed when no longer required." | Expired report files are automatically purged after 90 days through a scheduled cleanup task, and download URLs carry time-bounded signatures, ensuring that competitive data does not persist beyond its operational necessity. |
 | **Porter, M.E., *Competitive Strategy* — Price Signaling and Market Monitoring** | "Firms must continuously monitor competitor pricing to detect strategic moves and market shifts." | HotelByte's dynamic query frequency and threshold-based alerting system operationalize continuous competitive monitoring, concentrating query resources on near-term bookings where strategic price signals are most actionable. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Price Intelligence & Competitive Benchmarking through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Price Intelligence & Competitive Benchmarking through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

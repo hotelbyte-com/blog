@@ -235,9 +235,9 @@ All rule mutations—creation, update, deletion, and toggle—are attributed to 
 | **ISO 4217 (Currency Codes)** | "ISO 4217 provides standard three-letter alphabetic codes for currencies." | The currency factor in the Request scope uses ISO 4217 standard codes (USD, EUR, CNY, AED, etc.) as static enumerated values, ensuring that currency-based rules are expressed in an internationally recognized vocabulary. |
 | **OWASP, "Input Validation Cheat Sheet"** | "All input should be validated against a strict specification… Numeric inputs should have defined minimum and maximum bounds." | The markup validation layer enforces strict bounds: percentage markups are constrained between -99% and +1000%, multipliers between 0× and 10×, fixed amounts must be non-negative, and tier intervals must be well-formed. All parameters are validated at rule persistence time, simulation time, and execution time. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Dynamic Pricing & Business Rules Engine through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Dynamic Pricing & Business Rules Engine through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

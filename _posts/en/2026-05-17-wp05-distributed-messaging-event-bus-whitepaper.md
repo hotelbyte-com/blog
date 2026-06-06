@@ -226,9 +226,9 @@ HotelByte's messaging and scheduling infrastructure exposes multiple verificatio
 | **Netflix Tech Blog, "Rate Limiting" (2014)** | "A token bucket algorithm is used to enforce rate limits... The bucket has a fixed capacity and tokens are added at a fixed rate." | HotelByte's local limiter implements the canonical token bucket, while the distributed limiter extends this pattern with an allocation protocol for cross-node coordination and local fallback. |
 | **NIST SP 800-204B, "Building Secure Microservices"** | "Graceful degradation ensures that if a component fails, the system continues to operate, albeit at a reduced level of functionality." | The quota engine's fallback from distributed to local rate limiting during control plane partition exemplifies graceful degradation: protection boundaries remain enforced even when full coordination is unavailable. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Distributed Messaging & Event Bus through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Distributed Messaging & Event Bus through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

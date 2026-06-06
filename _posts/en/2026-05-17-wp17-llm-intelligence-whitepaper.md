@@ -166,9 +166,9 @@ These mechanisms collectively satisfy requirements for operational audit, compli
 | **ISO/IEC 42001:2023 — AI Management Systems** | "Organizations shall maintain documented information about AI system performance, including monitoring, measurement, and traceability of AI-generated decisions." | Comprehensive metrics (routing stats, token counts, latency percentiles, cost attribution) and decision logs with unique identifiers provide the documented traceability required for AI management system audits. |
 | **CloudWeGo Eino Documentation — Structured Generation** | "Eino components support structured output through schema definitions, enabling reliable integration of LLM capabilities into business workflows." | The engine leverages CloudWeGo Eino's component model to enforce structured generation across all LLM interactions, separating provider-specific transport from business logic and enabling provider portability. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read LLM-Augmented Intelligence Engine through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read LLM-Augmented Intelligence Engine through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

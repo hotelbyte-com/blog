@@ -209,9 +209,9 @@ HotelByte's observability framework provides multiple verification mechanisms to
 
 *This whitepaper represents the current state of HotelByte's observability capabilities. The architecture is continuously evolved in response to operational experience, customer requirements, and advances in telemetry technology.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Five-Dimensional Observability through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Five-Dimensional Observability through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

@@ -202,9 +202,9 @@ External reviewers and enterprise customers can verify HotelByte streaming searc
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read SSE Streaming Search Architecture through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read SSE Streaming Search Architecture through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

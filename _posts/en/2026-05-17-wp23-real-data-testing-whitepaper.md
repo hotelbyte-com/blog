@@ -196,9 +196,9 @@ External reviewers and enterprise customers can verify HotelByte's testing contr
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Real-Data Testing Culture through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Real-Data Testing Culture through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

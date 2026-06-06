@@ -210,9 +210,9 @@ The dual-engine rate limiter and other configurable behaviors are controlled by 
 | **Martin Fowler — Circuit Breaker Pattern** | "The basic idea behind the circuit breaker is very simple. You wrap a protected function call in a circuit breaker object, which monitors for failures. Once the failures reach a certain threshold, the circuit breaker trips." | HotelByte circuit breakers follow this exact pattern, with the addition of 4xx/5xx classification to avoid tripping on expected business errors. |
 | **AWS Well-Architected Framework** — Reliability Pillar | "Control and limit retry calls to prevent additional load on an already stressed system. Use jittered exponential backoff to space out retry attempts." | HotelByte's strict QPM scheduler and adaptive rate limiting provide equivalent load-spreading behavior, with the added benefit of automatic threshold learning. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Supplier Resilience Engineering through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Supplier Resilience Engineering through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

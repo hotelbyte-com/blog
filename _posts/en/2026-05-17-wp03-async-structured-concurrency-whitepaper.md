@@ -192,9 +192,9 @@ HotelByte's concurrency primitives are designed to be verifiable by internal sec
 
 *This whitepaper is authored by the HotelByte Technical Team for enterprise security, architecture, and procurement review. For questions regarding concurrency guarantees, audit evidence, or integration patterns, please contact HotelByte Technical Support.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Async Task & Structured Concurrency through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Async Task & Structured Concurrency through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

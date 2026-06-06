@@ -224,9 +224,9 @@ HotelByte's supplier adapter framework exposes multiple verification surfaces th
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Supplier Adapter Framework & Standardization through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Supplier Adapter Framework & Standardization through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

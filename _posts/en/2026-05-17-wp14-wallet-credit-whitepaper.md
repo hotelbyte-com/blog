@@ -275,9 +275,9 @@ The `GetCreditLedger` API supports paginated retrieval with time-range and opera
 | **Payment Card Industry — Data Integrity Best Practices** | "Systems should employ defense-in-depth strategies including input validation, boundary checks, and self-healing recovery mechanisms." (PCI SSC Guidance) | The `execRefundUsedLimitClamp` applies `GREATEST(0, used_limit + delta)` at the database level, providing a self-healing boundary that clamps anomalous states to zero rather than propagating corruption. |
 | **IEEE 830-1998 (Software Requirements Specifications)** | "Traceability ensures that each requirement can be traced forward to design, code, and test cases." (IEEE) | `Reference`-indexed holds and reconciliation-compensation entries enable forward and backward traceability from any booking ID to every wallet mutation and ledger record that affected it. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Financial-Grade Wallet & Credit System through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Financial-Grade Wallet & Credit System through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

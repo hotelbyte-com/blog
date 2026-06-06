@@ -209,9 +209,9 @@ The geographic search system provides multiple mechanisms for operational verifi
 | Chinese Academy of Sciences, "Jieba Chinese Text Segmentation" (open-source project documentation) | "Jieba supports three segmentation modes: precise mode, full mode, and search engine mode. The search engine mode is suitable for search engines by segmenting the sentence into as many words as possible." | The Chinese query path includes a Jieba-segmented field (`nameZh.jieba`) with search-engine mode segmentation, enabling phrase-level matching for multi-character Chinese destination names. |
 | ACM Computing Surveys, "A Survey of Result Ranking Techniques in Web Search Engines" (2017) | "Effective ranking in search engines typically combines multiple signals—textual relevance, popularity, freshness, and user behavior—into a single composite score." | The composite scoring pipeline integrates exact/prefix/substring text signals, static popularity, region type, query-length heuristics, and a no-match penalty into a unified relevance score. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Geographic Search Intelligence through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Geographic Search Intelligence through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

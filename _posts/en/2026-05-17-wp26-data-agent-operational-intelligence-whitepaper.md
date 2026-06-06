@@ -218,9 +218,9 @@ The Data Agent combines these surfaces: dashboard-like visualization, SQL-like f
 | Database least-privilege practice | Read-only credentials, schema allowlists, bounded queries, and DML rejection reduce blast radius. |
 | Data minimization practice | The sanitizer and artifact builder expose only the fields needed for the operational question. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Governed Data Agent for Operational Intelligence through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Governed Data Agent for Operational Intelligence through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

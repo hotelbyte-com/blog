@@ -193,9 +193,9 @@ HotelByte's session architecture provides comprehensive auditability through mul
 | Hohpe & Woolf — Enterprise Integration Patterns, "Claim Check" | "Store message data in a persistent store and pass a reference to subsequent processing steps, reducing payload size while maintaining state accessibility." | HotelByte's session snapshot pattern applies the Claim Check principle: rate and availability snapshots are stored centrally, and subsequent phases reference them through credential-scoped keys rather than carrying full payload state. |
 | OWASP Application Security Verification Standard (ASVS) V3.1 | "Verify that session tokens are generated using approved cryptographic algorithms and that session management is handled server-side." | While ASVS focuses on authentication tokens, HotelByte extends the same server-side authority principle to booking session state: the proxy layer is the sole server-side authority for session persistence, with supplier layers prohibited from direct session mutation. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Supplier Session & Stateful Booking through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Supplier Session & Stateful Booking through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|

@@ -143,9 +143,9 @@ Together, these methods ensure that any change can be traced from business inten
 | **MECE Principle** — *Barbara Minto, The Pyramid Principle* | "The grouping must be Mutually Exclusive and Collectively Exhaustive... the ideas must not overlap, and they must cover all the relevant possibilities." | Documentation Architecture control applies MECE to capability organization, ensuring that every spec has a single, exhaustive home without overlap or omission. |
 | **ISO 9001:2015** — *Quality management systems* | "The organization shall retain documented information to the extent necessary to have confidence that the processes have been carried out as planned." | The Archive Layer and immutable snapshot policy retain complete documented information for every change, providing the evidentiary basis for quality system confidence. |
 
-## WP27 Governance Reading
+## Technical Whitepaper Governance Reading
 
-Read Spec-Driven Development through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+Read Spec-Driven Development through the technical whitepaper governance loop: intent, evidence, bounded execution, verification, and durable governance.
 
 | Plane | What to inspect in this paper |
 |---|---|
