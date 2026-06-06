@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/10-multi-supplier-price-normalization.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed supplier integration capabilities in hotel distribution.
+
+**TL;DR:** Price normalization must preserve money semantics, not merely rename fields.
+
+> **Central claim:** Price normalization must preserve money semantics, not merely rename fields.
+
 HotelByte aggregates room inventory and pricing data from more than 27 independent hotel suppliers, each with distinct data models, currency conventions, cancellation policies, and rate structures. In this heterogeneous ecosystem, price inconsistency is not an edge case—it is the default operational reality. A single search query may return rates expressed as per-room prices from one supplier, total-stay prices from another, and net-exclusive rates from a third, each denominated in a different currency and subject to different refund rules.
 
 This whitepaper describes HotelByte's unified price normalization pipeline and the booking safety controls that surround it. The pipeline enforces a strict four-stage contract—validation, derivation, conversion, and buffer application—on every rate record before it reaches a customer. Complementing the pipeline are environment-isolation controls, automated test-order marking, live-credential safety guards, and supplier-fault containment mechanisms that protect against accidental bookings and financial misrepresentation.
@@ -196,3 +202,21 @@ External reviewers and enterprise customers can verify HotelByte price normaliza
 | **Financial Data Quality Standards (EDM Council)** — Data Integrity Principles | "Data must be complete, valid, consistent, and traceable across its lifecycle." | The four-stage normalization pipeline (validation, derivation, conversion, buffer application) enforces completeness, consistency, and traceability through preserved original values, decimal arithmetic, and structured quality metrics. |
 
 ---
+
+## WP27 Governance Reading
+
+Read Multi-Supplier Price Normalization through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Multi-Supplier Price Normalization matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Price normalization must preserve money semantics, not merely rename fields.

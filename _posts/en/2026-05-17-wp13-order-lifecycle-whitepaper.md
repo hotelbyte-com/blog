@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/13-order-lifecycle-state-machine.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed search & trade capabilities in hotel distribution.
+
+**TL;DR:** An order status is a transaction boundary, not a loose enum.
+
+> **Central claim:** An order status is a transaction boundary, not a loose enum.
+
 HotelByte processes thousands of hotel booking transactions daily across a global supplier network. Each reservation traverses a complex lifecycle—from initial creation through payment, supplier confirmation, and eventual completion or cancellation—often spanning multiple external systems with independent failure modes. To manage this complexity with financial-grade reliability, HotelByte implements a deterministic order state machine that governs every legal transition, enforces terminal-state immutability, and produces a complete, timestamped audit trail for every order.
 
 This whitepaper describes the architecture, design principles, and operational controls of the HotelByte order lifecycle state machine. It is intended for enterprise customers, integration partners, security auditors, and compliance reviewers who require transparency into how booking states are managed, how refunds are gated, and how the platform converges to known-good outcomes even when upstream suppliers exhibit ambiguous or delayed behavior.
@@ -212,3 +218,21 @@ External reviewers and enterprise customers can verify HotelByte order state con
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+
+## WP27 Governance Reading
+
+Read Order Lifecycle State Machine through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Order Lifecycle State Machine matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+An order status is a transaction boundary, not a loose enum.

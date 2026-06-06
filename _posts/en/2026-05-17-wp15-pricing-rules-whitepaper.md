@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/15-dynamic-pricing-and-business-rules-en
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed commercial controls capabilities in hotel distribution.
+
+**TL;DR:** Dynamic pricing becomes governable when every price can explain which rules shaped it.
+
+> **Central claim:** Dynamic pricing becomes governable when every price can explain which rules shaped it.
+
 HotelByte's Dynamic Pricing & Business Rules Engine is a configurable, multi-tenant policy layer that enables real-time price transformation and request-level business control across the entire hotel distribution pipeline. The engine decouples commercial policy from application code, allowing platform operators, suppliers, and buyers to define, simulate, and enforce pricing rules through a declarative configuration interface rather than software releases.
 
 Built on a three-layer architecture—factors, conditions, and actions—the engine evaluates rules against more than 30 contextual dimensions drawn from five distinct scopes. Rules execute in two phases: pre-request actions govern supplier selection and request shaping, while post-request actions apply dynamic markups or block results before they reach the buyer. Every price change is traced and auditable through a comprehensive markup telemetry stream.
@@ -228,3 +234,21 @@ All rule mutations—creation, update, deletion, and toggle—are attributed to 
 | **IEEE Software, "Rule-Based Systems: A Taxonomy"** | "A rule engine should provide traceability of rule firing, explainability of conclusions, and support for forward and backward chaining." | The engine provides traceability through `MarkupProcess` and `MarkupStrategies`. Explainability is supported via simulation responses that show exactly which conditions passed and which actions fired. Forward chaining is implemented through sequential action execution within a matched rule. |
 | **ISO 4217 (Currency Codes)** | "ISO 4217 provides standard three-letter alphabetic codes for currencies." | The currency factor in the Request scope uses ISO 4217 standard codes (USD, EUR, CNY, AED, etc.) as static enumerated values, ensuring that currency-based rules are expressed in an internationally recognized vocabulary. |
 | **OWASP, "Input Validation Cheat Sheet"** | "All input should be validated against a strict specification… Numeric inputs should have defined minimum and maximum bounds." | The markup validation layer enforces strict bounds: percentage markups are constrained between -99% and +1000%, multipliers between 0× and 10×, fixed amounts must be non-negative, and tier intervals must be well-formed. All parameters are validated at rule persistence time, simulation time, and execution time. |
+
+## WP27 Governance Reading
+
+Read Dynamic Pricing & Business Rules Engine through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Dynamic Pricing & Business Rules Engine matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Dynamic pricing becomes governable when every price can explain which rules shaped it.

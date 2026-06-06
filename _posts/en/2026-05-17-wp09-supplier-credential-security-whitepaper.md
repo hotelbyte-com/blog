@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/09-supplier-credential-security.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed security capabilities in hotel distribution.
+
+**TL;DR:** Credential security has to be a default platform path, not a reminder in review.
+
+> **Central claim:** Credential security has to be a default platform path, not a reminder in review.
+
 Credential security is a core part of the HotelByte platform trust model. Hotel distribution connects customers, suppliers, inventory, pricing, orders, and operational support systems. Supplier credentials represent access to critical external systems, so HotelByte treats them as highly sensitive assets and protects them through layered controls built around least privilege, minimal exposure, runtime isolation, traceable auditability, and business continuity.
 
 This whitepaper explains HotelByte's security philosophy, design principles, and implemented engineering controls for supplier credentials. It is intended for customers, suppliers, partners, and security reviewers who need to understand how HotelByte reduces credential exposure risk across management, display, audit, log query, and business execution paths.
@@ -178,3 +184,21 @@ HotelByte's credential security design is informed by the following authoritativ
 ## Closing
 
 Supplier credential security is not a single feature. It is a control system that spans product design, engineering implementation, and operational workflows. Through default masking, runtime isolation, audit-safe copies, reference-based configuration, log query sanitization, and schema-driven governance, HotelByte continuously reduces unnecessary credential exposure in the hotel supply chain while providing customers and suppliers with a stable and trusted connectivity foundation.
+
+## WP27 Governance Reading
+
+Read HotelByte Supplier Credential Security through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+HotelByte Supplier Credential Security matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Credential security has to be a default platform path, not a reminder in review.

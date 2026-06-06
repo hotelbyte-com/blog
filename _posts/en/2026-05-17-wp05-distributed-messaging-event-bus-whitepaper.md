@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/05-distributed-messaging-and-event-bus.m
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed infrastructure capabilities in hotel distribution.
+
+**TL;DR:** A useful event bus makes ownership, ordering, retries, idempotency, and replay visible enough to audit.
+
+> **Central claim:** A useful event bus makes ownership, ordering, retries, idempotency, and replay visible enough to audit.
+
 HotelByte is a global hotel API distribution platform that connects online travel agencies (OTAs), travel management companies (TMCs), and enterprise customers to millions of hotel properties worldwide. The platform processes billions of API calls daily, requiring a messaging and scheduling infrastructure that is resilient, scalable, and operationally predictable.
 
 This whitepaper documents HotelByte's unified distributed messaging and event bus architecture, comprising three core subsystems: the CQRS Message Bus, the Distributed Cron Manager, and the Quota Rate Limiting Engine. Together, these systems provide backend-agnostic message streaming, exactly-once scheduled job execution across clustered nodes, and adaptive rate limiting with graceful degradation under control plane partition.
@@ -219,3 +225,21 @@ HotelByte's messaging and scheduling infrastructure exposes multiple verificatio
 | **Redis Documentation, "Distributed locks"** | "Both the lock acquisition and the release must be atomic operations... The release of the lock must be done with a Lua script to avoid removing a lock acquired by another client." | The scheduling manager acquires locks via atomic primitives and releases them through validation scripts that verify ownership before deletion, implementing the Redlock safety pattern for distributed coordination. |
 | **Netflix Tech Blog, "Rate Limiting" (2014)** | "A token bucket algorithm is used to enforce rate limits... The bucket has a fixed capacity and tokens are added at a fixed rate." | HotelByte's local limiter implements the canonical token bucket, while the distributed limiter extends this pattern with an allocation protocol for cross-node coordination and local fallback. |
 | **NIST SP 800-204B, "Building Secure Microservices"** | "Graceful degradation ensures that if a component fails, the system continues to operate, albeit at a reduced level of functionality." | The quota engine's fallback from distributed to local rate limiting during control plane partition exemplifies graceful degradation: protection boundaries remain enforced even when full coordination is unavailable. |
+
+## WP27 Governance Reading
+
+Read Distributed Messaging & Event Bus through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Distributed Messaging & Event Bus matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+A useful event bus makes ownership, ordering, retries, idempotency, and replay visible enough to audit.

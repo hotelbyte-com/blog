@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/08-supplier-session-and-stateful-booking
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed supplier integration capabilities in hotel distribution.
+
+**TL;DR:** Stateful booking is safe only when session ownership and credential namespaces are explicit.
+
+> **Central claim:** Stateful booking is safe only when session ownership and credential namespaces are explicit.
+
 HotelByte is a hotel API distribution platform that orchestrates complex, multi-step booking transactions across a diverse network of 27+ supplier integrations. Each booking journey spans four critical phases—search, rate retrieval, availability validation, and final confirmation—often traversing multiple supplier systems with disparate protocols, authentication schemes, and state representations.
 
 To ensure transactional integrity and a seamless customer experience, HotelByte implements a rigorous, layered session management architecture. This system maintains immutable, credential-isolated state snapshots at every booking phase, enabling reliable handoffs between distributed services while preventing data corruption, cross-tenant leakage, or state desynchronization.
@@ -186,3 +192,21 @@ HotelByte's session architecture provides comprehensive auditability through mul
 | NIST SP 800-53 Rev. 5 — AU-6 (Audit Review) | "The organization reviews and analyzes information system audit records for indications of inappropriate or unusual activity." | Immutable snapshot entries and centralized key definitions provide structured audit records that enable automated anomaly detection and manual forensic review of booking state transitions. |
 | Hohpe & Woolf — Enterprise Integration Patterns, "Claim Check" | "Store message data in a persistent store and pass a reference to subsequent processing steps, reducing payload size while maintaining state accessibility." | HotelByte's session snapshot pattern applies the Claim Check principle: rate and availability snapshots are stored centrally, and subsequent phases reference them through credential-scoped keys rather than carrying full payload state. |
 | OWASP Application Security Verification Standard (ASVS) V3.1 | "Verify that session tokens are generated using approved cryptographic algorithms and that session management is handled server-side." | While ASVS focuses on authentication tokens, HotelByte extends the same server-side authority principle to booking session state: the proxy layer is the sole server-side authority for session persistence, with supplier layers prohibited from direct session mutation. |
+
+## WP27 Governance Reading
+
+Read Supplier Session & Stateful Booking through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Supplier Session & Stateful Booking matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Stateful booking is safe only when session ownership and credential namespaces are explicit.

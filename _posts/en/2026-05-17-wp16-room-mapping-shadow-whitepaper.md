@@ -27,6 +27,12 @@ source_asset: hotel-be/docs/whitepapers/16-room-mapping-with-shadow-mode.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed data intelligence capabilities in hotel distribution.
+
+**TL;DR:** Shadow mode lets mapping algorithms learn from real traffic before they can affect booking.
+
+> **Central claim:** Shadow mode lets mapping algorithms learn from real traffic before they can affect booking.
+
 Hotel distribution relies on the accurate alignment of room types between supplier systems and customer-facing search results. A "Double Room with Sea View" from one supplier must correspond to the same physical room category offered by another, even when naming conventions, languages, and attribute schemas differ. Room mapping — the automated reconciliation of heterogeneous room inventories — is therefore a critical competency for any hotel API distribution platform.
 
 This whitepaper describes HotelByte's Room Mapping system, which operates under a **Shadow Mode** safety architecture. In Shadow Mode, candidate mapping algorithms run in parallel with the production system without mutating customer-visible outputs. Algorithms are promoted to production only after they demonstrate statistically significant improvement across precision, recall, F1 score, and latency percentiles against a curated ground-truth corpus. This approach ensures that every mapping decision reaching a customer search result has been validated through layered evaluation gates, human review workflows, and continuous A/B measurement.
@@ -202,3 +208,21 @@ The following authoritative sources inform the design, evaluation, and governanc
 ---
 
 *© 2026 HotelByte. All rights reserved. This whitepaper is provided for informational purposes and does not constitute a binding service-level agreement.*
+
+## WP27 Governance Reading
+
+Read Room Mapping with Shadow Mode through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Room Mapping with Shadow Mode matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Shadow mode lets mapping algorithms learn from real traffic before they can affect booking.

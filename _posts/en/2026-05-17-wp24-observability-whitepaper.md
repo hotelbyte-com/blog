@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/24-five-dimensional-observability.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed engineering excellence capabilities in hotel distribution.
+
+**TL;DR:** Observability works when errors, traces, profiles, metrics, and audit logs can explain the same incident.
+
+> **Central claim:** Observability works when errors, traces, profiles, metrics, and audit logs can explain the same incident.
+
 Modern hotel distribution platforms operate at the intersection of high-velocity API traffic, multi-supplier integrations, and real-time inventory management. In this environment, traditional monitoring—focused on infrastructure uptime and resource utilization—is insufficient. HotelByte has architected a **Five-Dimensional Observability Framework** that provides comprehensive visibility across error tracking, distributed tracing, continuous profiling, metrics and monitoring, and business-context logging.
 
 This whitepaper details how HotelByte transforms raw telemetry into actionable intelligence, enabling rapid incident response, proactive performance optimization, and complete audit trails for every booking decision. Our approach moves beyond simple data collection to establish **correlation as a first-class principle**—ensuring that logs, traces, metrics, and errors are intrinsically linked through unified identifiers that follow a request from edge ingress through every downstream supplier interaction.
@@ -202,3 +208,21 @@ HotelByte's observability framework provides multiple verification mechanisms to
 ---
 
 *This whitepaper represents the current state of HotelByte's observability capabilities. The architecture is continuously evolved in response to operational experience, customer requirements, and advances in telemetry technology.*
+
+## WP27 Governance Reading
+
+Read Five-Dimensional Observability through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Five-Dimensional Observability matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Observability works when errors, traces, profiles, metrics, and audit logs can explain the same incident.

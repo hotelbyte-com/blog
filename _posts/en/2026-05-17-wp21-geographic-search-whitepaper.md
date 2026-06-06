@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/21-geographic-search-intelligence.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed content & geography capabilities in hotel distribution.
+
+**TL;DR:** Geographic search needs multilingual, multipath recall with ranking controls.
+
+> **Central claim:** Geographic search needs multilingual, multipath recall with ranking controls.
+
 HotelByte's Geographic Search Intelligence system powers destination discovery across the platform, enabling travelers and partners to locate hotels, cities, regions, and landmarks through natural language queries in multiple languages. Built on a full-text search foundation with multi-recall architecture, the system handles exact names, partial inputs, typographical errors, suffix fragments, and Chinese character queries with high precision and sub-second response times.
 
 The search layer is a critical dependency for the booking flow: every hotel search and availability check begins with geographic resolution. The system indexes hundreds of thousands of geographic entities from multiple suppliers, normalizes and deduplicates them into a unified catalog, and exposes a query interface optimized for autocomplete and deep search. Adaptive memory management and incremental index updates ensure consistent performance without service interruption.
@@ -202,3 +208,21 @@ The geographic search system provides multiple mechanisms for operational verifi
 | *Information Retrieval: Implementing and Evaluating Search Engines* (Buttcher, Clarke, Cormack, 2016), Section 4.3: "Query Expansion and Reformulation" | "Multiple retrieval strategies can be combined through query expansion, where the original query is augmented with additional terms or alternative formulations to improve recall." | The multi-recall architecture implements query expansion through six independent query formulations (exact, prefix, N-gram, fuzzy, suffix, Chinese), executed as a prioritized cascade with early termination. |
 | Chinese Academy of Sciences, "Jieba Chinese Text Segmentation" (open-source project documentation) | "Jieba supports three segmentation modes: precise mode, full mode, and search engine mode. The search engine mode is suitable for search engines by segmenting the sentence into as many words as possible." | The Chinese query path includes a Jieba-segmented field (`nameZh.jieba`) with search-engine mode segmentation, enabling phrase-level matching for multi-character Chinese destination names. |
 | ACM Computing Surveys, "A Survey of Result Ranking Techniques in Web Search Engines" (2017) | "Effective ranking in search engines typically combines multiple signals—textual relevance, popularity, freshness, and user behavior—into a single composite score." | The composite scoring pipeline integrates exact/prefix/substring text signals, static popularity, region type, query-length heuristics, and a no-match penalty into a unified relevance score. |
+
+## WP27 Governance Reading
+
+Read Geographic Search Intelligence through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Geographic Search Intelligence matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Geographic search needs multilingual, multipath recall with ranking controls.

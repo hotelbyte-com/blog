@@ -27,6 +27,12 @@ source_asset: hotel-be/docs/whitepapers/03-async-task-and-structured-concurrency
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed infrastructure capabilities in hotel distribution.
+
+**TL;DR:** Asynchronous work becomes reliable when task ownership, cancellation, backpressure, and completion evidence are explicit.
+
+> **Central claim:** Asynchronous work becomes reliable when task ownership, cancellation, backpressure, and completion evidence are explicit.
+
 HotelByte is a global hotel API distribution platform processing millions of daily requests across search, rate, availability, booking, and order-management domains. In high-throughput B2B API platforms, uncontrolled concurrency is a leading contributor to instability: thread leaks, unrecoverable panics, cascading cancellations, and silent task loss all erode the service-level agreements (SLAs) that enterprise customers depend on.
 
 To eliminate these risks, HotelByte designed and production-hardened two complementary concurrency primitives—an async task queue and a concurrent task group—that replace raw thread/goroutine usage across all business code. These primitives enforce **structured concurrency** principles: every asynchronous task has a defined lifecycle, every panic is recoverable and observable, and every resource bound is explicitly capped. Together, they form the concurrency foundation that supports the platform's sub-200ms search time-to-first-byte (TTFB) and 99.99% availability targets.
@@ -185,3 +191,21 @@ HotelByte's concurrency primitives are designed to be verifiable by internal sec
 ---
 
 *This whitepaper is authored by the HotelByte Technical Team for enterprise security, architecture, and procurement review. For questions regarding concurrency guarantees, audit evidence, or integration patterns, please contact HotelByte Technical Support.*
+
+## WP27 Governance Reading
+
+Read Async Task & Structured Concurrency through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Async Task & Structured Concurrency matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Asynchronous work becomes reliable when task ownership, cancellation, backpressure, and completion evidence are explicit.

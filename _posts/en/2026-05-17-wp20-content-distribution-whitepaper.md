@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/20-global-content-management-and-distrib
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed content & geography capabilities in hotel distribution.
+
+**TL;DR:** Global hotel content distribution is about source control, override rules, expiry, and language governance.
+
+> **Central claim:** Global hotel content distribution is about source control, override rules, expiry, and language governance.
+
 HotelByte is a global hotel API distribution platform that manages millions of static content records—hotel base information, amenities, images, ratings, and custom property data—on behalf of Online Travel Agencies (OTAs), Travel Management Companies (TMCs), and enterprise travel programs. In addition to real-time pricing and availability, the platform operates a comprehensive content management and distribution pipeline that ingests supplier bulk feeds, hosts customer-defined hotel collections (BYOC — Bring Your Own Content), and delivers filtered content via secure file transfer and API interfaces.
 
 This whitepaper describes HotelByte's global content management architecture, covering three primary technical domains: the ingestion layer that normalizes and imports data from multiple supplier sources and customer uploads; the caching layer that guarantees high-availability access to customer-specific content catalogs through soft-expiry semantics and proactive cache warming; and the distribution layer that provides secure, permission-filtered SFTP export with filesystem isolation and multi-format delivery. The result is a content pipeline that maintains data sovereignty per customer, sustains sub-second read latency for catalog queries, and enables secure downstream distribution without exposing one customer's curated dataset to another.
@@ -187,3 +193,21 @@ HotelByte's content management layer is designed to be fully auditable through a
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+
+## WP27 Governance Reading
+
+Read Global Content Management & Distribution through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Global Content Management & Distribution matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Global hotel content distribution is about source control, override rules, expiry, and language governance.

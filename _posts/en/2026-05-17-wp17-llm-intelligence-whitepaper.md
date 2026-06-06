@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/17-llm-augmented-intelligence-engine.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed ai operations capabilities in hotel distribution.
+
+**TL;DR:** Enterprise LLM systems need routing, budget, evidence, and safety boundaries before generation.
+
+> **Central claim:** Enterprise LLM systems need routing, budget, evidence, and safety boundaries before generation.
+
 HotelByte's LLM-Augmented Intelligence Engine represents a production-grade integration of large language model capabilities into hotel distribution operations. The engine enhances room mapping accuracy, automates intelligent diagnostics, and delivers actionable operational insights while maintaining strict cost governance and sub-second latency guarantees for the majority of requests.
 
 The architecture is built on three foundational layers: a **Smart Router** that dynamically selects processing paths based on confidence scoring; an **LLM Enhancer** that applies structured reasoning to boundary cases; and an **Intelligent Diagnostics** module that leverages multi-model orchestration for operational analysis. Together, these components enable HotelByte to achieve higher mapping precision and faster incident resolution without compromising the economics of high-throughput API distribution.
@@ -159,3 +165,21 @@ These mechanisms collectively satisfy requirements for operational audit, compli
 | **Google Cloud — Responsible AI: Cost Management** | "Implement budget alerts, quota limits, and fallback mechanisms to prevent runaway inference costs in production systems." | Per-request, daily, and monthly budget ceilings are enforced with automatic model downgrade and algorithmic fallback paths, ensuring costs remain bounded even under anomalous traffic spikes. |
 | **ISO/IEC 42001:2023 — AI Management Systems** | "Organizations shall maintain documented information about AI system performance, including monitoring, measurement, and traceability of AI-generated decisions." | Comprehensive metrics (routing stats, token counts, latency percentiles, cost attribution) and decision logs with unique identifiers provide the documented traceability required for AI management system audits. |
 | **CloudWeGo Eino Documentation — Structured Generation** | "Eino components support structured output through schema definitions, enabling reliable integration of LLM capabilities into business workflows." | The engine leverages CloudWeGo Eino's component model to enforce structured generation across all LLM interactions, separating provider-specific transport from business logic and enabling provider portability. |
+
+## WP27 Governance Reading
+
+Read LLM-Augmented Intelligence Engine through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+LLM-Augmented Intelligence Engine matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Enterprise LLM systems need routing, budget, evidence, and safety boundaries before generation.

@@ -114,9 +114,9 @@ The LLM remains an interpreter, not a database driver. The system first builds a
 
 The end goal is not to replace operators. It is to give them a faster, safer path from question to evidence-backed action.
 
-## Read the Whitepaper
+## Read The Full Whitepaper
 
-The technical whitepaper goes deeper on the control model, source adapters, sanitizer, artifact schema, fail-closed behavior, and verification paths:
+The full whitepaper is the reading path for the complete control model. It goes deeper on source adapters, sanitizer behavior, artifact schema, fail-closed handling, audit boundaries, and verification paths:
 
 - [English whitepaper](/en/whitepapers/wp26-data-agent-operational-intelligence/original/)
 - [中文白皮书](/zh/whitepapers/wp26-data-agent-operational-intelligence/original/)

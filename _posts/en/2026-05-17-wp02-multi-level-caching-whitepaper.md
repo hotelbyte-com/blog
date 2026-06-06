@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/02-multi-level-caching-architecture.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed infrastructure capabilities in hotel distribution.
+
+**TL;DR:** Caching only becomes a platform capability when freshness, invalidation, scope, and observability are designed together.
+
+> **Central claim:** Caching only becomes a platform capability when freshness, invalidation, scope, and observability are designed together.
+
 HotelByte is a global hotel API distribution platform serving Online Travel Agencies (OTAs), Travel Management Companies (TMCs), and enterprise clients with real-time access to millions of hotel room inventories. At peak traffic, the platform processes billions of API calls daily, with search and availability queries dominating the request profile. In this environment, cache architecture is not merely a performance optimization—it is a foundational reliability mechanism.
 
 This whitepaper describes HotelByte's production-grade multi-level caching abstraction, a resilient, high-performance caching layer designed for high-concurrency distributed systems. The architecture combines an L1 in-memory cache for sub-millisecond local access, an L2 Redis-backed cache for cross-node durability, and a CQRS-based invalidation bus for eventual consistency across a horizontally scaled fleet. The system integrates thundering-herd protection, deterministic TTL jitter, cascading circuit-breaker detection, adaptive compression, and dynamic cache-duration policies—all abstracted behind a unified interface.
@@ -176,3 +182,21 @@ HotelByte's caching layer is designed to be fully auditable through a combinatio
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+
+## WP27 Governance Reading
+
+Read Multi-Level Caching Architecture through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Multi-Level Caching Architecture matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Caching only becomes a platform capability when freshness, invalidation, scope, and observability are designed together.

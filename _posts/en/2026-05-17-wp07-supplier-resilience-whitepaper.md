@@ -26,6 +26,12 @@ source_asset: hotel-be/docs/whitepapers/07-supplier-resilience-engineering.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed supplier integration capabilities in hotel distribution.
+
+**TL;DR:** Supplier resilience starts with failure classification before retry policy.
+
+> **Central claim:** Supplier resilience starts with failure classification before retry policy.
+
 HotelByte operates a global hotel API distribution platform that aggregates inventory from 27+ heterogeneous supplier APIs. These suppliers exhibit wide variance in reliability, latency characteristics, rate-limiting policies, and failure modes. A single supplier degradation can cascade into platform-wide instability without engineered containment boundaries.
 
 This whitepaper describes the Supplier Resilience Engineering layer built into the HotelByte platform — a multi-layered control system that isolates supplier failures, adapts to runtime conditions, and preserves customer-facing availability even when upstream dependencies are under stress. The system combines adaptive rate limiting, per-supplier circuit breakers, traffic recording and replay capabilities, and unified middleware instrumentation into a cohesive defense architecture.
@@ -203,3 +209,21 @@ The dual-engine rate limiter and other configurable behaviors are controlled by 
 | **OWASP Cheat Sheet Series** — Logging | "Log entries should include timestamps, user context, event descriptions, and outcomes... Sensitive data should never be logged." | HotelByte's structured audit logging includes all required fields, and credential desensitization ensures that secrets are not persisted in logs or replay stores. |
 | **Martin Fowler — Circuit Breaker Pattern** | "The basic idea behind the circuit breaker is very simple. You wrap a protected function call in a circuit breaker object, which monitors for failures. Once the failures reach a certain threshold, the circuit breaker trips." | HotelByte circuit breakers follow this exact pattern, with the addition of 4xx/5xx classification to avoid tripping on expected business errors. |
 | **AWS Well-Architected Framework** — Reliability Pillar | "Control and limit retry calls to prevent additional load on an already stressed system. Use jittered exponential backoff to space out retry attempts." | HotelByte's strict QPM scheduler and adaptive rate limiting provide equivalent load-spreading behavior, with the added benefit of automatic threshold learning. |
+
+## WP27 Governance Reading
+
+Read Supplier Resilience Engineering through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Supplier Resilience Engineering matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Supplier resilience starts with failure classification before retry policy.

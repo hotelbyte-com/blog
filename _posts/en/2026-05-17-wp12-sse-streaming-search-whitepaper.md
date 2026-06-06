@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/12-sse-streaming-search-architecture.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed search & trade capabilities in hotel distribution.
+
+**TL;DR:** Streaming search turns waiting into visible incremental state.
+
+> **Central claim:** Streaming search turns waiting into visible incremental state.
+
 HotelByte is a global hotel API distribution platform that serves aggregated inventory from dozens of supplier integrations to travel agencies, online travel agencies (OTAs), and corporate booking tools. Traditional hotel search APIs return results only after all supplier queries have completed, forcing end users to wait several seconds before seeing any hotels. HotelByte replaces this blocking model with a progressive streaming architecture built on Server-Sent Events (SSE).
 
 The SSE streaming search endpoint (`/hotelListStream`) delivers an `initial` event containing the complete hotel catalog within milliseconds, followed by zero or more `update` events as live rates arrive from supplier systems, and finally a `complete` event with aggregated statistics. This architecture decouples catalog presentation from supplier latency, achieving a Time-To-First-Byte (TTFB) target of under 200 milliseconds and a First Contentful Paint (FCP) target of under 500 milliseconds.
@@ -195,3 +201,21 @@ External reviewers and enterprise customers can verify HotelByte streaming searc
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+
+## WP27 Governance Reading
+
+Read SSE Streaming Search Architecture through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+SSE Streaming Search Architecture matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Streaming search turns waiting into visible incremental state.

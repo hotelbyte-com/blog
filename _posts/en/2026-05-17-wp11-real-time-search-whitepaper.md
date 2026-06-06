@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/11-real-time-search-aggregation.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed search & trade capabilities in hotel distribution.
+
+**TL;DR:** Real-time search is a controlled competition among suppliers, not a simple fan-out.
+
+> **Central claim:** Real-time search is a controlled competition among suppliers, not a simple fan-out.
+
 HotelByte's search engine aggregates room inventory and pricing from more than 27 independent hotel suppliers in real time, returning a unified, ranked result set to the buyer within a strict latency budget. Each search query fans out concurrently across all eligible suppliers, which may internally parallelize requests across multiple credential sets. The platform then merges, normalizes, deduplicates, and ranks the collective response before applying buyer-specific business rules.
 
 This whitepaper describes the architectural layers that make this aggregation possible: the concurrent fanout layer, the merge layer, the processing pipeline, and the caching layer. The intended audience includes enterprise customers, security auditors, integration partners, and technical evaluators who require transparency into how HotelByte presents multi-supplier search results under real-time constraints.
@@ -205,3 +211,21 @@ External reviewers and enterprise customers can verify HotelByte's search aggreg
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+
+## WP27 Governance Reading
+
+Read Real-Time Search Aggregation through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Real-Time Search Aggregation matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Real-time search is a controlled competition among suppliers, not a simple fan-out.

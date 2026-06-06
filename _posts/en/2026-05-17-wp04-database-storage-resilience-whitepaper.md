@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/04-database-and-storage-resilience-layer
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed infrastructure capabilities in hotel distribution.
+
+**TL;DR:** Storage resilience is an application contract that protects business semantics, not an infrastructure checkbox.
+
+> **Central claim:** Storage resilience is an application contract that protects business semantics, not an infrastructure checkbox.
+
 HotelByte processes millions of hotel search, availability, and booking transactions daily across a global supplier network. The platform's resilience depends on how reliably it persists, retrieves, and distributes data under varying load conditions, network partitions, and infrastructure failures. This whitepaper documents the Database & Storage Resilience Layer—a production-hardened subsystem in HotelByte's core infrastructure layer that enhances MySQL, Redis, and object storage interactions with transparent fault tolerance, intelligent routing, and non-blocking operations.
 
 The resilience layer introduces three independent but architecturally aligned enhancement modules:
@@ -192,3 +198,21 @@ The resilience layer includes tests that simulate transient failures (network er
 | **OWASP Top 10:2021 — A09 (Security Logging and Monitoring Failures)** | "Insufficient logging and monitoring... allow attackers to further attack systems, maintain persistence, pivot to more systems, and tamper with or extract data." | Database, cache, and storage telemetry provide comprehensive logging and monitoring across all data access paths, satisfying the requirement for detectable data access anomalies. |
 | **RFC 7231 (HTTP/1.1: Semantics and Content) — Section 6.5.4 (404 Not Found)** | "The 404 (Not Found) status code indicates that the origin server did not find a current representation for the target resource." | The database `NotFound` auto-conversion maps database not-found conditions to platform-standard empty-result errors, ensuring consistent 404 HTTP responses across all HotelByte APIs. |
 | **RFC 8305 (Happy Eyeballs Version 2)** | "Reducing the user-visible delay... by attempting connections to multiple addresses in parallel." | While HotelByte operates at the application layer, the principle of reducing user-visible delay through intelligent connection management is applied via database pool deduplication, cache retry hooks, and storage connection pool optimization. |
+
+## WP27 Governance Reading
+
+Read Database & Storage Resilience Layer through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Database & Storage Resilience Layer matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Storage resilience is an application contract that protects business semantics, not an infrastructure checkbox.

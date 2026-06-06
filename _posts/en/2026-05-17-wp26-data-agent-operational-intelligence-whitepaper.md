@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/26-data-agent-governed-operational-intel
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed data intelligence capabilities in hotel distribution.
+
+**TL;DR:** A governed data agent is not a SQL chatbot; it is an evidence-packaging layer for operations.
+
+> **Central claim:** A governed data agent is not a SQL chatbot; it is an evidence-packaging layer for operations.
+
 HotelByte's Data Agent provides a governed conversational analytics layer for platform operations. It helps operators investigate questions that span operational MySQL data, TDengine telemetry, and repository-defined business logic while preserving strict permission, masking, visualization, and audit controls.
 
 The key design choice is to treat the agent as an evidence assembly system rather than a raw SQL console. Natural-language prompts are converted into bounded query intent, source-specific read plans, repository evidence, masked result artifacts, and human-confirmable recommendations. This enables faster incident triage and data reconciliation without bypassing established operational controls.
@@ -211,3 +217,21 @@ The Data Agent combines these surfaces: dashboard-like visualization, SQL-like f
 | ISO/IEC 42001 AI management systems | Audit records, performance evidence, and decision traceability support AI management review. |
 | Database least-privilege practice | Read-only credentials, schema allowlists, bounded queries, and DML rejection reduce blast radius. |
 | Data minimization practice | The sanitizer and artifact builder expose only the fields needed for the operational question. |
+
+## WP27 Governance Reading
+
+Read Governed Data Agent for Operational Intelligence through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Governed Data Agent for Operational Intelligence matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+A governed data agent is not a SQL chatbot; it is an evidence-packaging layer for operations.

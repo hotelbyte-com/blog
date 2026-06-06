@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/19-price-intelligence-and-competitive-be
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed data intelligence capabilities in hotel distribution.
+
+**TL;DR:** Price intelligence is a traceable fact system, not screenshot comparison.
+
+> **Central claim:** Price intelligence is a traceable fact system, not screenshot comparison.
+
 HotelByte's Price Intelligence & Competitive Benchmarking system continuously monitors supplier pricing across global hotel markets and delivers actionable alerts when meaningful savings opportunities emerge. The system evaluates up to 900,000 supplier price calls per full analytical cycle across hotel–market–supplier–lead-time–length-of-stay–occupancy combinations, while maintaining respectful, sustainable crawling practices.
 
 The architecture comprises four integrated layers: a high-concurrency crawler with market-aware throttling and circuit-breaker protection; a time-series fact store that immutably records every supplier interaction; a comparison engine that benchmarks live prices against customer baselines; and an alert layer that generates threshold-triggered, frequency-capped notifications. Every operation is auditable through cryptographic request fingerprints, structured error classification, and comprehensive lifecycle event logging.
@@ -199,3 +205,21 @@ External reviewers and enterprise customers can verify HotelByte's price intelli
 | **NIST SP 800-53 Rev. 5 AU-6 — Audit Record Review** | "The organization reviews and analyzes audit records for indications of inappropriate or unusual activity." | The system generates structured audit events for every significant operation, with actor attribution, timestamps, and machine-readable detail JSON, enabling independent review and anomaly detection. |
 | **ISO/IEC 27001:2022, Annex A.8.2 — Information Removal** | "Information stored in information systems shall be securely removed when no longer required." | Expired report files are automatically purged after 90 days through a scheduled cleanup task, and download URLs carry time-bounded signatures, ensuring that competitive data does not persist beyond its operational necessity. |
 | **Porter, M.E., *Competitive Strategy* — Price Signaling and Market Monitoring** | "Firms must continuously monitor competitor pricing to detect strategic moves and market shifts." | HotelByte's dynamic query frequency and threshold-based alerting system operationalize continuous competitive monitoring, concentrating query resources on near-term bookings where strategic price signals are most actionable. |
+
+## WP27 Governance Reading
+
+Read Price Intelligence & Competitive Benchmarking through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Price Intelligence & Competitive Benchmarking matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Price intelligence is a traceable fact system, not screenshot comparison.

@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/01-http-gateway-and-in-process-routing.m
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed infrastructure capabilities in hotel distribution.
+
+**TL;DR:** A hotel API gateway is not ingress plumbing; it is the first governed control plane for authentication, authorization, caching, streaming, field shaping, and request evidence.
+
+> **Central claim:** A hotel API gateway is not ingress plumbing; it is the first governed control plane for authentication, authorization, caching, streaming, field shaping, and request evidence.
+
 HotelByte is a global hotel API distribution platform. Rather than relying on external API gateways or service mesh sidecars, HotelByte developed an in-process HTTP dispatcher that embeds gateway functionality directly into every service process. This architectural trade-off eliminates network hop overhead, reduces P99 latency, and enables a unified, defense-in-depth security model.
 
 This whitepaper describes the design principles, layered middleware architecture, and production-validated controls that govern how every API request is received, authenticated, authorized, rate-limited, cached, and responded to. It is intended for security auditors, integration partners, and enterprise customers who require transparency into the platform's ingress handling and access control posture.
@@ -197,3 +203,21 @@ External reviewers and enterprise customers can verify HotelByte gateway control
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+
+## WP27 Governance Reading
+
+Read HTTP Gateway & In-Process API Routing through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+HTTP Gateway & In-Process API Routing matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+A hotel API gateway is not ingress plumbing; it is the first governed control plane for authentication, authorization, caching, streaming, field shaping, and request evidence.

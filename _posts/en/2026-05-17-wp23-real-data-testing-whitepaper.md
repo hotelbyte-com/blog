@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/23-real-data-testing-culture.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed engineering excellence capabilities in hotel distribution.
+
+**TL;DR:** Real-data testing exposes supplier truth before it reaches UAT or production.
+
+> **Central claim:** Real-data testing exposes supplier truth before it reaches UAT or production.
+
 HotelByte operates a global hotel API distribution platform where a single search request may traverse dozens of supplier integrations, pricing engines, and booking state machines before returning a result to the customer. In such an environment, test fidelity is not a preference — it is a safety requirement. Mocks that simulate ideal supplier behavior, synthetic data that never exercises boundary conditions, and tests that never leave the local workstation create blind spots that only surface in production.
 
 To address this, HotelByte has built a comprehensive, real-data testing culture that spans the full software lifecycle. The platform maintains an independent end-to-end (E2E) testing application that exercises live APIs across development, staging, and production environments using real hotel inventory, real pricing, and real booking flows. Unit and integration layers enforce strict coverage thresholds — 100% for domain logic, 80%+ for data access layers — while an explicit zero-tolerance policy prohibits hardcoded test data in any form.
@@ -189,3 +195,21 @@ External reviewers and enterprise customers can verify HotelByte's testing contr
 ---
 
 *For questions or audit requests regarding this whitepaper, contact HotelByte Engineering via your assigned partner channel.*
+
+## WP27 Governance Reading
+
+Read Real-Data Testing Culture through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Real-Data Testing Culture matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Real-data testing exposes supplier truth before it reaches UAT or production.

@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/14-financial-grade-wallet-and-credit-sys
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed finance capabilities in hotel distribution.
+
+**TL;DR:** A B2B wallet should model responsibility across buyer, seller, and currency.
+
+> **Central claim:** A B2B wallet should model responsibility across buyer, seller, and currency.
+
 HotelByte operates a multi-tenant hotel distribution platform where thousands of booking transactions flow between customers, tenants, and suppliers across dozens of currencies every hour. To govern financial exposure at each of these boundaries, HotelByte implements a financial-grade wallet and credit system that enforces strict balance integrity, immutable audit trails, and automatic reconciliation-driven compensation.
 
 This whitepaper describes the architecture, controls, and operational guarantees of the wallet and credit subsystem. It is intended for enterprise customers, security auditors, and integration partners who require transparency into how HotelByte manages credit limits, pre-authorization holds, deductions, refunds, and cross-currency settlements without ever permitting a balance to drift into an inconsistent state.
@@ -268,3 +274,21 @@ The `GetCreditLedger` API supports paginated retrieval with time-range and opera
 | **ACID Transaction Semantics** | "A transaction is a single logical unit of work that takes the database from one consistent state to another." (Silberschatz, Korth, & Sudarshan, *Database System Concepts*) | `SetCreditLimit` and reconciliation compensation wrap entity updates, wallet updates, and ledger insertions in database transactions, guaranteeing atomicity and consistency. |
 | **Payment Card Industry — Data Integrity Best Practices** | "Systems should employ defense-in-depth strategies including input validation, boundary checks, and self-healing recovery mechanisms." (PCI SSC Guidance) | The `execRefundUsedLimitClamp` applies `GREATEST(0, used_limit + delta)` at the database level, providing a self-healing boundary that clamps anomalous states to zero rather than propagating corruption. |
 | **IEEE 830-1998 (Software Requirements Specifications)** | "Traceability ensures that each requirement can be traced forward to design, code, and test cases." (IEEE) | `Reference`-indexed holds and reconciliation-compensation entries enable forward and backward traceability from any booking ID to every wallet mutation and ledger record that affected it. |
+
+## WP27 Governance Reading
+
+Read Financial-Grade Wallet & Credit System through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Financial-Grade Wallet & Credit System matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+A B2B wallet should model responsibility across buyer, seller, and currency.

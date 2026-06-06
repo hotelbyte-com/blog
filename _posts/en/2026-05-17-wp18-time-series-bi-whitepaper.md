@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/18-time-series-bi-analytics.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed data intelligence capabilities in hotel distribution.
+
+**TL;DR:** Operational BI needs a time-window evidence layer, not ad-hoc queries against the business database.
+
+> **Central claim:** Operational BI needs a time-window evidence layer, not ad-hoc queries against the business database.
+
 HotelByte's platform processes millions of hotel search, availability, and booking transactions daily across a global supplier network. Each transaction generates telemetry—request paths, latency measurements, error codes, payload sizes, and supplier interactions—that must be ingested, stored, and analyzed at scale to support operational intelligence, cost allocation, and quality assurance.
 
 This whitepaper describes HotelByte's Time-Series BI Analytics infrastructure, a purpose-built operational intelligence layer that delivers sub-second analytics over high-velocity log data. The architecture combines an optimized ingestion pipeline with sharded writes, sub-table partitioning by operational dimensions, and a dual-path query strategy that prioritizes pre-aggregated metrics for dashboard-speed responsiveness while preserving full-resolution raw data for deep-dive diagnostics. Cost analytics are derived directly from the time-series store, enabling real-time visibility into per-tenant, per-API, and per-supplier consumption patterns.
@@ -197,3 +203,21 @@ External reviewers and enterprise customers can verify HotelByte's time-series a
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+
+## WP27 Governance Reading
+
+Read Time-Series BI Analytics through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Time-Series BI Analytics matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Operational BI needs a time-window evidence layer, not ad-hoc queries against the business database.

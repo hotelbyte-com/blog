@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/06-supplier-adapter-framework-and-standa
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed supplier integration capabilities in hotel distribution.
+
+**TL;DR:** Supplier standardization works when variance is isolated behind a contract instead of leaking through the platform.
+
+> **Central claim:** Supplier standardization works when variance is isolated behind a contract instead of leaking through the platform.
+
 HotelByte is a global hotel API distribution platform that aggregates inventory from 27+ hotel suppliers—ranging from direct-connect bed banks and OTA platforms to wholesale aggregators and niche regional operators. Each supplier exposes a distinct API surface with its own authentication scheme, data model, error vocabulary, and rate-limiting behavior. Without architectural discipline, this heterogeneity would produce duplicated business logic, inconsistent error semantics, and unpredictable caching behavior.
 
 This whitepaper describes HotelByte's Supplier Adapter Framework, a three-layer isolation architecture that unifies every supplier behind a single, strongly typed interface contract. The framework enforces standardized data types, canonical error mappings, mandatory session persistence, and unified HTTP execution. By deliberately restricting adapter flexibility in favor of structural conformity, the platform ensures that cross-cutting resilience improvements benefit all integrations instantly. This document is intended for security auditors, integration partners, and enterprise customers who require transparency into how HotelByte normalizes third-party supplier interactions without compromising correctness or observability.
@@ -217,3 +223,21 @@ HotelByte's supplier adapter framework exposes multiple verification surfaces th
 ---
 
 *This whitepaper is published by HotelByte Engineering. For questions regarding the technical controls described herein, please contact HotelByte Technical Support or your assigned Customer Success Engineer.*
+
+## WP27 Governance Reading
+
+Read Supplier Adapter Framework & Standardization through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Supplier Adapter Framework & Standardization matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Supplier standardization works when variance is isolated behind a contract instead of leaking through the platform.

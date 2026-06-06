@@ -24,6 +24,12 @@ source_asset: hotel-be/docs/whitepapers/25-zero-downtime-runtime-and-deployment.
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed engineering excellence capabilities in hotel distribution.
+
+**TL;DR:** Zero downtime is a runtime discipline: graceful shutdown, connection draining, rollout evidence, and rollback readiness.
+
+> **Central claim:** Zero downtime is a runtime discipline: graceful shutdown, connection draining, rollout evidence, and rollback readiness.
+
 HotelByte is a global hotel API distribution platform that processes search, availability, booking, and financial transactions across multiple continents. Any service interruption—whether planned deployment or unplanned failure—directly impacts revenue for integration partners and end travelers. To eliminate this risk, HotelByte implements a custom Master/Worker process model with signal-driven graceful restart, automated health validation, and a gated deployment pipeline that enforces verification at every stage.
 
 This whitepaper describes the runtime architecture, deployment lifecycle, and operational controls that ensure platform updates and process recoveries occur without dropping in-flight requests or breaking active supplier sessions. It is intended for enterprise customers, security auditors, and integration partners who require transparency into HotelByte's operational resilience and change-management posture.
@@ -188,3 +194,21 @@ External reviewers and enterprise customers can verify HotelByte's zero-downtime
 | **RFC 7231 — HTTP/1.1 Semantics and Content (503 Service Unavailable)** | "The 503 status code indicates that the server is currently unable to handle the request due to temporary overloading or maintenance." | The `/ready` endpoint returns 503 during startup and shutdown, signaling Nginx and load balancers to route traffic away from the worker without dropping existing connections. |
 
 ---
+
+## WP27 Governance Reading
+
+Read Zero-Downtime Runtime & Deployment through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Zero-Downtime Runtime & Deployment matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Zero downtime is a runtime discipline: graceful shutdown, connection draining, rollout evidence, and rollback readiness.

@@ -20,6 +20,12 @@ source_asset: hotel-be/docs/whitepapers/22-spec-driven-development.md
 
 ## Executive Summary
 
+**Assumed audience:** platform engineers, enterprise architects, integration owners, and technical reviewers evaluating governed engineering excellence capabilities in hotel distribution.
+
+**TL;DR:** Spec-driven development is a gate that connects intent, acceptance, implementation, and archive.
+
+> **Central claim:** Spec-driven development is a gate that connects intent, acceptance, implementation, and archive.
+
 HotelByte operates a global hotel API distribution platform connecting thousands of suppliers and buyers across diverse markets, each with distinct business rules, regulatory requirements, and service-level expectations. In this environment, undocumented assumptions and implicit requirements are the primary sources of production defects, integration mismatches, and costly rework.
 
 To address this, HotelByte has adopted **Spec-Driven Development (SDD)**—a disciplined workflow where every change originates from a written specification, every requirement is expressed as a verifiable scenario, and no implementation proceeds without an approved, versioned spec. This approach transforms requirements from tribal knowledge into durable, testable contracts.
@@ -136,3 +142,21 @@ Together, these methods ensure that any change can be traced from business inten
 | **ITIL 4: Change Control Practice** | "The purpose of the change control practice is to maximize the number of successful service and product changes by ensuring that risks have been properly assessed, authorizing changes to proceed, and managing the change schedule." | HotelByte's proposal review gate performs risk assessment and stakeholder alignment; the archive layer maintains the change schedule and historical record; together they implement ITIL-aligned change control. |
 | **MECE Principle** — *Barbara Minto, The Pyramid Principle* | "The grouping must be Mutually Exclusive and Collectively Exhaustive... the ideas must not overlap, and they must cover all the relevant possibilities." | Documentation Architecture control applies MECE to capability organization, ensuring that every spec has a single, exhaustive home without overlap or omission. |
 | **ISO 9001:2015** — *Quality management systems* | "The organization shall retain documented information to the extent necessary to have confidence that the processes have been carried out as planned." | The Archive Layer and immutable snapshot policy retain complete documented information for every change, providing the evidentiary basis for quality system confidence. |
+
+## WP27 Governance Reading
+
+Read Spec-Driven Development through the same loop used by WP27: intent, evidence, bounded execution, verification, and durable governance.
+
+| Plane | What to inspect in this paper |
+|---|---|
+| Intent | Which operational or integration risk the design removes. |
+| Evidence | Which logs, metrics, records, traces, tests, or replay artifacts prove the behavior. |
+| Execution boundary | Which layer owns the decision and which layer only adapts or transports data. |
+| Verification | Which failure modes are tested beyond the happy path. |
+| Governance memory | Which rules, dashboards, audit trails, or test cases make the lesson reusable. |
+
+## Conclusion
+
+Spec-Driven Development matters because it turns a fragile implementation concern into a governed platform capability. The durable value is not that the component exists, but that its boundaries, evidence, failure semantics, and verification path can be reviewed after the fact.
+
+Spec-driven development is a gate that connects intent, acceptance, implementation, and archive.
