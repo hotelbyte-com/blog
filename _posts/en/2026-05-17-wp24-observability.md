@@ -1,57 +1,56 @@
 ---
 layout: post
-title: "Whitepaper Guide: Five-Dimensional Observability"
+title: "Five Dashboards, Five Stories, One Incident"
 date: 2026-05-17
 categories: [HotelByte, Whitepapers, Engineering Excellence]
 tags: ["Engineering Excellence", "Quality", "Whitepaper Guide", "HotelByte"]
 author: "HotelByte Team"
-description: "WP24 guide: Observability works when errors, traces, profiles, metrics, and audit logs can explain the same incident."
+description: "WP24 guide: Observability only works when errors, traces, profiles, metrics, and audit logs can explain the same incident."
 lang: en
 permalink: /en/whitepapers/wp24-observability/
 source_asset: hotel-be/docs/whitepapers/24-five-dimensional-observability.md
 whitepaper_kind: guide
 original_url: /en/whitepapers/wp24-observability/original/
 ---
-# Whitepaper Guide: Five-Dimensional Observability
 
-Most technical whitepapers fail in the same way: they describe a component, but they do not tell the reader what engineering risk the component is meant to remove.
+The hotel distribution industry has no shortage of telemetry. Every platform collects logs, metrics, and traces. The problem is not collection—it is correlation. When an incident occurs, error tracking says one thing, distributed tracing says another, metrics suggest a third explanation, and the audit trail implies a fourth. The result is not clarity; it is a Rorschach test where every team sees what they expect to see.
 
-WP24 is different. It should be read as a control design for engineering excellence: where the system draws boundaries, which facts must be preserved, how failure is classified, and what evidence proves the capability works.
+HotelByte's five-dimensional observability framework is built on a single principle: correlation over collection. A unified `logid` identifier propagates across error events, distributed traces, profiling snapshots, Prometheus metrics, and structured business logs. The goal is not more dashboards. It is the ability to retrieve the complete context of a single request—from edge ingress through every downstream supplier interaction—with one identifier.
 
-**TL;DR:** Observability works when errors, traces, profiles, metrics, and audit logs can explain the same incident.
+## The Evidence Gap in Production Incidents
 
-## Why This Matters
+Consider a typical failure mode: a customer reports an unexpected rate for a hotel. The metrics dashboard shows a spike in `SupplierRateLimitWaitTiming`. The error tracker shows a cluster of timeout exceptions. The trace visualization reveals that one supplier span took 8 seconds. The business log shows that a fallback rate was returned. The profiling data indicates elevated goroutine contention in the normalization layer.
 
-Hotel distribution is a hostile environment for vague architecture. Supplier behavior changes, prices move, inventory expires, credentials differ by channel, and operational evidence is scattered across requests, logs, orders, caches, and human review. A design that only works in a happy-path diagram will fail during integration, certification, or production support.
+Without correlation, these five signals are five separate investigations. With correlation, they are five views of the same request. HotelByte's `logid` makes this possible: the same identifier appears in the Sentry error event, the OpenTelemetry trace, the Prometheus metric labels, the Pyroscope profiling snapshot, and the VictoriaLogs business log entry. An on-call engineer can move from alert to root cause without manual log correlation.
 
-This guide gives you the reader's path into the full whitepaper. Use it to understand the argument first, then read the original for the concrete mechanisms, diagrams, and validation model.
+## What HotelByte Chose—and What It Costs
 
-## The Engineering Question
+The framework prioritizes correlation infrastructure over raw volume. This means predefined cardinality boundaries on metrics, standardized naming conventions enforced at build time, and automatic sensitive-data sanitization before telemetry leaves the application boundary. Authorization headers, cookies, and tokens are stripped from error reports and traces by default.
 
-The question behind this asset is not "does HotelByte have Five-Dimensional Observability?" The better question is:
+The trade-off is that ad-hoc exploration is constrained. You cannot add an arbitrary high-cardinality label to a metric without considering the storage cost and query performance. You cannot emit a raw stack trace without verifying that it contains no PII. The platform auto-instruments services at construction time, which means new features enter production with full visibility—but also means that instrumentation changes require the same review discipline as business logic changes.
 
-> What must be governed so this capability remains reliable when supplier variance, tenant boundaries, operational pressure, and production evidence all collide?
+## The Five Dimensions in Practice
 
-That framing is important. It moves the discussion away from feature inventory and toward system behavior under stress.
+**Error tracking** is not just exception capture. Business-critical panics are auto-promoted to fatal-level events with storm control and deduplication, ensuring that cascading failures produce one actionable notification per distinct issue rather than hundreds of redundant alerts.
 
-## What To Look For In The Full Whitepaper
+**Distributed tracing** follows a booking request from edge API through rate-limiting, cache evaluation, supplier availability checks, response normalization, and final assembly. Each span carries timing data, error status, and custom attributes that reveal exactly where latency accumulates or failures originate.
 
-- **Boundary design:** which layer owns the decision and which layer only adapts data.
-- **Failure semantics:** what counts as retryable, terminal, stale, unsafe, or incomplete.
-- **Evidence path:** which logs, tests, records, metrics, or replay artifacts prove the claim.
-- **Operational control:** how the design behaves during incidents, supplier drift, partial data, or rollout.
-- **Reviewability:** whether a buyer, auditor, or engineer can explain why the system made a decision.
+**Continuous profiling** captures CPU and memory flame graphs from production workloads without perceptible overhead. Historical profiling data enables before-and-after deployment comparison, catching performance regressions that escape traditional load testing.
 
-## How HotelByte Approaches It
+**Metrics** are organized into five functional domains—API, Business, Supplier, Cache, and Agent—feeding Prometheus with consistent labels for dimensional analysis. Dashboard deployment is automated to prevent configuration drift across environments.
 
-HotelByte treats Five-Dimensional Observability as part of a broader governed platform, not as an isolated implementation detail. The architecture is expected to leave a trail: normalized contracts, explicit ownership, testable behavior, and production evidence that can be inspected after the fact.
+**Business-context logging** records not just events but decision processes: intermediate states, supplier responses, normalization decisions, and anomalies encountered. This transforms debugging from reactive log-grepping into structured narrative reconstruction.
 
-That is the recurring pattern across the whitepaper series. The platform is not trying to hide complexity behind a clean demo. It is trying to make complexity governable.
+## Reading Path
 
-## Read The Full Whitepaper
+Read **"Correlation Over Collection"** in the Design Principles section first. It is the conceptual foundation that makes the other four dimensions meaningful.
 
-The complete paper expands the architecture, control points, and verification path:
+For the operational mechanics, the **"Observability Architecture"** section details each of the five layers: error tracking with sensitive-data filtering and trace association; distributed tracing with OpenTelemetry auto-instrumentation and multi-protocol export; continuous profiling for production flame graphs; the five functional metric domains; and business-context logging with readiness probing.
 
-- [Full English whitepaper](/en/whitepapers/wp24-observability/original/)
-- [Chinese version](/zh/whitepapers/wp24-observability/original/)
-- [Whitepaper index](/en/whitepapers/)
+For incident response, **"Observability Lifecycle / Alert Flow"** describes the seven-stage pipeline from instrumentation through learning, with explicit correlation points at each stage.
+
+## Cross-References
+
+- [Read the full WP24 whitepaper (English)](/en/whitepapers/wp24-observability/original/)
+- [Read the Chinese version of WP24](/zh/whitepapers/wp24-observability/original/)
+- [Browse the whitepaper index](/en/whitepapers/)
