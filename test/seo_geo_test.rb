@@ -18,6 +18,11 @@ class SeoGeoTest < Minitest::Test
     assert_includes data.fetch("key_topics"), "hotel API aggregation"
     assert_includes data.fetch("priority_routes"), "/en/whitepapers/"
     assert_includes data.fetch("priority_routes"), "/zh/whitepapers/"
+
+    aeo = data.fetch("agent_optimization")
+    assert_equal "1.0", aeo.fetch("aeo_version")
+    assert_includes aeo.fetch("agent_queries"), "How to integrate hotel APIs"
+    assert aeo.fetch("answer_engine").size >= 3
   end
 
   def test_layouts_emit_ai_geo_head_metadata
@@ -31,6 +36,14 @@ class SeoGeoTest < Minitest::Test
     assert_includes include_body, "Blog"
     assert_includes include_body, "inLanguage"
     assert_includes include_body, "alternate"
+    assert_includes include_body, "aeo-version"
+    assert_includes include_body, "agent-summary"
+    assert_includes include_body, "agent-queries"
+    assert_includes include_body, "canonical"
+    assert_includes include_body, "og:title"
+    assert_includes include_body, "twitter:card"
+    assert_includes include_body, "BreadcrumbList"
+    assert_includes include_body, "FAQPage"
   end
 
   def test_llms_file_points_ai_crawlers_to_canonical_content
@@ -44,6 +57,10 @@ class SeoGeoTest < Minitest::Test
     assert_includes llms, "https://blog.hotelbyte.com/zh/whitepapers/"
     assert_includes llms, "AI-Native Engineering Operating System"
     assert_includes llms, "Geographic Search"
+    assert_includes llms, "Agent Engine Optimization"
+    assert_includes llms, "AEO"
+    assert_includes llms, "What is HotelByte?"
+    assert_includes llms, "How does HotelByte handle hotel API integration?"
   end
 
   def test_ai_geo_routes_include_industry_topic_hubs
@@ -86,6 +103,7 @@ class SeoGeoTest < Minitest::Test
     assert_includes source, "site.data.ai_geo"
     assert_includes source, "priority_routes"
     assert_includes source, "featured_content"
+    assert_includes source, "agent_optimization"
     assert_includes read("llms.txt"), "https://blog.hotelbyte.com/ai-index.json"
   end
 

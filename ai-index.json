@@ -15,6 +15,12 @@ permalink: /ai-index.json
   "key_topics": {{ ai_geo.key_topics | jsonify }},
   "priority_routes": {{ ai_geo.priority_routes | jsonify }},
   "featured_content": {{ ai_geo.featured_content | jsonify }},
+  "agent_optimization": {
+    "aeo_version": {{ ai_geo.agent_optimization.aeo_version | jsonify }},
+    "agent_friendly_summary": {{ ai_geo.agent_optimization.agent_friendly_summary | strip | jsonify }},
+    "agent_queries": {{ ai_geo.agent_optimization.agent_queries | jsonify }},
+    "answer_engine": {{ ai_geo.agent_optimization.answer_engine | jsonify }}
+  },
   "external_docs": [
     {
       "name": "HotelByte OpenAPI",
