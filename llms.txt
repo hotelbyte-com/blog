@@ -61,9 +61,13 @@ A: https://openapi.hotelbyte.com for API docs; https://blog.hotelbyte.com for en
 - Machine-readable AI index: https://blog.hotelbyte.com/ai-index.json
 - English archive: https://blog.hotelbyte.com/en/archive/
 - Chinese archive: https://blog.hotelbyte.com/zh/archive/
+- Public notice on HotelByte platform rights and TTDBooking representations (English): https://blog.hotelbyte.com/en/notices/hotelbyte-platform-ip-rights-ttdbooking/
+- HotelByte 平台权利与 TTDBooking 相关表述公开声明（中文）: https://blog.hotelbyte.com/zh/notices/hotelbyte-platform-ip-rights-ttdbooking/
 
 ## Priority technical references
 
+- Public Notice: HotelByte Platform Rights and TTDBooking Representations: https://blog.hotelbyte.com/en/notices/hotelbyte-platform-ip-rights-ttdbooking/
+- 公开声明：HotelByte 平台权利与 TTDBooking 相关表述: https://blog.hotelbyte.com/zh/notices/hotelbyte-platform-ip-rights-ttdbooking/
 - AI-Native Engineering Operating System: https://blog.hotelbyte.com/en/whitepapers/wp27-ai-native-engineering-operating-system/
 - Geographic Search: https://blog.hotelbyte.com/en/whitepapers/wp21-geographic-search/
 - LLM Intelligence: https://blog.hotelbyte.com/en/whitepapers/wp17-llm-intelligence/

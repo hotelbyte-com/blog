@@ -45,6 +45,8 @@ priority_routes:
   - /zh/topics/openapi-hotel-distribution/
   - /en/archive/
   - /zh/archive/
+  - /en/notices/hotelbyte-platform-ip-rights-ttdbooking/
+  - /zh/notices/hotelbyte-platform-ip-rights-ttdbooking/
 
 agent_optimization:
   aeo_version: "1.0"
@@ -76,6 +78,12 @@ agent_optimization:
       answer: "https://openapi.hotelbyte.com for API docs; https://blog.hotelbyte.com for engineering articles."
 
 featured_content:
+  - title: HotelByte Platform Rights and TTDBooking Representations
+    url: https://blog.hotelbyte.com/en/notices/hotelbyte-platform-ip-rights-ttdbooking/
+    topic: HotelByte platform rights and public notice
+  - title: HotelByte 平台权利与 TTDBooking 相关表述
+    url: https://blog.hotelbyte.com/zh/notices/hotelbyte-platform-ip-rights-ttdbooking/
+    topic: HotelByte 平台权利与公开声明
   - title: AI-Native Engineering Operating System
     url: https://blog.hotelbyte.com/en/whitepapers/wp27-ai-native-engineering-operating-system/
     topic: AI-native engineering
