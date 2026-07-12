@@ -1,159 +1,153 @@
 ---
 layout: post
-title: "staicli Early Beta: One Command to Put HotelByte in Your Pocket"
+title: "staicli Early Beta: Search Hotels, Book, and Run Your Travel Business from the Terminal"
 date: 2026-07-12
 lang: en
 categories: [HotelByte, Releases, CLI]
-tags: ["staicli", "hbcli", "Bun", "TypeScript", "CLI", "Early Beta"]
+tags: ["staicli", "hbcli", "CLI", "Early Beta"]
 author: "HotelByte Team"
-description: "staicli (hbcli) enters early beta. A self-contained native binary compiled with Bun, installed via a single curl command with zero runtime dependencies. Flat command tree with auto-detected auth — no profile switching for integrators and admins."
+description: "staicli enters early beta. Install in one line, search global hotels, check live rates, book, manage your team and subscriptions — all from the terminal."
 permalink: /en/releases/staicli-early-beta/
 ---
 
-> We shipped a CLI tool the way Claude Code ships: a single `curl | bash` that downloads a 56MB native binary. No Python, no Node, no Bun runtime required on the target machine — install and go.
+Using the HotelByte API used to mean reading docs, hand-writing JSON, managing tokens. Now: install in one line, search hotels, check rates, and book — right from the terminal.
 
-## The Problem We're Solving
-
-The HotelByte platform serves two types of users:
-
-- **Integrators**: search hotels, check availability, book — authenticated via API key
-- **Admins**: manage orders, team, subscriptions, suppliers — authenticated via portal login
-
-Until now, consuming these APIs meant reading docs, hand-writing HTTP requests, managing tokens — starting from scratch for each scenario. We wanted this to be a single command.
-
-## One-Line Install
+## Install
 
 ```bash
 curl -fsSL https://github.com/hotelbyte-com/hotelbyte-cli/releases/latest/download/install.sh | bash
 ```
 
-**No Python, Node.js, or Bun runtime required** — the binary embeds the entire Bun runtime.
+Verify:
 
 ```bash
 $ hbcli version
 hbcli (staicli) 0.3.0
-  binary: ~/.staicli/versions/0.3.0/hbcli
-  home:   ~/.staicli
 ```
 
-## Flat Command Tree, Auto-Detected Auth
+That's it. Nothing else to install.
 
-We deliberately avoided grouping commands by internal terminology like "OpenAPI profile" or "Portal BFF." Customers don't care about that — they want to search hotels, book rooms, manage their team.
-
-The command tree is **flat, organized by business domain**:
-
-```
-hbcli
-├── search      Search hotels, rates, destinations
-├── trade       Book, cancel, query orders
-├── orders      Tenant order management (list, detail, dashboard)
-├── team        Team members and roles
-├── account     Entity, subscriptions, suppliers
-├── view        Portal navigation and menus
-├── auth        Credentials and login
-├── version     Show version
-└── update      Self-update
-```
-
-Auth is **auto-detected**:
-- API key stored → ticket flow (integrator)
-- Portal login stored → session flow (admin)
-
-No profile switching, no mode toggles — the credential type determines the auth path.
-
-## 30-Second Quick Start
-
-### As an integrator (API key mode)
+Updating and uninstalling are also one line:
 
 ```bash
-# Store your API credentials
+hbcli update                    # Update to latest
+# Uninstall:
+curl -fsSL https://github.com/hotelbyte-com/hotelbyte-cli/releases/latest/download/uninstall.sh | bash
+```
+
+## What You Can Do
+
+### Search Hotels
+
+```bash
+# Set your API credentials (one-time)
 hbcli auth set-credentials --app-key YOUR_KEY --app-secret YOUR_SECRET
 
 # Search hotels
 hbcli search hotel-list \
   --check-in 2026-08-01 --check-out 2026-08-03 \
   --country-code US --nationality-code US --residency-code US \
-  --hotel-ids "461850557" \
+  --destination-id "city:123" \
   --room-occupancies '[{"adultCount":2,"childrenAges":[]}]'
 
-# Check rates
+# Check live rates for a specific hotel
 hbcli search hotel-rates --hotel-id "900000001" \
   --check-in 2026-08-01 --check-out 2026-08-03 \
   --room-occupancies '[{"adultCount":2,"childrenAges":[]}]'
 
-# Book
+# Hotel details (description, facilities, images)
+hbcli search hotel-detail --hotel-id "900000001"
+```
+
+### Book
+
+```bash
+# Book a hotel
 hbcli trade book \
   --rate-pkg-id "rate-456" \
   --holder '{"name":"John","email":"john@example.com"}' \
   --guests '[{"firstName":"John","lastName":"Doe","type":"adult"}]'
+
+# Query orders
+hbcli trade query-orders --customer-reference-nos "REF001,REF002"
+
+# Cancel
+hbcli trade cancel \
+  --customer-reference-no "REF001" \
+  --supplier-reference-no "SUP001"
 ```
 
-### As an admin (portal mode)
+### Run Your Business
+
+If you're a tenant admin, log in with your portal account to manage everything:
 
 ```bash
-# Login
+# Login (one-time)
 hbcli auth login --username admin@example.com
 
-# List orders
+# Orders
 hbcli orders list --status-list confirmed
+hbcli orders detail --order-id "order-123"
 
-# Manage team
+# Team management
 hbcli team list
 hbcli team invite --email newuser@example.com --role-id role-1
 
-# Subscriptions
+# Subscriptions and billing
 hbcli account subscriptions get
 hbcli account subscriptions catalog
+hbcli account subscriptions invoices
+
+# Supplier connections
+hbcli account suppliers accessible
 ```
 
-### Agent-friendly
+### For Scripts and AI Agents
+
+Every command supports `--json` for structured output:
 
 ```bash
 hbcli --json search destinations --country-code US | jq '.[] | .name'
+```
+
+Large request bodies can be loaded from files:
+
+```bash
 hbcli trade book --guests @guests.json --holder @holder.json --rate-pkg-id "rate-456"
 ```
 
-## Why Bun
+## Command Overview
 
-We initially built this in Python + Click. But the closed-source distribution requirement changed the equation:
-
-| Dimension | Python + wheel | Bun-compiled binary |
-|-----------|----------------|---------------------|
-| Distribution artifact | wheel (zip) + venv | **Single native binary** |
-| Source visibility | wheel unpacks to readable Python | **Binary is not decompilable** |
-| Runtime dependencies | Requires Python 3.9+ | **Zero dependencies** |
-| Install size | venv + deps ~30MB | 56MB (includes Bun runtime) |
-| Self-update | Rebuild venv or pip upgrade | **Download new binary, swap** |
-
-```bash
-bun build --compile --target=bun-darwin-arm64 --outfile=hbcli src/cli.ts
+```
+hbcli search       Search hotels, rates, destinations, details
+hbcli trade        Book, cancel, query orders
+hbcli orders       Tenant order management
+hbcli team         Team and role management
+hbcli account      Entity, subscriptions, suppliers
+hbcli auth         Set credentials / login
+hbcli update       Update to latest version
 ```
 
-One command. TypeScript source embedded into the Bun runtime, compiled into a 56MB native executable. Not decompilable — true closed-source distribution.
+Auth is automatic — store an API key and it uses the integrator flow. Log in and it uses the admin flow. No manual switching.
 
-## Early Beta: Known Limitations
+## What Doesn't Work Yet
 
-This is **v0.3.0 early beta**:
+This is early beta. Known issues:
 
-| Limitation | Details |
-|-----------|---------|
-| **Only verified on macOS arm64** | Cross-platform build scripts ready, linux/darwin-x64 untested |
-| **UAT search partially slow** | hotelList aggregation times out on UAT; hotelRates verified working |
-| **No GitHub Release yet** | `install.sh` works once first Release is published |
-| **No Windows support** | Roadmap item |
-
-## Roadmap
-
-- [x] v0.3.0 — Flat command tree, auto-auth, native binary, curl install
-- [ ] v0.4.0 — E2E test coverage, verify all 4 platform binaries
-- [ ] v0.5.0 — Streaming search support
-- [ ] v1.0.0 — GA release
+| Issue | Status |
+|-------|--------|
+| **Windows** | Not supported, on the roadmap |
+| **Linux x64 / Intel Mac** | Build scripts ready, not end-to-end tested yet |
+| **Install script** | Goes live once the first GitHub Release is published (coming soon) |
+| **Some searches slow** | Hotel list aggregation on UAT is occasionally slow, we're optimizing |
 
 ## Feedback
+
+Found a bug, missing a feature, or hate a command name? Tell us:
 
 - GitHub Issues: [hotelbyte-com/hotelbyte-cli](https://github.com/hotelbyte-com/hotelbyte-cli/issues)
 - Email: support@hotelbyte.com
 
 ---
 
-**staicli (hbcli) v0.3.0 · Early Beta · 2026-07-12**
+**staicli v0.3.0 · Early Beta · 2026-07-12**
