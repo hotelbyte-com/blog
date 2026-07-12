@@ -10,13 +10,11 @@ description: "staicli 进入早期公测。一行命令安装，在终端里搜�
 permalink: /zh/releases/staicli-early-beta/
 ---
 
-过去用 HotelByte 的 API，你得读文档、拼 JSON、管 token。现在，一行命令装好，终端里直接搜酒店、查房价、下单。
+过去用 HotelByte 的 API，你得读文档、拼 JSON、管 token。现在，终端里直接搜酒店、查房价、下单。
 
-## 装
+## 获取
 
-```bash
-curl -fsSL https://github.com/hotelbyte-com/hotelbyte-cli/releases/latest/download/install.sh | bash
-```
+staicli 目前处于早期公测阶段，正在准备第一个公开发布的安装包。在此期间，如果你的账户经理已经给你发了安装包，直接按说明装即可。
 
 装完验证一下：
 
@@ -25,14 +23,12 @@ $ hbcli version
 hbcli (staicli) 0.3.0
 ```
 
-就这样。不需要装别的任何东西。
+不需要装别的任何东西。
 
-更新和卸载也是一行：
+更新到最新版：
 
 ```bash
-hbcli update                    # 更新到最新版
-# 卸载：
-curl -fsSL https://github.com/hotelbyte-com/hotelbyte-cli/releases/latest/download/uninstall.sh | bash
+hbcli update
 ```
 
 ## 能干什么
@@ -136,16 +132,16 @@ hbcli update       更新到最新版
 
 | 问题 | 状态 |
 |------|------|
+| **公开安装包** | 正在准备中，目前通过账户经理获取 |
 | **Windows** | 不支持，路线图中 |
 | **Linux x64 / Intel Mac** | 构建脚本已就绪，还没端到端验证 |
-| **安装脚本** | GitHub 第一个 Release 发布后才能生效（即将上线） |
 | **部分搜索超时** | UAT 环境的酒店列表搜索偶尔较慢，我们正在优化 |
 
 ## 反馈
 
 发现了 bug、缺了功能、或者命令名起得不好？直接说：
 
-- GitHub Issues：[hotelbyte-com/hotelbyte-cli](https://github.com/hotelbyte-com/hotelbyte-cli/issues)
+- 提 Issue：[hotelbyte-com/docs](https://github.com/hotelbyte-com/docs/issues)（加 `cli` 标签）
 - 邮件：support@hotelbyte.com
 
 ---

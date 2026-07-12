@@ -10,29 +10,25 @@ description: "staicli enters early beta. Install in one line, search global hote
 permalink: /en/releases/staicli-early-beta/
 ---
 
-Using the HotelByte API used to mean reading docs, hand-writing JSON, managing tokens. Now: install in one line, search hotels, check rates, and book — right from the terminal.
+Using the HotelByte API used to mean reading docs, hand-writing JSON, managing tokens. Now: search hotels, check rates, and book — right from the terminal.
 
-## Install
+## Getting It
 
-```bash
-curl -fsSL https://github.com/hotelbyte-com/hotelbyte-cli/releases/latest/download/install.sh | bash
-```
+staicli is in early beta. We're preparing the first public install package. In the meantime, if your account manager has already sent you the installer, follow the included instructions.
 
-Verify:
+Verify once installed:
 
 ```bash
 $ hbcli version
 hbcli (staicli) 0.3.0
 ```
 
-That's it. Nothing else to install.
+Nothing else to install.
 
-Updating and uninstalling are also one line:
+Update to the latest version:
 
 ```bash
-hbcli update                    # Update to latest
-# Uninstall:
-curl -fsSL https://github.com/hotelbyte-com/hotelbyte-cli/releases/latest/download/uninstall.sh | bash
+hbcli update
 ```
 
 ## What You Can Do
@@ -136,16 +132,16 @@ This is early beta. Known issues:
 
 | Issue | Status |
 |-------|--------|
+| **Public install package** | In preparation — currently available via your account manager |
 | **Windows** | Not supported, on the roadmap |
 | **Linux x64 / Intel Mac** | Build scripts ready, not end-to-end tested yet |
-| **Install script** | Goes live once the first GitHub Release is published (coming soon) |
 | **Some searches slow** | Hotel list aggregation on UAT is occasionally slow, we're optimizing |
 
 ## Feedback
 
 Found a bug, missing a feature, or hate a command name? Tell us:
 
-- GitHub Issues: [hotelbyte-com/hotelbyte-cli](https://github.com/hotelbyte-com/hotelbyte-cli/issues)
+- Open an issue: [hotelbyte-com/docs](https://github.com/hotelbyte-com/docs/issues) (add the `cli` label)
 - Email: support@hotelbyte.com
 
 ---
