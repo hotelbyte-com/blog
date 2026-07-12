@@ -12,23 +12,27 @@ permalink: /zh/releases/staicli-early-beta/
 
 过去用 HotelByte 的 API，你得读文档、拼 JSON、管 token。现在，终端里直接搜酒店、查房价、下单。
 
-## 获取
+## 装
 
-staicli 目前处于早期公测阶段，正在准备第一个公开发布的安装包。在此期间，如果你的账户经理已经给你发了安装包，直接按说明装即可。
+```bash
+curl -fsSL https://github.com/hotelbyte-com/docs/releases/latest/download/install.sh | bash
+```
 
 装完验证一下：
 
 ```bash
 $ hbcli version
-hbcli (staicli) 0.3.0
+hbcli (staicli) 0.0.1
 ```
 
 不需要装别的任何东西。
 
-更新到最新版：
+更新和卸载也是一行：
 
 ```bash
-hbcli update
+hbcli update                    # 更新到最新版
+# 卸载：
+curl -fsSL https://github.com/hotelbyte-com/docs/releases/latest/download/uninstall.sh | bash
 ```
 
 ## 能干什么
@@ -132,7 +136,6 @@ hbcli update       更新到最新版
 
 | 问题 | 状态 |
 |------|------|
-| **公开安装包** | 正在准备中，目前通过账户经理获取 |
 | **Windows** | 不支持，路线图中 |
 | **Linux x64 / Intel Mac** | 构建脚本已就绪，还没端到端验证 |
 | **部分搜索超时** | UAT 环境的酒店列表搜索偶尔较慢，我们正在优化 |
@@ -146,4 +149,4 @@ hbcli update       更新到最新版
 
 ---
 
-**staicli v0.3.0 · 早期公测 · 2026-07-12**
+**staicli v0.0.1 · 早期公测 · 2026-07-12**

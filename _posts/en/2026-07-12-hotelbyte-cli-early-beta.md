@@ -12,23 +12,27 @@ permalink: /en/releases/staicli-early-beta/
 
 Using the HotelByte API used to mean reading docs, hand-writing JSON, managing tokens. Now: search hotels, check rates, and book — right from the terminal.
 
-## Getting It
+## Install
 
-staicli is in early beta. We're preparing the first public install package. In the meantime, if your account manager has already sent you the installer, follow the included instructions.
+```bash
+curl -fsSL https://github.com/hotelbyte-com/docs/releases/latest/download/install.sh | bash
+```
 
-Verify once installed:
+Verify:
 
 ```bash
 $ hbcli version
-hbcli (staicli) 0.3.0
+hbcli (staicli) 0.0.1
 ```
 
 Nothing else to install.
 
-Update to the latest version:
+Updating and uninstalling are also one line:
 
 ```bash
-hbcli update
+hbcli update                    # Update to latest
+# Uninstall:
+curl -fsSL https://github.com/hotelbyte-com/docs/releases/latest/download/uninstall.sh | bash
 ```
 
 ## What You Can Do
@@ -132,7 +136,6 @@ This is early beta. Known issues:
 
 | Issue | Status |
 |-------|--------|
-| **Public install package** | In preparation — currently available via your account manager |
 | **Windows** | Not supported, on the roadmap |
 | **Linux x64 / Intel Mac** | Build scripts ready, not end-to-end tested yet |
 | **Some searches slow** | Hotel list aggregation on UAT is occasionally slow, we're optimizing |
@@ -146,4 +149,4 @@ Found a bug, missing a feature, or hate a command name? Tell us:
 
 ---
 
-**staicli v0.3.0 · Early Beta · 2026-07-12**
+**staicli v0.0.1 · Early Beta · 2026-07-12**
