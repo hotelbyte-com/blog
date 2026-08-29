@@ -1,8 +1,9 @@
 ---
+layout: null
 ---
 
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: "en-US" }}">
+<html lang="{{ page.lang | default: site.lang | default: 'en-US' }}">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -17,18 +18,7 @@
     {% endif %}
   </head>
   <body>
-    <header class="site-header" role="banner">
-      <div class="header-wrapper">
-        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
-          <img src="{{ '/assets/img/logo.svg' | relative_url }}" alt="HotelByte Blog" width="160" height="40">
-        </a>
-        <nav class="site-nav" aria-label="Primary">
-          <a href="{% if page.lang == 'en' %}/en/whitepapers/{% else %}/zh/whitepapers/{% endif %}">{% if page.lang == 'en' %}Whitepapers{% else %}白皮书{% endif %}</a>
-          <a href="{% if page.lang == 'en' %}/en/series/{% else %}/zh/series/{% endif %}">{% if page.lang == 'en' %}Topics{% else %}专题{% endif %}</a>
-        </nav>
-        {% include language-switcher.html %}
-      </div>
-    </header>
+    {% include site-chrome.html %}
 
     <main class="home-content" aria-label="Content">
       <div class="wrapper">
@@ -36,11 +26,6 @@
       </div>
     </main>
 
-    <footer class="site-footer">
-      <div class="wrapper">
-        <p>© {{ site.time | date: "%Y" }} {{ site.title | escape }}. All rights reserved.</p>
-        {% include infrastructure-credit.html %}
-      </div>
-    </footer>
+    {% include site-chrome.html footer=true %}
   </body>
 </html>

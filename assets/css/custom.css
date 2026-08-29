@@ -1037,3 +1037,71 @@ a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Language suggestion banner shown above the home hero.
+   The element starts hidden via the `hidden` attribute and is revealed by
+   inline JS only after the head-level redirect had a chance to run. */
+.lang-suggest {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-md);
+  background: hsl(var(--surface-subdued));
+}
+
+.lang-suggest p {
+  margin: 0;
+  font-size: 14px;
+  color: hsl(var(--text-muted));
+  font-weight: 500;
+}
+
+.lang-suggest__actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.lang-suggest__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--surface));
+  color: hsl(var(--text));
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.lang-suggest__btn:hover {
+  background: hsl(var(--surface-hovered));
+  transform: translateY(-1px);
+}
+
+.lang-suggest__btn--primary {
+  background: hsl(var(--primary));
+  color: white;
+  border-color: hsl(var(--primary));
+}
+
+.lang-suggest__btn--primary:hover {
+  background: hsl(var(--primary-hovered));
+  border-color: hsl(var(--primary-hovered));
+}
+
+.lang-suggest__btn--ghost {
+  background: transparent;
+}

@@ -1,0 +1,134 @@
+---
+layout: default
+lang: en
+permalink: /en/404.html
+---
+
+<style>
+  .error-page {
+    text-align: center;
+    padding: 80px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .error-page h1 {
+    font-size: 6em;
+    margin: 0;
+    color: hsl(var(--primary));
+  }
+
+  .error-page h2 {
+    font-size: 2em;
+    margin: 20px 0;
+    color: hsl(var(--text));
+  }
+
+  .error-page p {
+    color: hsl(var(--text-muted));
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+
+  .suggestions {
+    text-align: left;
+    margin-top: 40px;
+    padding: 30px;
+    background-color: hsl(var(--surface-subdued));
+    border-radius: var(--radius-md);
+    border-left: 4px solid hsl(var(--primary));
+  }
+
+  .suggestions h3 {
+    margin-top: 0;
+    color: hsl(var(--text));
+  }
+
+  .suggestions ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .suggestions li {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-bottom: 1px solid hsl(var(--border-subdued));
+  }
+
+  .suggestions a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .suggestions a:hover {
+    text-decoration: underline;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: hsl(var(--primary));
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius);
+    font-weight: 500;
+    margin: 5px;
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    background-color: hsl(var(--primary-hovered));
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background-color: hsl(var(--text-subdued));
+  }
+
+  .btn-secondary:hover {
+    background-color: hsl(var(--text-muted));
+  }
+</style>
+
+<div class="error-page">
+  <h1>404</h1>
+  <h2>Page not found</h2>
+  <p>Sorry, the page you are looking for does not exist or has been moved.</p>
+
+  <div>
+    <a href="/en/" class="btn">Back to home</a>
+    <a href="/en/archive/" class="btn btn-secondary">Browse all articles</a>
+    <a href="/en/series/" class="btn btn-secondary">Topics</a>
+  </div>
+
+  <div class="suggestions">
+    <h3>You might be looking for:</h3>
+    <ul>
+      <li><a href="/en/whitepapers/wp07-supplier-resilience/">Supplier Resilience Engineering</a></li>
+      <li><a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">AI-Native Engineering Operating System</a></li>
+      <li><a href="/en/topics/hotel-api-integration/">Hotel API Integration Guide</a></li>
+      <li><a href="/en/topics/openapi-hotel-distribution/">OpenAPI Hotel Distribution Guide</a></li>
+    </ul>
+    <p style="margin-top: 20px; font-size: 0.95em;">
+      <a href="/en/archive/">View the full archive →</a>
+    </p>
+  </div>
+
+  <div class="suggestions">
+    <h3>Possible reasons:</h3>
+    <ul>
+      <li>The URL was mistyped</li>
+      <li>The article has been moved or removed</li>
+      <li>The article URL format has been updated (new format: <code>/en/category/article-title/</code>)</li>
+    </ul>
+    <p style="margin-top: 20px; font-size: 0.95em;">
+      If you still cannot find what you are looking for, see the <a href="/en/archive/">archive</a> or visit the <a href="/en/">homepage</a>.
+    </p>
+  </div>
+
+  <p style="margin-top: 24px;">
+    <a href="/404.html">查看中文 404 页</a>
+  </p>
+</div>

@@ -1,0 +1,81 @@
+# Authoritative zh ↔ en URL pair table.
+#
+# Each entry declares the canonical path in each language for one logical page.
+# The language switcher consults this table before falling back to
+# `replace_first('/zh/', '/en/')`. If a path is listed here as a single entry
+# (i.e. both `zh` and `en` point at the same path), the page is language-neutral
+# and the switcher hides itself.
+#
+# Keep in sync with:
+#   - _data/ai_geo.yml  (priority_routes)
+#   - ai-geo-head.html  (alternate hreflang emissions)
+#   - test/seo_geo_test.rb
+#   - llms.txt          (does not depend on this file)
+
+home:
+  zh: /
+  en: /en/
+
+whitepaper_index:
+  zh: /zh/whitepapers/
+  en: /en/whitepapers/
+
+series_index:
+  zh: /zh/series/
+  en: /en/series/
+
+archive:
+  zh: /zh/archive/
+  en: /en/archive/
+
+topic_hotel_api_integration:
+  zh: /zh/topics/hotel-api-integration/
+  en: /en/topics/hotel-api-integration/
+
+topic_openapi_hotel_distribution:
+  zh: /zh/topics/openapi-hotel-distribution/
+  en: /en/topics/openapi-hotel-distribution/
+
+notice_platform_rights:
+  zh: /zh/notices/hotelbyte-platform-ip-rights-ttdbooking/
+  en: /en/notices/hotelbyte-platform-ip-rights-ttdbooking/
+
+# Whitepaper guide / original posts. Each post has both a guide (intro) and
+# original (full whitepaper) URL pair. Listing them explicitly keeps the
+# language switcher deterministic and bypasses the category-segment race in
+# `replace_first` when both languages share the same slug.
+whitepapers:
+  - wp01-http-gateway-routing
+  - wp02-multi-level-caching
+  - wp03-async-structured-concurrency
+  - wp04-database-storage-resilience
+  - wp05-distributed-messaging-event-bus
+  - wp06-supplier-adapter-framework
+  - wp07-supplier-resilience
+  - wp08-supplier-session-booking
+  - wp09-supplier-credential-security
+  - wp10-price-normalization
+  - wp11-real-time-search
+  - wp12-sse-streaming-search
+  - wp13-order-lifecycle
+  - wp14-wallet-credit
+  - wp15-pricing-rules
+  - wp16-room-mapping-shadow
+  - wp17-llm-intelligence
+  - wp18-time-series-bi
+  - wp19-price-intelligence
+  - wp20-content-distribution
+  - wp21-geographic-search
+  - wp22-spec-driven-development
+  - wp23-real-data-testing
+  - wp24-observability
+  - wp25-zero-downtime
+  - wp26-data-agent-operational-intelligence
+  - wp27-ai-native-engineering-operating-system
+
+# Pages without an English counterpart. The switcher hides itself on these
+# paths. Add paths here when an EN version is intentionally absent.
+no_english_counterpart:
+  - /about/
+  - /404.html
+  - /en/404.html

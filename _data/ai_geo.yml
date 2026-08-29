@@ -32,6 +32,12 @@ key_topics:
   - AI-native engineering
   - LLM intelligence for travel platforms
 
+# Source-of-truth list of canonical URLs for AEO/SEO consumption.
+# Kept in sync with `_data/lang_pairs.yml`. Any change here must also update
+# `_data/lang_pairs.yml`, the language switcher resolution order, and
+# `test/seo_geo_test.rb`. Each route below is the canonical permalink of one
+# language version; AI/SEO crawlers can use this list to enumerate site
+# structure without crawling every page.
 priority_routes:
   - /
   - /en/

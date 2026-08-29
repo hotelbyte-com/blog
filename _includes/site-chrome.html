@@ -1,0 +1,40 @@
+{%- comment -%}
+  Shared site chrome (header + footer + nav + language switcher).
+
+  Usage:
+    {% include site-chrome.html %}              → header
+    {% include site-chrome.html footer=true %}  → footer
+
+  Reads:
+    - include.footer          (boolean) → switch to footer block
+    - page.lang               (string)  → current page language
+    - site.lang               (string)  → site default language
+    - site.data.lang_pairs    (object)  → language switcher table
+{%- endcomment -%}
+{%- assign is_footer = include.footer | default: false -%}
+{%- assign page_language = page.lang | default: site.lang | default: "zh" -%}
+
+{%- if is_footer -%}
+<footer class="site-footer">
+  <div class="wrapper">
+    {% if site.footer_content %}
+      {{ site.footer_content | markdownify }}
+    {% endif %}
+    {% include infrastructure-credit.html %}
+    <p>© {{ site.time | date: "%Y" }} {{ site.title | escape }}. All rights reserved.</p>
+  </div>
+</footer>
+{%- else -%}
+<header class="site-header" role="banner">
+  <div class="header-wrapper">
+    <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
+      <img src="{{ '/assets/img/logo.svg' | relative_url }}" alt="HotelByte Blog" width="160" height="40">
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="{% if page_language == 'en' %}/en/whitepapers/{% else %}/zh/whitepapers/{% endif %}">{% if page_language == 'en' %}Whitepapers{% else %}白皮书{% endif %}</a>
+      <a href="{% if page_language == 'en' %}/en/series/{% else %}/zh/series/{% endif %}">{% if page_language == 'en' %}Topics{% else %}专题{% endif %}</a>
+      {% include language-switcher.html %}
+    </nav>
+  </div>
+</header>
+{%- endif -%}

@@ -5,13 +5,33 @@ lang: en
 permalink: /en/
 ---
 
+<script>
+// Eliminate language-selection flicker on the very first byte.
+// If the visitor previously chose Chinese, redirect synchronously to `/`
+// before the English body paints.
+(function () {
+  try {
+    var pref = localStorage.getItem('hb-lang');
+    if (pref === 'zh') {
+      window.location.replace('/');
+    }
+  } catch (e) {
+    // localStorage may be blocked; stay on /en/.
+  }
+})();
+</script>
+
 <div class="hero">
   <h1>Building the Future of Hotel Distribution</h1>
   <p>Technical articles about hotel API aggregation, Go microservices, and building scalable traveltech platforms</p>
 </div>
 
-<div class="language-notice">
-  <p><a href="/">Switch to 中文</a> | Reading English</p>
+<div class="lang-suggest" id="lang-suggest-en" hidden>
+  <p>Need the Chinese version?</p>
+  <div class="lang-suggest__actions">
+    <button type="button" class="lang-suggest__btn lang-suggest__btn--primary" data-lang-action="zh">查看中文版</button>
+    <button type="button" class="lang-suggest__btn lang-suggest__btn--ghost" data-lang-action="dismiss">Stay in English</button>
+  </div>
 </div>
 
 <section class="featured-whitepaper">
@@ -83,28 +103,42 @@ HotelByte is a next-generation hotel distribution platform that helps travel com
 - **Join Waitlist**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
 
 <script>
-// Auto-detect browser language and redirect (only when user hasn't manually selected)
-document.addEventListener('DOMContentLoaded', function() {
-  // Priority: User manual selection > Browser language > Default language
-  const userSelectedLang = sessionStorage.getItem('user-lang-preference');
-  
-  // If user has manually selected a language, no auto-redirect
-  if (userSelectedLang) {
-    return; // User's manual selection has highest priority
+// Reveal the language suggestion only after the head-level redirect ran (so a
+// user with hb-lang=zh never sees the banner flicker into existence), and
+// only when the visitor has not already expressed a preference.
+(function () {
+  var suggest = document.getElementById('lang-suggest-en');
+  if (!suggest) return;
+
+  try {
+    var pref = localStorage.getItem('hb-lang');
+    if (pref) return;
+  } catch (e) { /* ignore */ }
+
+  suggest.hidden = false;
+
+  suggest.addEventListener('click', function (event) {
+    var target = event.target.closest('[data-lang-action]');
+    if (!target) return;
+    var action = target.getAttribute('data-lang-action');
+    try {
+      if (action === 'zh') {
+        localStorage.setItem('hb-lang', 'zh');
+        window.location.href = '/';
+      } else {
+        localStorage.setItem('hb-lang', 'en');
+        suggest.hidden = true;
+      }
+    } catch (e) {
+      if (action === 'zh') window.location.href = '/';
+    }
+  });
+
+  var topToggle = document.querySelector('.language-toggle');
+  if (topToggle) {
+    topToggle.addEventListener('click', function () {
+      try { localStorage.setItem('hb-lang', 'zh'); } catch (e) { /* ignore */ }
+    }, { capture: true });
   }
-  
-  // Get browser language
-  const browserLang = navigator.language || navigator.userLanguage;
-  const currentPath = window.location.pathname;
-  
-  // If browser language is Chinese, and currently on English homepage
-  if (browserLang.startsWith('zh') && currentPath === '/en/') {
-    // Delay redirect to avoid flicker
-    setTimeout(function() {
-      // Store browser language as default before redirecting (for first-time visitors)
-      sessionStorage.setItem('user-lang-preference', 'zh');
-      window.location.href = '/';
-    }, 100);
-  }
-});
+})();
 </script>

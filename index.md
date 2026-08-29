@@ -4,13 +4,35 @@ title: HotelByte Blog
 lang: zh
 ---
 
+<script>
+// Eliminate language-selection flicker on the very first byte.
+// If the visitor previously chose English, we redirect synchronously inside
+// the head — before the body paints — so the user never sees a Chinese flash.
+// We never redirect on the English homepage (`/en/`) because that page is
+// already English; the symmetric redirect lives in `en/index.md`.
+(function () {
+  try {
+    var pref = localStorage.getItem('hb-lang');
+    if (pref === 'en') {
+      window.location.replace('/en/');
+    }
+  } catch (e) {
+    // localStorage may be blocked; stay on /.
+  }
+})();
+</script>
+
 <div class="hero">
   <h1>构建酒店分销的未来</h1>
   <p>酒店API聚合、Go微服务、构建可扩展旅游技术平台的技术文章</p>
 </div>
 
-<div class="language-notice">
-  <p>阅读中文版 | <a href="/en/">切换到英文版</a></p>
+<div class="lang-suggest" id="lang-suggest-zh" hidden>
+  <p>需要查看英文版？</p>
+  <div class="lang-suggest__actions">
+    <button type="button" class="lang-suggest__btn lang-suggest__btn--primary" data-lang-action="en">查看英文版</button>
+    <button type="button" class="lang-suggest__btn lang-suggest__btn--ghost" data-lang-action="dismiss">继续中文</button>
+  </div>
 </div>
 
 <section class="featured-whitepaper">
@@ -82,28 +104,47 @@ HotelByte 是新一代酒店分销平台，帮助旅游公司无缝连接供应�
 - **加入候补名单**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
 
 <script>
-// 自动检测浏览器语言并跳转（仅当用户未手动选择时）
-document.addEventListener('DOMContentLoaded', function() {
-  // 优先级：用户手动选择 > 浏览器语言 > 默认语言
-  const userSelectedLang = sessionStorage.getItem('user-lang-preference');
-  
-  // 如果用户已经手动选择过语言，不再自动跳转
-  if (userSelectedLang) {
-    return; // 用户主动选择的优先级最高
+// Reveal the language suggestion only after the head-level redirect ran (so a
+// user with hb-lang=en never sees the banner flicker into existence), and only
+// when the visitor has not already expressed a preference. We listen for the
+// language switcher click as well, so flipping through the top-bar toggle also
+// updates the same preference.
+(function () {
+  var suggest = document.getElementById('lang-suggest-zh');
+  if (!suggest) return;
+
+  try {
+    var pref = localStorage.getItem('hb-lang');
+    if (pref) return; // user already chose — keep the page silent
+  } catch (e) { /* ignore */ }
+
+  suggest.hidden = false;
+
+  suggest.addEventListener('click', function (event) {
+    var target = event.target.closest('[data-lang-action]');
+    if (!target) return;
+    var action = target.getAttribute('data-lang-action');
+    try {
+      if (action === 'en') {
+        localStorage.setItem('hb-lang', 'en');
+        window.location.href = '/en/';
+      } else {
+        localStorage.setItem('hb-lang', 'zh');
+        suggest.hidden = true;
+      }
+    } catch (e) {
+      // localStorage unavailable — fall back to plain navigation.
+      if (action === 'en') window.location.href = '/en/';
+    }
+  });
+
+  // If the user clicks the top-bar language switcher before this banner ever
+  // shows, treat it as an implicit preference so we don't bounce them back.
+  var topToggle = document.querySelector('.language-toggle');
+  if (topToggle) {
+    topToggle.addEventListener('click', function () {
+      try { localStorage.setItem('hb-lang', 'en'); } catch (e) { /* ignore */ }
+    }, { capture: true });
   }
-  
-  // 获取浏览器语言
-  const browserLang = navigator.language || navigator.userLanguage;
-  const currentPath = window.location.pathname;
-  
-  // 如果浏览器语言是英文，并且当前在中文首页
-  if (browserLang.startsWith('en') && currentPath === '/') {
-    // 延迟跳转，避免闪烁
-    setTimeout(function() {
-      // 在跳转前存储浏览器语言（作为首次访问的默认值）
-      sessionStorage.setItem('user-lang-preference', 'en');
-      window.location.href = '/en/';
-    }, 100);
-  }
-});
+})();
 </script>

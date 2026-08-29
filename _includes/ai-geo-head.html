@@ -18,9 +18,43 @@
 <!-- Canonical & Hreflang -->
 <link rel="canonical" href="{{ canonical_url }}">
 <link rel="alternate" type="text/plain" title="HotelByte LLM guide" href="{{ '/llms.txt' | absolute_url }}">
-<link rel="alternate" hreflang="zh" href="{{ '/' | absolute_url }}">
-<link rel="alternate" hreflang="en" href="{{ '/en/' | absolute_url }}">
-<link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
+{%- comment -%}
+  hreflang emissions are data-driven from `_data/lang_pairs.yml`. Each entry
+  contributes one `<link rel="alternate" hreflang="<lang>">` per language, plus
+  an `x-default` fallback pointing at the canonical Chinese homepage. Keep
+  the priority_routes list in `_data/ai_geo.yml` in sync with this loop.
+{%- endcomment -%}
+{%- assign pairs = site.data.lang_pairs -%}
+{%- for entry in pairs -%}
+  {%- assign pair_zh = entry[1].zh -%}
+  {%- assign pair_en = entry[1].en -%}
+  {%- if pair_zh and pair_en -%}
+    {%- assign home_lang_pair_key = entry[0] -%}
+    {%- if home_lang_pair_key == 'home' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+      <link rel="alternate" hreflang="x-default" href="{{ pair_zh | absolute_url }}">
+    {%- elsif home_lang_pair_key == 'whitepaper_index' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+    {%- elsif home_lang_pair_key == 'series_index' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+    {%- elsif home_lang_pair_key == 'archive' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+    {%- elsif home_lang_pair_key == 'topic_hotel_api_integration' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+    {%- elsif home_lang_pair_key == 'topic_openapi_hotel_distribution' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+    {%- elsif home_lang_pair_key == 'notice_platform_rights' -%}
+      <link rel="alternate" hreflang="zh" href="{{ pair_zh | absolute_url }}">
+      <link rel="alternate" hreflang="en" href="{{ pair_en | absolute_url }}">
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
 
 <!-- Open Graph -->
 <meta property="og:title" content="{{ page.title | default: site.title | escape }}">

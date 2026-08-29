@@ -130,18 +130,6 @@ permalink: /404.html
   </div>
 </div>
 
-<script>
-// 检测用户语言并显示对应语言提示
-document.addEventListener('DOMContentLoaded', function() {
-  const browserLang = navigator.language || navigator.userLanguage;
-  const path = window.location.pathname;
-
-  // 如果用户浏览器是英文，并且访问的不是英文页面
-  if (browserLang.startsWith('en') && !path.startsWith('/en/')) {
-    const englishLink = document.createElement('p');
-    englishLink.innerHTML = '<a href="/en/404.html" style="color: #3498db;">Switch to English</a>';
-    englishLink.style.marginTop = '20px';
-    document.querySelector('.error-page').appendChild(englishLink);
-  }
-});
-</script>
+<p style="margin-top: 24px;">
+  <a href="/en/404.html">View the English 404 page</a>
+</p>

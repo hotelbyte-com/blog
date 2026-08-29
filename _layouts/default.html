@@ -1,14 +1,16 @@
 ---
+layout: null
 ---
 
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: "en-US" }}">
+<html lang="{{ page.lang | default: site.lang | default: 'en-US' }}">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% seo %}
     {% include ai-geo-head.html %}
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/minima.css">
     <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
     {% feed_meta %}
     {% if jekyll.environment == 'production' and site.google_analytics %}
@@ -16,17 +18,7 @@
     {% endif %}
   </head>
   <body>
-    <header class="site-header" role="banner">
-      <div class="header-wrapper">
-        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
-          <img src="{{ '/assets/img/logo.svg' | relative_url }}" alt="HotelByte Blog" width="160" height="40">
-        </a>
-        <nav class="site-nav" aria-label="Primary">
-          <a href="{% if page.lang == 'en' %}/en/whitepapers/{% else %}/zh/whitepapers/{% endif %}">{% if page.lang == 'en' %}Whitepapers{% else %}白皮书{% endif %}</a>
-          <a href="{% if page.lang == 'en' %}/en/series/{% else %}/zh/series/{% endif %}">{% if page.lang == 'en' %}Topics{% else %}专题{% endif %}</a>
-        </nav>
-      </div>
-    </header>
+    {% include site-chrome.html %}
 
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
@@ -34,15 +26,6 @@
       </div>
     </main>
 
-    <footer class="site-footer h-card">
-      <data class="u-url" href="{{ "/" | relative_url }}"></data>
-
-      <div class="wrapper">
-        {% if site.footer_content %}
-          {{ site.footer_content | markdownify }}
-        {% endif %}
-        {% include infrastructure-credit.html %}
-      </div>
-    </footer>
+    {% include site-chrome.html footer=true %}
   </body>
 </html>

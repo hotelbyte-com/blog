@@ -3,7 +3,7 @@ layout: null
 ---
 
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: "en-US" }}">
+<html lang="{{ page.lang | default: site.lang | default: 'en-US' }}">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -18,23 +18,12 @@ layout: null
     {% endif %}
   </head>
   <body>
-    <header class="site-header" role="banner">
-      <div class="header-wrapper">
-        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
-          <img src="{{ '/assets/img/logo.svg' | relative_url }}" alt="HotelByte Blog" width="160" height="40">
-        </a>
-        <nav class="site-nav" aria-label="Primary">
-          <a href="{% if page.lang == 'en' %}/en/whitepapers/{% else %}/zh/whitepapers/{% endif %}">{% if page.lang == 'en' %}Whitepapers{% else %}白皮书{% endif %}</a>
-          <a href="{% if page.lang == 'en' %}/en/series/{% else %}/zh/series/{% endif %}">{% if page.lang == 'en' %}Topics{% else %}专题{% endif %}</a>
-        </nav>
-        {% include language-switcher.html %}
-      </div>
-    </header>
+    {% include site-chrome.html %}
 
-      {% assign has_series_context = false %}
-      {% if page.whitepaper_kind or page.series or page.url contains 'why-hotel-api-integration-is-so-hard' %}
-        {% assign has_series_context = true %}
-      {% endif %}
+    {% assign has_series_context = false %}
+    {% if page.whitepaper_kind or page.series or page.url contains 'why-hotel-api-integration-is-so-hard' %}
+      {% assign has_series_context = true %}
+    {% endif %}
     <div class="page-wrapper{% unless has_series_context %} page-wrapper--no-series{% endunless %}">
       {% if has_series_context %}
       <aside class="sidebar-left">
@@ -43,48 +32,48 @@ layout: null
       {% endif %}
 
       <main class="content-wrapper">
-    <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-      <header class="post-header">
-        {% if page.whitepaper_kind == 'original' %}
-          <p class="post-eyebrow">{% if page.lang == 'en' %}Whitepaper source{% else %}白皮书原文{% endif %}</p>
-        {% elsif page.whitepaper_kind == 'guide' %}
-          <p class="post-eyebrow">{% if page.lang == 'en' %}Reader guide{% else %}读者视角导读{% endif %}</p>
-        {% endif %}
-        <h1 class="post-title" itemprop="name headline">{{ page.title | escape }}</h1>
-        <p class="post-meta">
-          <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
-            {{ page.date | date: "%Y-%m-%d" }}
-          </time>
-          {% if page.author %}
-            • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ page.author | escape }}</span></span>
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+          <header class="post-header">
+            {% if page.whitepaper_kind == 'original' %}
+              <p class="post-eyebrow">{% if page.lang == 'en' %}Whitepaper source{% else %}白皮书原文{% endif %}</p>
+            {% elsif page.whitepaper_kind == 'guide' %}
+              <p class="post-eyebrow">{% if page.lang == 'en' %}Reader guide{% else %}读者视角导读{% endif %}</p>
+            {% endif %}
+            <h1 class="post-title" itemprop="name headline">{{ page.title | escape }}</h1>
+            <p class="post-meta">
+              <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+                {{ page.date | date: "%Y-%m-%d" }}
+              </time>
+              {% if page.author %}
+                • <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ page.author | escape }}</span></span>
+              {% endif %}
+              • <span itemprop="timeRequired">{{ page.reading_time | default: "12分钟" }}</span>
+            </p>
+            {% if page.description %}
+              <p class="post-description">{{ page.description }}</p>
+            {% endif %}
+          </header>
+
+          <div class="post-content" itemprop="articleBody">
+            {{ content }}
+          </div>
+
+          {% if page.tags %}
+          <footer class="post-footer">
+            <div class="post-tags">
+              <span>{% if page.lang == 'en' %}Tags:{% else %}标签：{% endif %}</span>
+              {% for tag in page.tags %}
+                <a href="/tags/#{{ tag | slugify }}" class="tag">{{ tag | escape }}</a>
+              {% endfor %}
+            </div>
+          </footer>
           {% endif %}
-          • <span itemprop="timeRequired">{{ page.reading_time | default: "12分钟" }}</span>
-        </p>
-        {% if page.description %}
-          <p class="post-description">{{ page.description }}</p>
-        {% endif %}
-      </header>
+        </article>
 
-      <div class="post-content" itemprop="articleBody">
-        {{ content }}
-      </div>
-
-      {% if page.tags %}
-      <footer class="post-footer">
-        <div class="post-tags">
-          <span>{% if page.lang == 'en' %}Tags:{% else %}标签：{% endif %}</span>
-          {% for tag in page.tags %}
-            <a href="/tags/#{{ tag | slugify }}" class="tag">{{ tag | escape }}</a>
-          {% endfor %}
+        <div class="comments-wrapper">
+          <h2>{% if page.lang == 'en' %}Comments{% else %}评论{% endif %}</h2>
+          {% include giscus.html %}
         </div>
-      </footer>
-      {% endif %}
-    </article>
-
-    <div class="comments-wrapper">
-      <h2>{% if page.lang == 'en' %}Comments{% else %}评论{% endif %}</h2>
-      {% include giscus.html %}
-    </div>
       </main>
 
       <aside class="sidebar-right">
@@ -103,12 +92,7 @@ layout: null
       </aside>
     </div>
 
-<footer class="site-footer">
-  <div class="wrapper">
-    <p>© {{ site.time | date: "%Y" }} {{ site.title | escape }}. All rights reserved.</p>
-    {% include infrastructure-credit.html %}
-  </div>
-</footer>
+    {% include site-chrome.html footer=true %}
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {

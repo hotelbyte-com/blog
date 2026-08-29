@@ -1,20 +1,87 @@
-{% assign current_path = page.url | default: '/' %}
-{% if current_path == '/' %}
-  {% assign target_lang_url = '/en/' %}
-  {% assign target_lang_label = 'EN' %}
-{% elsif current_path == '/en/' or current_path == '/en' %}
-  {% assign target_lang_url = '/' %}
-  {% assign target_lang_label = '中文' %}
-{% elsif current_path contains '/en/' %}
-  {% assign target_lang_url = current_path | replace_first: '/en/', '/zh/' %}
-  {% assign target_lang_label = '中文' %}
-{% else %}
-  {% assign target_lang_url = current_path | replace_first: '/zh/', '/en/' %}
-  {% assign target_lang_label = 'EN' %}
-{% endif %}
+{%- comment -%}
+  Language switcher.
+  Resolution order:
+    1. If `page.url` matches a path in `_data/lang_pairs.yml` no_english_counterpart,
+       emit nothing.
+    2. If `page.url` is the root (`/`) and `page.lang` is `zh`, target `/en/`.
+    3. If `page.url` is `/en/` and `page.lang` is `en`, target `/`.
+    4. If `page.url` is in the lang_pairs table, look up the alternate.
+    5. Otherwise fall back to `replace_first('/zh/', '/en/')` (or the inverse).
+{%- endcomment -%}
+{%- assign current_path = page.url | default: '/' -%}
+{%- assign pairs = site.data.lang_pairs -%}
+{%- assign hide_switcher = false -%}
 
+{%- if pairs.no_english_counterpart contains current_path -%}
+  {%- assign hide_switcher = true -%}
+{%- endif -%}
+
+{%- unless hide_switcher -%}
+  {%- assign target_lang_url = '' -%}
+  {%- assign target_lang_label = '' -%}
+  {%- assign target_lang_aria = '' -%}
+
+  {%- if current_path == '/' -%}
+    {%- assign target_lang_url = '/en/' -%}
+    {%- assign target_lang_label = 'EN' -%}
+    {%- assign target_lang_aria = 'Switch to English' -%}
+  {%- elsif current_path == '/en/' or current_path == '/en' -%}
+    {%- assign target_lang_url = '/' -%}
+    {%- assign target_lang_label = '中文' -%}
+    {%- assign target_lang_aria = '切换到中文' -%}
+  {%- else -%}
+    {%- if page.lang == 'en' -%}
+      {%- assign source_key = 'en' -%}
+      {%- assign target_key = 'zh' -%}
+      {%- assign target_lang_label = '中文' -%}
+      {%- assign target_lang_aria = '切换到中文' -%}
+    {%- else -%}
+      {%- assign source_key = 'zh' -%}
+      {%- assign target_key = 'en' -%}
+      {%- assign target_lang_label = 'EN' -%}
+      {%- assign target_lang_aria = 'Switch to English' -%}
+    {%- endif -%}
+
+    {%- comment -%} Try the explicit pair table first. {%- endcomment -%}
+    {%- assign pair_resolved = false -%}
+    {%- for entry in pairs -%}
+      {%- if pair_resolved -%}
+        {%- break -%}
+      {%- endif -%}
+      {%- assign pair_zh = entry[1].zh -%}
+      {%- assign pair_en = entry[1].en -%}
+      {%- if pair_zh and pair_en -%}
+        {%- assign source_path = pair_zh -%}
+        {%- if source_key == 'en' -%}
+          {%- assign source_path = pair_en -%}
+        {%- endif -%}
+        {%- if source_path == current_path -%}
+          {%- assign target_lang_url = entry[1][target_key] -%}
+          {%- assign pair_resolved = true -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if target_lang_url == '' -%}
+      {%- if source_key == 'en' -%}
+        {%- assign target_lang_url = current_path | replace_first: '/en/', '/zh/' -%}
+      {%- else -%}
+        {%- assign target_lang_url = current_path | replace_first: '/zh/', '/en/' -%}
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- comment -%} Last-resort: if the alternate ended up identical to the
+       current path (no /zh/ or /en/ segment to swap), hide the switcher. {%- endcomment -%}
+    {%- if target_lang_url == current_path -%}
+      {%- assign hide_switcher = true -%}
+    {%- endif -%}
+  {%- endunless -%}
+{%- endunless -%}
+
+{%- unless hide_switcher -%}
 <div class="language-switcher">
-  <a class="language-toggle" href="{{ target_lang_url | relative_url }}" aria-label="{% if target_lang_label == 'EN' %}Switch to English{% else %}切换到中文{% endif %}">
+  <a class="language-toggle" href="{{ target_lang_url | relative_url }}" aria-label="{{ target_lang_aria | escape }}" data-target-lang="{{ target_key | default: '' }}">
     {{ target_lang_label }}
   </a>
 </div>
+{%- endunless -%}
