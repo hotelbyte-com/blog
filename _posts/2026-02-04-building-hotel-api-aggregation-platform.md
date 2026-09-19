@@ -7,6 +7,9 @@ categories: [architecture, api-aggregation]
 tags: [hotel-api, architecture, scalability]
 author: "HotelByte Team"
 description: "分享HotelByte/HotelGo两年打磨的可扩展API聚合架构，包括技术路径和踩过的坑，从零到百万级QPS的演进历程。"
+permalink: /zh/architecture/api-aggregation/building-hotel-api-aggregation-platform/
+redirect_from:
+  - /architecture/api-aggregation/2026/02/04/building-hotel-api-aggregation-platform.html
 ---
 
 # 如何构建酒店API聚合平台：从零到百万级QPS的架构演进

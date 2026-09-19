@@ -81,6 +81,17 @@ HotelByte 是新一代酒店分销平台，帮助旅游公司无缝连接供应�
 - **GitHub**: [github.com/hotelbyte-com](https://github.com/hotelbyte-com)
 - **加入候补名单**: [waitlist.hotelbyte.com](https://waitlist.hotelbyte.com)
 
+## 常见问题 FAQ
+
+<section class="faq">
+  {% for qa in site.data.ai_geo.agent_optimization.answer_engine %}
+  <div class="faq-item">
+    <h3>{{ qa.question }}</h3>
+    <p>{{ qa.answer }}</p>
+  </div>
+  {% endfor %}
+</section>
+
 <script>
 // 自动检测浏览器语言并跳转（仅当用户未手动选择时）
 document.addEventListener('DOMContentLoaded', function() {

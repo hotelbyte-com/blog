@@ -7,7 +7,6 @@ url: "https://blog.hotelbyte.com" # the base hostname & protocol for your site
 
 # Social
 github_username: hotelbyte-com
-twitter_username: hotelbyte_dev
 linkedin_username: hotelbyte
 
 # Build settings
@@ -20,6 +19,7 @@ future: true  # Show future posts for testing
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
+  - jekyll-redirect-from
 
 
 # URL structure (configured in defaults for language support)
