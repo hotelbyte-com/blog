@@ -3,7 +3,7 @@
 {% assign page_language = page.lang | default: site.lang | default: "zh" %}
 {% assign page_description = page.description | default: site.description %}
 {% assign canonical_url = page.url | absolute_url %}
-{% assign og_image = page.image | default: ai_geo.brand.logo %}
+{% assign og_image = page.image | default: '/assets/img/og-default.png' %}
 
 <!-- AEO / Agent Engine Optimization Core -->
 <meta name="aeo-version" content="{{ aeo.aeo_version }}">
@@ -18,9 +18,29 @@
 <!-- Canonical & Hreflang -->
 <link rel="canonical" href="{{ canonical_url }}">
 <link rel="alternate" type="text/plain" title="HotelByte LLM guide" href="{{ '/llms.txt' | absolute_url }}">
-<link rel="alternate" hreflang="zh" href="{{ '/' | absolute_url }}">
-<link rel="alternate" hreflang="en" href="{{ '/en/' | absolute_url }}">
-<link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
+{% comment %}
+  Hreflang links are emitted ONLY for post pages that have a real counterpart
+  in the other language (same slug under _posts/en or _posts/zh).
+  Site-wide hreflang pointing at the homepages is misleading markup.
+{% endcomment %}
+{% if page.layout == 'post' and page.lang %}
+{% assign page_stem = page.path | split: '/' | last | remove: '.md' %}
+{% assign page_slug = page_stem | split: '-' | slice: 3, 999 | join: '-' %}
+{% assign counterpart_lang = 'en' %}
+{% if page.lang == 'en' %}{% assign counterpart_lang = 'zh' %}{% endif %}
+{% assign counterpart = nil %}
+{% for candidate in site.posts %}
+{% if candidate.lang == counterpart_lang %}
+{% assign candidate_slug = candidate.path | split: '/' | last | remove: '.md' | split: '-' | slice: 3, 999 | join: '-' %}
+{% if candidate_slug == page_slug %}{% assign counterpart = candidate %}{% endif %}
+{% endif %}
+{% endfor %}
+{% if counterpart %}
+<link rel="alternate" hreflang="{{ page.lang }}" href="{{ page.url | absolute_url }}">
+<link rel="alternate" hreflang="{{ counterpart_lang }}" href="{{ counterpart.url | absolute_url }}">
+<link rel="alternate" hreflang="x-default" href="{% if page.lang == 'zh' %}{{ page.url | absolute_url }}{% else %}{{ counterpart.url | absolute_url }}{% endif %}">
+{% endif %}
+{% endif %}
 
 <!-- Open Graph -->
 <meta property="og:title" content="{{ page.title | default: site.title | escape }}">
@@ -42,7 +62,6 @@
 
 <!-- Twitter Cards -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@{{ site.twitter_username }}">
 <meta name="twitter:title" content="{{ page.title | default: site.title | escape }}">
 <meta name="twitter:description" content="{{ page_description | strip | escape }}">
 <meta name="twitter:image" content="{{ og_image | absolute_url }}">
@@ -131,6 +150,12 @@
         {% endif %}
       ]
     }
+    {% comment %}
+      FAQPage markup is emitted only on the homepage, which visibly renders the
+      same question/answer copy (index.md). Elsewhere the questions are not on
+      the page, and FAQPage schema without matching visible content is misleading.
+    {% endcomment %}
+    {% if page.url == '/' %}
     ,{
       "@type": "FAQPage",
       "@id": "{{ canonical_url }}#faq",
@@ -147,6 +172,7 @@
         {% endfor %}
       ]
     }
+    {% endif %}
   ]
 }
 </script>
