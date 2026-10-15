@@ -33,7 +33,7 @@ Hotel distribution punishes "looks right" engineering. Supplier APIs drift, pric
 
 **4. Two memories, both on; the repository's is a budget.** What one agent learns stays in its own memory. What every agent must know lives in the repository, in files any vendor's agent reads, and grows only with a written reason. *Rejected:* making one vendor's memory the organization's record, and switching agent memory off for neutrality.
 
-**5. Grade autonomy by reversibility, not by trust.** Agents act at every risk level; only irreversible steps wait for a named person, and production autonomy has numeric gates checked in code. *Rejected:* approving every step, which turns approval into a reflex.
+**5. Grade autonomy by reversibility, not by trust.** Agents act at every risk level; only irreversible steps wait for a named person, and the path to production has numeric gates checked in code. *Rejected:* approving every step, which turns approval into a reflex.
 
 ## The Proof in Brief
 
@@ -45,11 +45,16 @@ Hotel distribution punishes "looks right" engineering. Supplier APIs drift, pric
 | History | 9,545 commits since 2025-05-04; 3,637 merged backend pull requests since July 2025 |
 | Pace | 2,069 merged pull requests across 10 company repositories in a 30-day window |
 | Ablation of the instruction layer | A pre-registered ablation on 20 private bug fixes: with every check in place, removing the whole instruction layer left 19 of 20 outcomes unchanged, so what every session loads can stay thin |
+| Agents we build | Nine agents on one runtime in our backend, each a contract checked at boot; Booking Copilot on GoTry works the booking page through twelve typed read actions and never books |
 | Cost | 26–169 million tokens per merged pull request on the measured Mac |
 
 ## What Carries Over If You Build Agents
 
 The two harnesses obey the same laws, so five of our judgments apply directly to an agent harness: read the work harness by convention and record which instructions shaped a run; write state where the organization keeps it, and keep your own memory for the person and the session; never grade yourself, and report false completions next to the resolve rate; ask by reversibility, naming the default you will take; and let customers run you with and without their work harness on their own past tasks. [GoTry](https://github.com/Danceiny/gotry), our open-source travel agent, is built on the same laws: the model interviews and code decides, naming the constraint each rejected option fails; every number carries a source tag that code attaches, never the model; a claim whose evidence is unknown or stale is blocked; and booking and payment writes are sealed off the tool surface.
+
+## The Agents We Build
+
+We rent the coding agent, but the agents inside our product are ours, agent harness included. Nine run as packs on one runtime: support, data, rate monitoring, rules, presales, content, engineering and two lighter ones. A pack that names an unknown tool or lacks the proof behind a capability stops the boot; side effects wait for an action a person confirmed; every model call goes through one vendor-neutral interface; recalled memory carries its source. Booking Copilot, built on GoTry, works the booking page the user already has through twelve typed read actions, and only Checkout books.
 
 ## Two Stories
 
@@ -69,7 +74,8 @@ The two harnesses obey the same laws, so five of our judgments apply directly to
 - **Sections 1–3** for the problem as a rate, the two harnesses (what we rent and what we train), and the scale with the oracle underneath.
 - **Sections 4–5** for long-horizon tasks, state and the two memories.
 - **Sections 6–8** for retrospection, how we evaluate the work harness (including the pre-registered ablation of the instruction layer), and the laws both harnesses share, with what transfers.
-- **Sections 9–12** for authority and data, decision stories, the comparison with the field, and a playbook.
+- **Section 9** for the agents we build: one runtime, Booking Copilot and GoTry.
+- **Sections 10–13** for authority and data, decision stories, the comparison with the field, and a playbook.
 
 <div class="whitepaper-reader-note">
   <strong>Full source:</strong> <a href="/en/whitepapers/ai-native-engineering-operating-system/original/">AI-Native Engineering Operating System whitepaper</a> · <strong>中文：</strong><a href="/zh/whitepapers/ai-native-engineering-operating-system/">导读</a> / <a href="/zh/whitepapers/ai-native-engineering-operating-system/original/">完整白皮书</a>

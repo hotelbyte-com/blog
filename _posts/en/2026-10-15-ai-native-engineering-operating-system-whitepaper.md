@@ -30,7 +30,7 @@ Chinese version: [中文白皮书](/zh/whitepapers/ai-native-engineering-operati
 
 **Who this is for:** founders and engineering leads who put coding agents to work on a large, real system, and teams who build agents for them; and evaluators who want to know what evidence should stand behind an "AI-native" claim.
 
-**TL;DR:** HotelByte is a B2B hotel-distribution platform: supplier integrations, live search, booking, payments, contracts and finance. We measure it against a hotel wholesaler's catalog of 792 requirements in 14 modules, a scope that an outside quote priced at more than ¥100 million. The catalog is our yardstick, not our boundary: it describes one wholesaler's business, and we build one platform for many kinds of travel business, so that a new business model is configuration and extension rather than a custom build. A team of fewer than five engineers builds it with coding agents from several vendors. Today the system runs to 1.61 million lines of first-party code in 8 repositories, generated code excluded and 40% of it tests: 579k lines of Go source and 478k of Go tests in the backend, 395k lines in the web front ends, almost all TypeScript, and the tooling, SDKs and command-line client around them, with 14,174 Go test functions and 23 supplier adapters in production. At this scale, writing code is not the hard part. The hard parts are **long-horizon tasks**, work that outlives every session and must still finish correctly, and **long-horizon memory**, what thousands of agent sessions must know about a system none of them sees whole. Both are won or lost in the **work harness**, the environment our agents work in, which we build and own. It is a different thing from the **agent harness** inside each coding agent, which we rent with the agent.
+**TL;DR:** HotelByte is a B2B hotel-distribution platform: supplier integrations, live search, booking, payments, contracts and finance. We measure it against a hotel wholesaler's catalog of 792 requirements in 14 modules, a scope that an outside quote priced at more than ¥100 million. The catalog is our yardstick, not our boundary: it describes one wholesaler's business, and we build one platform for many kinds of travel business, so that a new business model is configuration and extension rather than a custom build. A team of fewer than five engineers builds it with coding agents from several vendors. Today the system runs to 1.61 million lines of first-party code in 8 repositories, generated code excluded and 40% of it tests: 579k lines of Go source and 478k of Go tests in the backend, 395k lines in the web front ends, almost all TypeScript, and the tooling, SDKs and command-line client around them, with 14,174 Go test functions and 23 supplier adapters in production. At this scale, writing code is not the hard part. The hard parts are **long-horizon tasks**, work that outlives every session and must still finish correctly, and **long-horizon memory**, what thousands of agent sessions must know about a system none of them sees whole. Both are won or lost in the **work harness**, the environment our agents work in, which we build and own. It is a different thing from the **agent harness** inside each coding agent, which we rent with the agent. The agents inside our product are another matter: we build them, agent harness included (Section 9).
 
 > **Central claim:** Every agent deployment runs on two harnesses. The agent harness (the loop, tools, context and memory inside a coding agent) is what labs and agent startups compete on. The work harness (where tasks and their state live, what decides "done", what an organization remembers, who may do what) is what every company that puts agents to work must build for itself. At the scale of a requirement scope priced at more than ¥100 million, long-horizon tasks and long-horizon memory are decided in the work harness. The two harnesses obey the same laws, so what we learned on one side transfers to the other.
 
@@ -77,7 +77,7 @@ flowchart TB
 
 *Finally, bound trust by what cannot be undone.*
 
-**10. Grade autonomy by reversibility, and prefer tools to credentials.** Checks can be gamed and agents keep getting stronger, so agents act at every risk level but only the irreversible step waits for a named person, and the normal path to data is a tool that confirms and logs first. *Rejected:* approving every step, which turns approval into a reflex, and database credentials in an agent's context as the normal path. (Section 9)
+**10. Grade autonomy by reversibility, and prefer tools to credentials.** Checks can be gamed and agents keep getting stronger, so agents act at every risk level but only the irreversible step waits for a named person, and the normal path to data is a tool that confirms and logs first. *Rejected:* approving every step, which turns approval into a reflex, and database credentials in an agent's context as the normal path. (Section 10)
 
 ### The Proof in Brief
 
@@ -90,7 +90,7 @@ flowchart TB
 | Pace | 2,069 merged pull requests across 10 company repositories in a 30-day window (Appendix A) |
 | Evaluation | A pre-registered ablation on 20 private bug fixes: with every check in place, removing the whole instruction layer left 19 of 20 outcomes unchanged, so what every session loads can stay thin (Section 7) |
 | Cost | 26–169 million tokens per merged pull request on the measured Mac, 97.8% of input served from cache (Section 7) |
-| Transfer | GoTry, our open-source travel agent, applies the same laws inside the agent loop: the model interviews and code decides, naming the constraint each rejected option fails; every number carries a source tag that code attaches; a claim with unknown or stale evidence is blocked; booking and payment writes are sealed off the tool surface (Section 8) |
+| Agents we build | Nine agents run as packs on one runtime in our backend, each a contract checked at boot; GoTry, our open-source travel agent, keeps the model to interviewing while code decides, and its Booking Copilot works the booking page through twelve typed read actions and never books (Section 9) |
 
 ---
 
@@ -119,7 +119,7 @@ Five failure modes grow with the length of a run; each has a control:
 | Memory rot | Instructions pile up until they crowd out the task, and stale rules override fresh evidence | Section 5: budgets, promotion and retirement |
 | Gaming the check | The agent satisfies the test instead of the intent: weakened tests, fallback data, hidden errors | Sections 7 and 8: independent, fail-closed verification |
 | Fleet contention | Parallel agents collide on machines, caches, worktrees or each other's files | Section 4: isolation and the silent-revert guard |
-| Authority creep | Autonomy granted for small fixes quietly extends to schema, money, credentials or production | Section 9: graduated autonomy |
+| Authority creep | Autonomy granted for small fixes quietly extends to schema, money, credentials or production | Section 10: graduated autonomy |
 
 Model vendors now document the last one themselves: Moonshot's [Kimi K3 launch post](https://www.kimi.ai/blog/kimi-k3) lists "excessive proactiveness" on long tasks as a known limitation.
 
@@ -137,7 +137,7 @@ The layer we own is the work harness, the environment the agents work in, and it
 - the instruction layer every agent loads: how work is routed, when to stop and ask, and what counts as done (Section 5);
 - the memory of every lesson.
 
-It is shaped by our domain (supplier contracts, money paths, hotel and room mapping) and by our organization (who decides what, on which rung of the ladder in Section 4).
+It is shaped by our domain (supplier contracts, money paths, hotel and room mapping) and by our organization (who decides what, on which rung of the ladder in Section 4). The agents inside our product are ours as well, agent harness included (Section 9).
 
 ```mermaid
 flowchart TB
@@ -409,7 +409,7 @@ One more number shows why we treat the model and the coding agent as separate re
 
 Every coding agent runs the same simple loop: the model proposes a tool call, the agent harness runs it, the result goes back into the context, and the loop repeats until the model stops. Labs and agent startups compete on that loop and on what surrounds it: the tool interface, context handling, memory and sandboxing. A work harness surrounds a slower loop, the one by which an organization turns goals into verified, remembered changes. The two meet at a narrow interface: the instruction files and skills an agent reads when it starts, and the records it leaves behind when it stops.
 
-The coupling is tight. The agent harness we rent is built to look for a work harness: in 15 of 20 HB-Bench runs without the instruction layer, Codex went looking outside its workspace for the AGENTS.md that was gone. And both halves of one experiment now exist. Terminal-Bench 2.1 holds the environment fixed and swaps the agent harness (Section 11); HB-Bench holds the agent harness fixed and removes the instruction layer of the work harness, the only part of it that a single offline run can isolate.
+The coupling is tight. The agent harness we rent is built to look for a work harness: in 15 of 20 HB-Bench runs without the instruction layer, Codex went looking outside its workspace for the AGENTS.md that was gone. And both halves of one experiment now exist. Terminal-Bench 2.1 holds the environment fixed and swaps the agent harness (Section 12); HB-Bench holds the agent harness fixed and removes the instruction layer of the work harness, the only part of it that a single offline run can isolate.
 
 **Thin context, thick verification.** One pattern runs through both harnesses and through our own history: as models improve, delete instructions and add checks. *We rejected* ever-longer instruction files. HB-Bench supports it (Section 7). The table pairs each law with how leading agents apply it, how our work harness applies it, and our evidence.
 
@@ -420,7 +420,7 @@ The coupling is tight. The agent harness we rent is built to look for a work har
 | **Memory grows by small edits, and only with feedback** | In [ACE](https://arxiv.org/abs/2510.04618), rewriting a whole playbook at every step collapsed it below the no-memory baseline, while small curated edits gained 10.6% on agent tasks | Each lesson lands as a small commit with its reason; a correction is to become a check on its second occurrence; unused skills are scheduled to retire | Skills 154 → 111 and AGENTS.md files 266 → 176 from their month-end peaks; 52.1% of commits in the last 30 days carry a decision trailer |
 | **Two memories, each in its place** | Coding agents keep their own memory between sessions and summarize their context when it fills | The repository's memory is vendor-neutral and wins any disagreement; the agent's memory stays on, and lessons that matter beyond one agent are promoted into the repository | 142 agent memory notes about this repository on the measured Mac, beside 176 AGENTS.md files and 111 skills (Section 5) |
 | **Self-assessment is generous; verify independently** | Anthropic found agents [rate their own work too generously](https://www.anthropic.com/engineering/harness-design-long-running-apps) and added a separate evaluator | Fail-closed gates with four outcomes; receipts bound to content; "done" only at a named commit; a written verdict from a different model family for high-risk work | In HB-Bench, runs whose fix failed the hidden tests still claimed "fixed" in 64% of cases with the instruction layer and 90% without; on the measured Mac, 77% of failed checks green again within a day |
-| **Boundaries beat approvals** | People approve [93% of permission prompts](https://www.anthropic.com/engineering/claude-code-auto-mode), so leading agents sandbox commands instead of asking about each one | Capability tools that confirm and audit every write; authority graded by reversibility; a workspace per task; machine-wide build slots | Section 9 |
+| **Boundaries beat approvals** | People approve [93% of permission prompts](https://www.anthropic.com/engineering/claude-code-auto-mode), so leading agents sandbox commands instead of asking about each one | Capability tools that confirm and audit every write; authority graded by reversibility; a workspace per task; machine-wide build slots | Section 10 |
 | **Many readers, one integrator** | [Cognition](https://cognition.ai/blog/multi-agents-working) now has one agent write while others review, after finding that parallel writers make conflicting implicit decisions | Sub-agents read, research and review; one session per repository integrates; work moves as commits, never as copied trees | Sub-agents used 38.7% of the measured Mac's tokens; the silent-revert guard flagged 9 of 2,100 commits on replay |
 | **Caching makes long loops affordable** | [Exact-prefix caching](https://openai.com/index/unrolling-the-codex-agent-loop/) keeps the cost of Codex's growing, stateless prompts linear rather than quadratic | Stable prefixes: a small entry file, deterministic tool output, sub-agents that return summaries | 97.8% of input tokens served from cache on the measured Mac |
 | **State lives outside the window** | Anthropic's [long-running harness](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) keeps a progress log and a feature list that agents may only flip from failing to passing | Issues, pull requests, commit trailers and receipts carry state, so a new session resumes from the record | On the measured Mac, 17% of person-started sessions outlived their context window at least once; 7 logged more than 24 active hours |
@@ -434,12 +434,67 @@ If you build agents rather than the work around them, five of our judgments carr
 1. **Read the work harness by convention, and say what shaped a run.** Load the repository's AGENTS.md files and skills the way the open convention defines them, and record which instructions a run actually used. No agent does the second yet, and without it no organization can retire a rule safely (Section 5).
 2. **Write state where the organization keeps it.** Keep your own memory for the person and the session. Goals, decisions and evidence belong in the issue, the pull request and the commit, where the next agent, from any vendor, will look (Section 4).
 3. **Never grade yourself.** Let "done" bind to an artifact that someone else's check produced, and report false completions as a first-class metric next to the resolve rate (Sections 4 and 7).
-4. **Ask by reversibility.** Tell reversible steps from irreversible ones in your permission model, and when you ask, name the default you will take and the work you will continue meanwhile (Section 9).
+4. **Ask by reversibility.** Tell reversible steps from irreversible ones in your permission model, and when you ask, name the default you will take and the work you will continue meanwhile (Section 10).
 5. **Make yourself ablatable.** Let customers run you with and without their work harness on their own past tasks. Nothing else answers whether you fit their business (Section 7).
 
-### The Same Laws Inside an Agent We Ship: GoTry
+Section 9 shows these laws inside the agents we build ourselves.
 
-[GoTry](https://github.com/Danceiny/gotry) is our open-source travel agent (MIT), a plugin for the DeepSeek agent harness, and its Booking Copilot is built to embed in the booking workspace of our portal and white-label online store. It shows the laws above where an agent builder works: inside the loop, around one model call at a time.
+---
+
+## 9. The Agents We Build
+
+We do not build a coding agent (Judgment 1). The agents inside our product are a different matter. They answer customers, query our data, watch rates, draft rules, work our backlog and help people book, so their agent harness is part of what we sell, and we build it. Nine agents run as packs on one runtime in our backend; Booking Copilot runs on GoTry, our open-source travel agent. Here we stand on the agent-harness side of the interface in Section 8, and the same laws hold inside the loop.
+
+| Agent | Serves | What bounds it |
+|---|---|---|
+| Support and troubleshooting | Customers, tenants, our engineers | Diagnoses search and booking sessions from logs under a cost budget, degrading step by step when it runs short; replays, end-to-end runs and load tests need an action a person confirmed |
+| Data agent | Our staff and tenants | Answers through SQL it must produce with tools: one read-only statement, at most 100 rows, tables on an allowlist, the tenant's scope enforced in code, and a typed gap instead of a guess |
+| Lookout | Tenants who monitor rates | Answers only over a ledger of facts; its verifier regenerates an answer once, then fails closed |
+| Rules | Business operations | Turns a request into a governed draft for the rules engine; a test bans text heuristics from its product code |
+| Presales | Visitors to our website | Public knowledge only; what it remembers about a visitor is redacted |
+| Content | Content writers | Research, writing and review as separate stages |
+| Engineering | Our backlog | Selects, fixes, reviews and closes issues on the long-horizon loop of Section 4, with a rented coding agent as its hands |
+| Supplier on-call, global search | Our staff | Lighter packs; anything beyond an answer waits for a person to confirm it |
+| Booking Copilot | Portal users and online-store visitors | Twelve typed read actions in the booking page; it never books |
+
+### One Runtime, So Every Agent Inherits the Rules
+
+**An agent is a pack, and a pack is a contract checked at boot.** Each pack declares its profiles, tools, memory policy and observability tags. The runtime refuses to start if a pack names a tool outside a closed vocabulary of 17, claims another pack's profile, or advertises a capability whose proof file is missing; a capability without evidence shows to users as a gap. *We rejected* routing by matching capability names in text.
+
+**Side effects wait for a person; reads are typed.** Every tool call passes one policy. The tool must be on the pack's list. A tool with side effects (a replay, a load test, opening an issue or a pull request, a supplier certification run) needs the id of an action a person confirmed. A read gets a typed request, and a database read is a single SELECT, SHOW or DESC. An agent returns a message, its evidence and action drafts; each kind of action is marked as needing confirmation or not, and most need it; the runtime executes a confirmed draft, replays it idempotently and audits both steps. Our MCP server holds the same line from outside: a write tool that does not declare a confirmation parameter fails the contract check.
+
+**One model interface, any vendor.** Every agent reaches models through one interface: Anthropic's API or any OpenAI-compatible endpoint, tried in a configured order, with a separate reviewer model, a cost controller that can step down to a cheaper model, and a model picker in the portal. A deadline is reported as a deadline, not as every provider failing.
+
+**Memory is scoped and cited.** Recall is scoped to a tenant, supplier, repository, issue, pull request, user or audience, and ranked by meaning, the outcomes recorded for that scope, recency and task match. Each recalled item enters the prompt with its score and its source address, and a failed recall marks the turn as degraded instead of blocking it.
+
+**Answers stream as interface, not prose.** The runtime streams declarative UI over Google's open A2UI protocol, so a client renders components from a catalog instead of parsing text. A proof test stops a finished step from passing as a finished answer, and personal data is masked for anyone outside the platform team.
+
+**Each agent is measured against the models we might give it.** Golden suites cover diagnosis, price intelligence and the data agent. The diagnosis suite runs against each candidate model and gates at an 80% pass rate; the Lookout suite fails on a single unsupported claim; the data agent's live cases fail on any provenance mismatch. Twenty-four proof-test files assert both the honest path and the shortcut that must stay blocked. The arbiter in Section 11 shows the rule we hold every model to: measure it before it decides.
+
+The runtime is about 65,000 lines of Go with 31,000 lines of tests and 1,145 test functions, and nearly 200 of its commits record a rejected alternative.
+
+### The Engineering Agent Rents Its Hands
+
+Our engineering agent is where we build an agent around a coding agent instead of building one. It selects issues, leases them, keeps each issue's state on a blackboard and escalates when it stalls (Section 4). The code itself is written by a rented coding CLI, run headless in a workspace per issue and pointed at whichever model provider the router picks. The router scores providers by budget, success rate and latency, holds one call in flight per provider, cools a provider down after failures, and returns a typed capacity gap instead of falling back silently. Reviews are routed to providers other than the writer's, bound to the exact diff, and need a quorum; a language model may tighten the deterministic risk gate but never loosen it; and no issue closes automatically until typed evidence clears the 35 refusal reasons of Section 4. Low-risk fixes merge on their own; production deploys pass a person (Section 10). *We rejected* falling back across several coding CLIs, which wasted attempts on missing binaries, and letting the writer review its own work.
+
+### Booking Copilot: An Operator in the Page, Not a Chat Window
+
+**The call:** the agent works the booking page the user already has, the same search form, filters, hotel cards, room list, comparison tray and hand-off to Checkout, and stops at the stage the user asked for. It proposes typed operations; the page executes them under the user's own session and returns a receipt. So it inherits the page's role permissions, tenant and customer scope, field policy and Checkout rules, and no business API changed to admit it. Success means the user reaches the goal on the original page sooner and with less rework, not more turns. *We rejected* a chat drawer that books on its own, the browser calling the agent directly, and forwarding the user's portal token to it: all three were the shape of its first prototype.
+
+| Boundary | How it holds |
+|---|---|
+| A closed set of actions | Twelve typed read actions, from editing the search to preparing Checkout, each answered by one of nine receipt states (applied, needs input, partial, no match, unavailable, changed, stale, unsupported, failed). The planner's profile has no booking, payment or write capability at all |
+| Scope minted by the server | The page's state is an observation, never authority. Our backend resolves the user and the surface, mints the task and turn ids, and replaces the page's capabilities with an allowlist per surface: 11 actions in the tenant and customer portals, 5 on a payment link, 4 (search only) in the white-label online store, which it identifies by resolving its domain |
+| Both sides of every model call | A request carrying credentials, card or passport numbers, contact details or supplier cost is refused before the model sees it, and the audit keeps digests only. Every streamed operation is checked against the current workspace revision, the surface's allowlist and the offer version; preparing Checkout needs a verified, unexpired offer; a reused action id is refused |
+| The user's hand wins | The workspace revision is enforced in the page, in our backend and in GoTry's ledger: an action against an older revision returns "stale", and a newer search clears the selection it invalidates |
+| Bounded recovery | When availability changes: at most 5 candidate hotels, 3 offers per hotel per round and 2 re-checks per hotel; partial evidence may never be reported as "no rooms" |
+| Fail closed, fall back to manual | The entry stays hidden until our backend and the planner pass a health probe, and manual search through Checkout makes no call to the agent. Only Checkout collects guest and payment details, and only Checkout books |
+
+Inside, the planner is a sandboxed subprocess of the DeepSeek agent harness, one per task, with its shell, file-system, editor, session and skill plugins switched off. Its text is ignored: its only executable output is one validated decision, carried by one of 13 registered tools. Which model it runs is a setting kept as code; the default is a fast model with thinking off, because turning a request into search criteria is constrained extraction. Neutrality had to be engineered: while tools were grouped behind union schemas, only one vendor's model produced valid calls (another failed schema checks in 6 of 7 steps), and one closed schema per action, with a repair loop, fixed it. Measured at the edge, the page loads as fast with the Copilot as without it: a median largest contentful paint of 3.17 s against 3.13 s.
+
+### GoTry: The Same Laws Inside the Loop
+
+[GoTry](https://github.com/Danceiny/gotry) is our open-source travel agent (MIT), a plugin for the DeepSeek agent harness, published on npm and developed in the open, with more than 400 merged pull requests in its first eight weeks. Booking Copilot is one of its profiles. The table shows the laws of Section 8 where an agent builder works: around one model call at a time.
 
 | Law | GoTry's mechanism | Decision record |
 |---|---|---|
@@ -447,15 +502,34 @@ If you build agents rather than the work around them, five of our judgments carr
 | Unknown facts fail closed | A claim that affects feasibility, price, policy or bookability must bind to registered evidence; an unknown, borrowed, stale or contradicted anchor blocks it. Every number carries a source tag (`[realtime:…]`, `[static-pack:estimate]`) that the render layer attaches, never the model | ADR-19 |
 | Time is code | Date arithmetic, IANA zones and DST checks run in code, and the model copies time slots verbatim. In GoTry's comparison of assistants, two other products derived the weekdays of a trip from the previous year's calendar | ADR-12 |
 | State lives outside the window | A tenant-scoped SQLite ledger is the authority, and projections rebuild from it. Every turn ends in an answer, a durable handoff or a typed terminal outcome; a queued ticket never counts as execution | ADR-15, ADR-16, ADR-24 |
-| The interface is a performance variable | Its 12 tools return one envelope, `ok:true` with a payload or `ok:false` with a summary and evidence, and keeps a miss, a challenge, a malformed answer and a transport failure distinct. An effect interpreter owns retries, circuit breaking and test substitution, and never reroutes silently | ADR-13, ADR-18, ADR-25 |
-| Grade authority by reversibility | Booking, payment and supplier writes are sealed off the tool surface; any future write needs WriteGate and a one-time authorization from the trusted host. Booking Copilot gets read actions only (search, compare and check an offer, prepare Checkout), each validated against the workspace revision so that a late response cannot overwrite newer state; Checkout stays the only place a transaction is authorized | ADR-23 |
-| Evaluate in layers | Regression (unit tests, replay fixtures), quality (an evaluation set that only grows: changing a case's meaning makes a new case) and a budget-capped replay against the real model that runs outside CI, against "mock green while the real model rots" | ADR-11 |
+| The interface is a performance variable | Its tools return one envelope, `ok:true` with a payload or `ok:false` with a summary and evidence, and keep a miss, a challenge, a malformed answer and a transport failure distinct. An effect interpreter owns retries, circuit breaking and test substitution, and never reroutes silently | ADR-13, ADR-18, ADR-25 |
+| Grade authority by reversibility | Booking, payment and supplier writes are sealed off the tool surface; a future write would have to pass WriteGate, which is built and switched off, with a one-time authorization from the trusted host. Booking Copilot has read actions only, and Checkout stays the only place a transaction is authorized | ADR-23 |
+| Evaluate in layers | Regression (unit tests, replay fixtures), quality (an evaluation set whose cases never change meaning: a changed meaning is a new case) and a budget-capped replay against the real model that runs outside CI, against "mock green while the real model rots" | ADR-11 |
 
 Two of its process rules came from incidents. Tests that write run against an isolated state root, after an inspection prompt once wrote into the founder's real wish pool. And no document may say "published" until the registry has been read back and a receipt written, since a release whose tag was pushed never reached the registry.
 
+### Shipping an Agent Is Operations
+
+**The call:** an agent we ship runs as one service beside every production API node, and our backend is its only client. The rule came from the first production release: the checked-in production configuration had never enabled the Copilot, and the planner ran on one node while the load balancer spread requests across all of them. The Copilot is now on in every environment's configuration, pinned by a test, and 16 constraints, among them "configuration and deployment form must pair", are checked by machine on every host. *We rejected* a separate service per agent feature.
+
+Releases are built from an exact GoTry commit and never change once built; production runs only the commit that staging accepted. A staging deploy is a transaction. Before the switch it checks the host (the environment file is readable, required keys are set, nothing else holds the port); after it, it polls a health check that must report the release's schema version, artifact id, ingress mode, feature set and runtime, since HTTP 200 alone proves nothing; on failure it restores the previous release and checks it again. Probes on every node watch the same health contract and raise alerts.
+
+### What General-Purpose Frameworks Leave to You
+
+General-purpose agent frameworks (LangGraph, the OpenAI Agents SDK, the Claude Agent SDK) give you the loop, tools, hand-offs and tracing. These are what we added for agents that act on a business:
+
+| Concern | What we built |
+|---|---|
+| Capabilities | A closed tool vocabulary; an unknown tool, a missing proof file or a second claim on a profile stops the boot; a capability without evidence shows as a gap |
+| "Done" | A typed evidence contract checked before every automated close: 8 layers, author ≠ verifier, freshness, coverage and binding, 35 refusal reasons |
+| Long runs | A lease queue in which an expired lease spends an attempt and the last one ends in a dead-letter queue; per-issue claims, heartbeats and watchdogs; disk-aware workspaces; typed hand-offs to a named person |
+| Models | Routing scored by budget, success rate and latency, with leases and cooldowns, and a typed capacity gap instead of a silent fallback |
+| Judges | Reviewers from another provider than the writer, bound to the diff; language-model gates that can tighten a deterministic gate but never loosen it |
+| Shipping | Immutable releases, a health contract instead of a status code, machine-checked deployment constraints, and a manual path that never depends on the agent |
+
 ---
 
-## 9. Authority and Data
+## 10. Authority and Data
 
 Two judgments decide how much work an agent fleet can be trusted with: grade autonomy by reversibility, not by trust; and prefer tools to credentials.
 
@@ -465,13 +539,13 @@ Autonomy is not "people decide, agents execute". Agents do the work at every ris
 
 | Risk | Examples | What the agent does |
 |---|---|---|
-| Low and reversible | Routine defects with clear evidence, tests, docs | The whole job: fix, verify and merge; it may also deploy to production, but only through the gates below |
+| Low and reversible | Routine defects with clear evidence, tests, docs | The whole job: fix, verify and merge; the production deploy still passes a person |
 | Medium | Payments, wallets, settlement | The whole change and the staging proof; the production deploy waits for a person, because a wrong payment change can move money before a rollback lands |
 | High | Schema, credentials, security, production data repair, anything with financial-loss exposure | Everything up to the irreversible step (the change, the evidence, the rollback plan), then a named person approves |
 
 Asking never means idling: every question names the default the agent will take and the work it continues meanwhile. *We rejected* approving every step, because approval becomes a reflex (people approve [93% of permission prompts](https://www.anthropic.com/engineering/claude-code-auto-mode)), and agents limited to investigation, because they hand the hard part back to people.
 
-For low-risk work, production autonomy is set in configuration and checked in code, not left to prose.
+What an agent would have to prove to take a low-risk change to production on its own is already set in configuration and checked in code, not left to prose:
 
 | Control | Requirement |
 |---|---|
@@ -480,13 +554,13 @@ For low-risk work, production autonomy is set in configuration and checked in co
 | Staging proof | The same commit deployed to staging, with health checks green |
 | Deploy path | Only the gated production deploy command, with a rollback path in place |
 | Rate | At most 1 autonomous production deploy per repository in any 20-minute window |
-| After the deploy | A 600-second health watch; any red signal triggers automatic rollback |
+| After the deploy | A 600-second stabilization window, then the checks; a failed check triggers automatic rollback |
 
 This tiering is our answer to what OWASP calls Excessive Agency (LLM06 in its [2025 Top 10 for LLM Applications](https://genai.owasp.org/llm-top-10/)). [Anthropic's study of agent autonomy in practice](https://www.anthropic.com/research/measuring-agent-autonomy) finds the same shape in individual users: as they gain experience they auto-approve more and interrupt more.
 
 ### Prefer tools to credentials
 
-An agent can act only on what it can see and safely touch. Two stories in Section 10 turn on exactly that: the hotel matcher's real error rate and the room mapper's real CPU cost stayed invisible until someone built the instrument that showed them. So agents are first-class users of the data layer, through tools that carry their own guardrails.
+An agent can act only on what it can see and safely touch. Two stories in Section 11 turn on exactly that: the hotel matcher's real error rate and the room mapper's real CPU cost stayed invisible until someone built the instrument that showed them. So agents are first-class users of the data layer, through tools that carry their own guardrails.
 
 | Surface | What agents can do | Guardrail |
 |---|---|---|
@@ -503,7 +577,7 @@ Agents from several vendors work the same repositories on eleven machines. The A
 
 ---
 
-## 10. Decision Stories
+## 11. Decision Stories
 
 Each story is reconstructed from the commits, pull requests, issues and discussions that recorded it, and each is told around a decision recorded at the time; where a person made it, we say so. Names of customers, suppliers, hotels and colleagues are left out.
 
@@ -562,11 +636,11 @@ Agent fleets make extraction cheap, so we extract when coupling costs us. [docge
 
 ### 7. An agent-native product surface
 
-HotelByte's API is built for software clients, and we now build the same surface for agent clients: a CLI with 33 command groups and JSON output, a public agent skill, and a hosted MCP server whose tools call the same domain services as the HTTP API. **The call:** an agent-facing surface shares the response policy of every other surface, so MCP results pass through the same field policy as the HTTP API, and a test checks that private fields stay hidden. *Rejected:* letting tool results bypass the field policy that HTTP responses pass through. GoTry, the open-source agent in Section 8, reads live hotel data through this CLI and tags every number it takes from it as a realtime observation.
+HotelByte's API is built for software clients, and we now build the same surface for agent clients: a CLI with 33 command groups and JSON output, a public agent skill, and a hosted MCP server whose tools call the same domain services as the HTTP API. **The call:** an agent-facing surface shares the response policy of every other surface, so MCP results pass through the same field policy as the HTTP API, and a test checks that private fields stay hidden. *Rejected:* letting tool results bypass the field policy that HTTP responses pass through. GoTry, the open-source agent in Section 9, reads live hotel data through this CLI and tags every number it takes from it as a realtime observation.
 
 ---
 
-## 11. Against the Field
+## 12. Against the Field
 
 ### Delivery Against Public Reference Points
 
@@ -598,7 +672,7 @@ The comparison is not a ranking. Each program measures what its risk demands. A 
 
 ---
 
-## 12. A Playbook for Teams That Put Agents to Work
+## 13. A Playbook for Teams That Put Agents to Work
 
 If we started again tomorrow, with a different product and the same agents, this is the order in which we would build the work harness. Each step is cheap on its own and expensive to retrofit. If you build the agent rather than the work around it, the list at the end of Section 8 is the short version.
 
@@ -618,7 +692,7 @@ If we started again tomorrow, with a different product and the same agents, this
 - *Cap the entry file before it grows.* We let the always-loaded instructions reach 47.4 KB before splitting them. A budget from day one would have avoided the cleanup.
 - *Treat "could not run" as an error everywhere, from the start.* Our own benchmark validator once read a refused build as "no test flips". Our gates now treat "could not run" as a failure, but we learned it more than once.
 
-The levels below describe how far a team has taken this. Most of our backend and frontend work runs at level 5, and the risk in its last column is the one Sections 7 and 9 guard against.
+The levels below describe how far a team has taken this. Most of our backend and frontend work runs at level 5, and the risk in its last column is the one Sections 7 and 10 guard against.
 
 | Level | What it looks like | What breaks next |
 |---|---|---|
@@ -632,7 +706,7 @@ The levels below describe how far a team has taken this. Most of our backend and
 
 ## Conclusion
 
-At a requirement scope priced at more than ¥100 million, what decides the outcome is not how fast code is written but whether long work stays correct and long memory stays useful when no session sees the whole. Our answers are mechanisms, not intentions: state in issues, pull requests, commit trailers and receipts; "done" bound to a commit by two commands that print their own evidence; two memories, the repository's under a fourteen-metric budget; an oracle that has grown faster than the code and never reads the agent's own verdict; and authority graded by reversibility, with production autonomy checked in code. The model and the coding agent are rented and improve without us. The work harness is ours: it grew with the platform, is trained by retrospection and is measured like a model, and it lets fewer than five engineers carry 792 requirements across 1.61 million lines of code while still saying no at the gate. The same laws hold inside an agent (Section 8), so these judgments are a design brief for whoever builds one.
+At a requirement scope priced at more than ¥100 million, what decides the outcome is not how fast code is written but whether long work stays correct and long memory stays useful when no session sees the whole. Our answers are mechanisms, not intentions: state in issues, pull requests, commit trailers and receipts; "done" bound to a commit by two commands that print their own evidence; two memories, the repository's under a fourteen-metric budget; an oracle that has grown faster than the code and never reads the agent's own verdict; and authority graded by reversibility, with the path to production gated in code. The model and the coding agent are rented and improve without us. The work harness is ours: it grew with the platform, is trained by retrospection and is measured like a model, and it lets fewer than five engineers carry 792 requirements across 1.61 million lines of code while still saying no at the gate. The same laws hold inside an agent, ours included (Sections 8 and 9), so these judgments are a design brief for whoever builds one.
 
 Three questions remain open for the whole field:
 
@@ -662,6 +736,9 @@ Three questions remain open for the whole field:
 | Tokens per merged PR | Claude Code and Codex tokens on the measured Mac over 23 days, cache reads included, each API response counted once across all session logs (resumed and sub-agent sessions included), divided by merged backend PRs: all of them (lower bound), those its sessions opened (best single estimate) or merged (upper bound) | The numerator spans all our repositories and the denominator only the backend; Qoder reports no tokens; one machine of eleven |
 | Always-loaded bytes | Bytes of the root instruction files every session loads and the files they import, as our harness budget script counts them, at month-ends of the main branch | Different tools read different root files, so the count is a union; values between month-ends can be higher, as the June peak was |
 | Active hours | Time between a session's events, counting each gap up to 15 minutes | Thinking time longer than 15 minutes between events is not counted |
+| Agent runtime | Go in the backend's agent directory at this edition's commit, counted with cloc (non-blank, non-comment lines), test files separately; packs from the runtime's registration list; tool names from its closed vocabulary; rejected alternatives as commits touching the directory with a `Rejected:` trailer | The runtime only: Booking Copilot's planner lives in the GoTry repository |
+| Booking Copilot page cost | Median largest contentful paint at the CDN edge, in interleaved runs with the Copilot switched on and off | One page and one measurement period |
+| GoTry activity | Merged pull requests in the public GoTry repository from its first release to this edition's date, from the GitHub API | Public counts at this edition's date |
 | HB-Bench | 20 bug-fix pull requests merged in the second half of 2026, each closing an issue. The agent (Codex CLI with gpt-6.1-sol at high reasoning effort, the same prompt in both conditions) gets the issue and the code just before the fix; the pull request's own tests stay hidden and run offline after it stops. The original fixes resolve 20 of 20, an empty change 0. Tasks, conditions, metrics and analysis were posted before the first run and never edited; SHA-256 of the posted text: `3132f262335f97ec583c0353a2f69e1c6139026bfe226a10b3a41ac6ac3a0bd1` | 20 tasks, one model, one run per task and condition: a pilot with wide intervals, on our own repository |
 | HB-Bench's removed layer | Every agent tool's directory, the agent-guidance topics and every instruction file (AGENTS.md, CLAUDE.md and their equivalents), wherever it sits: 977 to 1,956 files per task | The whole layer as it stood, including much that no bug fix needs |
 | HB-Bench re-scoring | One run that failed only on a scoring-infrastructure fault was re-scored alone, as the protocol allows, and passed three times out of three | Decided after the runs, under the protocol's rule for infrastructure failures |
