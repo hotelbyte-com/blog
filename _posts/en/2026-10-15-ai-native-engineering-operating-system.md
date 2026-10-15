@@ -17,7 +17,7 @@ Writing code is not the hard part of building a large system with agents. Keepin
 
 This is a new edition of our [first AI-Native Engineering Operating System paper (WP27)](/en/whitepapers/wp27-ai-native-engineering-operating-system/), rebuilt around two harnesses and measured like a model.
 
-**TL;DR:** HotelByte builds a B2B hotel-distribution platform and measures it against a wholesaler's catalog of 792 requirements in 14 modules, a scope that an outside quote priced at more than ¥100 million; the catalog is the yardstick, and the platform is built to serve many kinds of travel business beyond it. A team of fewer than five engineers builds it with coding agents from several vendors: 1.61 million lines of first-party code in 8 repositories, 40% of it tests. Every deployment like this runs on two harnesses: the **agent harness** inside each coding agent, which we rent, and the **work harness** the agents work in, which we own and train on our own failures. The whitepaper sets out the judgments we made in the work harness, measures it like a model, including a pre-registered ablation of the instruction layer on 20 private bug-fix tasks, which found no detectable effect of the text alone on how many bugs a strong agent fixes, and shows which judgments carry over to the agent side.
+**TL;DR:** HotelByte builds a B2B hotel-distribution platform and measures it against a wholesaler's catalog of 792 requirements in 14 modules, a scope that an outside quote priced at more than ¥100 million; the catalog is the yardstick, and the platform is built to serve many kinds of travel business beyond it. A team of fewer than five engineers builds it with coding agents from several vendors: 1.61 million lines of first-party code in 8 repositories, 40% of it tests. Every deployment like this runs on two harnesses: the **agent harness** inside each coding agent, which we rent, and the **work harness** the agents work in, which we own and train on our own failures. The whitepaper sets out the judgments we made in the work harness, measures it like a model, with a pre-registered benchmark built from our own bug fixes, and shows which judgments carry over to the agent side.
 
 ## Why This Matters in Hotel Distribution
 
@@ -44,7 +44,7 @@ Hotel distribution punishes "looks right" engineering. Supplier APIs drift, pric
 | Oracle | 47 → 61 → 180 new test functions a day (second quarter, third quarter, since then) |
 | History | 9,545 commits since 2025-05-04; 3,637 merged backend pull requests since July 2025 |
 | Pace | 2,069 merged pull requests across 10 company repositories in a 30-day window |
-| Ablation of the instruction layer | A pre-registered ablation of the instruction layer on 20 private bug fixes: no detectable effect on how many bugs a strong agent fixed (9 with it, 10 without, p = 1; 1 of 20 tasks differed); failed runs claimed "fixed" less often with it (64% against 90%, not significant), at 2.4 times the input tokens, nearly all cache reads, and 45% more time. It varies the text, not the checks |
+| Ablation of the instruction layer | A pre-registered ablation on 20 private bug fixes: with every check in place, removing the whole instruction layer left 19 of 20 outcomes unchanged, so what every session loads can stay thin |
 | Cost | 26–169 million tokens per merged pull request on the measured Mac |
 
 ## What Carries Over If You Build Agents
@@ -68,7 +68,7 @@ The two harnesses obey the same laws, so five of our judgments apply directly to
 
 - **Sections 1–3** for the problem as a rate, the two harnesses (what we rent and what we train), and the scale with the oracle underneath.
 - **Sections 4–5** for long-horizon tasks, state and the two memories.
-- **Sections 6–8** for retrospection, how we evaluate the work harness (including the pre-registered ablation of the layer agents read), and the laws both harnesses share, with what transfers.
+- **Sections 6–8** for retrospection, how we evaluate the work harness (including the pre-registered ablation of the instruction layer), and the laws both harnesses share, with what transfers.
 - **Sections 9–12** for authority and data, decision stories, the comparison with the field, and a playbook.
 
 <div class="whitepaper-reader-note">
