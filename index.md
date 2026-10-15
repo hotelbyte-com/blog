@@ -15,13 +15,13 @@ lang: zh
 
 <section class="featured-whitepaper">
   <div>
-    <p class="featured-kicker">重点推荐 · WP27</p>
+    <p class="featured-kicker">重点推荐</p>
     <h2>AI 原生工程操作系统</h2>
-    <p>AI 不再只是写代码助手。真正的问题是工程组织如何安全吸收 AI 工作，并把人类意图、运行时证据、评审、发布控制和组织记忆接成一条已验证反馈闭环。</p>
+    <p>模型是租来的，编码智能体和它自带的 harness 也是租来的；工作 harness 要自己训。不到 5 名工程师如何建一个以一份外部报价上亿元人民币的需求清单为标尺、又不止于它的系统：为什么长程任务和长程记忆的成败在工作 harness，以及我们怎样像评估模型一样衡量它。</p>
   </div>
   <div class="featured-actions">
-    <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/">读导读</a>
-    <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/original/">看原文</a>
+    <a href="/zh/whitepapers/ai-native-engineering-operating-system/">读导读</a>
+    <a href="/zh/whitepapers/ai-native-engineering-operating-system/original/">看原文</a>
   </div>
 </section>
 

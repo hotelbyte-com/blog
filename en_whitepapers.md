@@ -24,12 +24,12 @@ permalink: /en/whitepapers/
   </div>
 
   <section class="whitepaper-feature">
-    <p class="featured-kicker">Featured · WP27</p>
+    <p class="featured-kicker">Featured</p>
     <h2>AI-Native Engineering Operating System</h2>
-    <p>This heavyweight whitepaper is not about making AI write more code. It explains how an engineering organization turns AI work into a governed system of intent, evidence, execution, verification, review, and memory.</p>
+    <p>Rent the model. Rent the coding agent and its harness. Train the work harness. Every agent deployment runs on two harnesses: the agent harness inside each coding agent, and the work harness, the environment the agents work in. How fewer than five engineers build a B2B hotel-distribution platform, measured against a requirement catalog that an outside quote priced at more than ¥100 million and built for more than it: ten judgments about long-horizon tasks and long-horizon memory, the evidence behind each, a pre-registered ablation of the instruction layer, and what transfers to anyone who builds an agent harness.</p>
     <div class="featured-actions">
-      <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">Read guide</a>
-      <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/original/">Read source</a>
+      <a href="/en/whitepapers/ai-native-engineering-operating-system/">Read guide</a>
+      <a href="/en/whitepapers/ai-native-engineering-operating-system/original/">Read source</a>
     </div>
   </section>
 

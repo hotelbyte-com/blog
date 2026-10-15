@@ -24,12 +24,12 @@ permalink: /zh/whitepapers/
   </div>
 
   <section class="whitepaper-feature">
-    <p class="featured-kicker">重点推荐 · WP27</p>
+    <p class="featured-kicker">重点推荐</p>
     <h2>AI 原生工程操作系统</h2>
-    <p>这篇重量级白皮书不讨论“让 AI 多写一点代码”，而是讨论工程组织如何把 AI 工作纳入意图、证据、执行、验证、评审和记忆的治理系统。</p>
+    <p>模型是租来的，编码智能体和它自带的 harness 也是租来的；工作 harness 要自己训。每一次智能体落地都跑在两套 harness 上：编码智能体内部的智能体 harness，和智能体在其中干活的工作 harness。这篇白皮书讲不到 5 名工程师如何建一个 B2B 酒店分销平台，以一份外部报价上亿元人民币的需求清单为标尺、又不止于它：关于长程任务和长程记忆的十条判断、每条背后的证据、一次针对指令层的预先登记消融实验，以及哪些经验能迁移给造智能体 harness 的人。</p>
     <div class="featured-actions">
-      <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/">读导读</a>
-      <a href="/zh/whitepapers/wp27-ai-native-engineering-operating-system/original/">看原文</a>
+      <a href="/zh/whitepapers/ai-native-engineering-operating-system/">读导读</a>
+      <a href="/zh/whitepapers/ai-native-engineering-operating-system/original/">看原文</a>
     </div>
   </section>
 
