@@ -22,7 +22,7 @@ Chinese version: [中文白皮书](/zh/whitepapers/ai-native-engineering-operati
 
 **Rent the model. Rent the coding agent and its harness. Train the work harness.**
 
-*By the HotelByte engineering team. 2026. Rolling figures come from one reproducible snapshot (Appendix A). The benchmark in Section 7 was pre-registered in a pull request in our private repository before any agent run on its tasks; Appendix A gives the protocol's hash. Figures inside the stories come from the dated commit, pull request or issue that recorded them. Appendix A gives every definition and known bias.*
+*By the HotelByte engineering team, 2026. Figures come from one reproducible snapshot; the Section 7 benchmark was pre-registered before any agent run. Definitions, known biases and the protocol hash are in Appendix A.*
 
 ---
 
