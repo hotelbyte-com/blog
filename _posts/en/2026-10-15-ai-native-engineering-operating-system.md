@@ -54,7 +54,7 @@ The two harnesses obey the same laws, so five of our judgments apply directly to
 
 ## The Agents We Build
 
-We rent the coding agent, but the agents inside our product are ours, agent harness included. Nine run as packs on one runtime: support, data, rate monitoring, rules, presales, content, engineering and two lighter ones. A pack that names an unknown tool or lacks the proof behind a capability stops the boot; side effects wait for an action a person confirmed; every model call goes through one vendor-neutral interface; recalled memory carries its source. Booking Copilot, built on GoTry, works the booking page the user already has through twelve typed read actions, and only Checkout books.
+We rent the coding agent, but the agents inside our product are ours, agent harness included. Nine run as packs on one runtime: support, data, rate monitoring, rules, presales, content, engineering and two lighter ones. A pack that names an unknown tool or lacks the proof behind a capability stops the boot; tool calls with side effects wait for an action a person confirmed; the packs call models through one vendor-neutral interface; recalled memory carries its source. Booking Copilot, built on GoTry, works the booking page the user already has through twelve typed read actions, and only Checkout books.
 
 ## Two Stories
 
