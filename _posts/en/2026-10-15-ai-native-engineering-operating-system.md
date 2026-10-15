@@ -44,7 +44,7 @@ Hotel distribution punishes "looks right" engineering. Supplier APIs drift, pric
 | Oracle | 47 → 61 → 180 new test functions a day (second quarter, third quarter, since then) |
 | History | 9,545 commits since 2025-05-04; 3,637 merged backend pull requests since July 2025 |
 | Pace | 2,069 merged pull requests across 10 company repositories in a 30-day window |
-| Ablation of the text agents read | A pre-registered ablation on 20 private bug fixes, deleting only the text agents read and keeping every check, found no detectable difference in how many bugs a strong agent fixed: 9 with the text, 10 without, 1 of 20 tasks differing |
+| Ablation of the instruction layer | A pre-registered ablation on 20 private bug fixes, deleting the whole instruction layer and keeping every check, found no detectable difference in how many bugs a strong agent fixed: 9 with the layer, 10 without, 1 of 20 tasks differing |
 | Cost | 26–169 million tokens per merged pull request on the measured Mac |
 
 ## What Carries Over If You Build Agents
@@ -68,7 +68,7 @@ The two harnesses obey the same laws, so five of our judgments apply directly to
 
 - **Sections 1–3** for the problem as a rate, the two harnesses (what we rent and what we train), and the scale with the oracle underneath.
 - **Sections 4–5** for long-horizon tasks, state and the two memories.
-- **Sections 6–8** for retrospection, how we evaluate the work harness (including the pre-registered ablation of the text agents read), and the laws both harnesses share, with what transfers.
+- **Sections 6–8** for retrospection, how we evaluate the work harness (including the pre-registered ablation of the instruction layer), and the laws both harnesses share, with what transfers.
 - **Sections 9–12** for authority and data, decision stories, the comparison with the field, and a playbook.
 
 <div class="whitepaper-reader-note">
