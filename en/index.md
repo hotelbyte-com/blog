@@ -16,13 +16,13 @@ permalink: /en/
 
 <section class="featured-whitepaper">
   <div>
-    <p class="featured-kicker">Featured · WP27</p>
+    <p class="featured-kicker">Featured</p>
     <h2>AI-Native Engineering Operating System</h2>
-    <p>AI is no longer just a coding assistant. The hard problem is how an engineering organization safely absorbs AI work into one verified feedback loop across intent, runtime evidence, review, release control, and memory.</p>
+    <p>Rent the model. Rent the coding agent and its harness. Train the work harness. How fewer than five engineers build a platform measured against a requirement catalog that an outside quote priced at more than ¥100 million, and built for more than it; why long-horizon tasks and long-horizon memory are decided in the work harness, and how we measure it like a model.</p>
   </div>
   <div class="featured-actions">
-    <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/">Read guide</a>
-    <a href="/en/whitepapers/wp27-ai-native-engineering-operating-system/original/">Read source</a>
+    <a href="/en/whitepapers/ai-native-engineering-operating-system/">Read guide</a>
+    <a href="/en/whitepapers/ai-native-engineering-operating-system/original/">Read source</a>
   </div>
 </section>
 
