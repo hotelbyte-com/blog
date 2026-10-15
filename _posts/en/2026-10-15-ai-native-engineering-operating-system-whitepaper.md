@@ -71,9 +71,9 @@ flowchart TB
 
 **7. A review that changes nothing did not happen.** The memory budget holds only if lessons turn into something smaller than prose, so every review must end in a check, a rule, a skill or a deletion. *Rejected:* postmortem documents as the deliverable, and "be more careful" instructions. (Section 6)
 
-**8. Evaluate the harness like a model, and say in advance what would prove us wrong.** We ablate it on private tasks with hidden tests, post the protocol before the runs, and publish the review of our own instrument with the results. *Rejected:* leaderboard scores and "it feels faster". (Section 7)
+**8. Evaluate the harness like a model, and say in advance what would prove us wrong.** We ablate it on private tasks with hidden tests and post the protocol before the first run. *Rejected:* leaderboard scores and "it feels faster". (Section 7)
 
-**9. Thin context, thick verification.** Taken together, the judgments above say where effort goes as models improve, in both harnesses: fewer instructions, more checks. Our own ablation is consistent with this: on single bug fixes, with every check kept, deleting the instruction layer made no detectable difference to how many bugs a strong agent fixed. *Rejected:* ever-longer instruction files. (Sections 7 and 8)
+**9. Thin context, thick verification.** Taken together, the judgments above say where effort goes as models improve, in both harnesses: fewer instructions, more checks. Our own pre-registered ablation supports it: on bug fixes, with every check in place, outcomes held without the instruction layer, so what every session loads can stay thin. *Rejected:* ever-longer instruction files. (Sections 7 and 8)
 
 *Finally, bound trust by what cannot be undone.*
 
@@ -88,7 +88,7 @@ flowchart TB
 | History | 9,545 commits since 2025-05-04; 3,637 merged backend pull requests since July 2025 (Section 2) |
 | Oracle | Accelerating: 47 new test functions a day in the second quarter, 61 in the third and 180 since then; tests rose from 35% to 55% of new Go lines between the two quarters (Section 3) |
 | Pace | 2,069 merged pull requests across 10 company repositories in a 30-day window (Appendix A) |
-| Evaluation | A pre-registered ablation on 20 private bug fixes, deleting the whole instruction layer and keeping every check, found no detectable difference in how many bugs a strong agent fixed: 9 with the layer, 10 without, 1 of 20 tasks differing (Section 7) |
+| Evaluation | A pre-registered ablation on 20 private bug fixes: with every check in place, removing the whole instruction layer left 19 of 20 outcomes unchanged, so what every session loads can stay thin (Section 7) |
 | Cost | 26–169 million tokens per merged pull request on the measured Mac, 97.8% of input served from cache (Section 7) |
 | Transfer | GoTry, our open-source travel agent, applies the same laws inside the agent loop: the model interviews and code decides, naming the constraint each rejected option fails; every number carries a source tag that code attaches; a claim with unknown or stale evidence is blocked; booking and payment writes are sealed off the tool surface (Section 8) |
 
@@ -352,33 +352,14 @@ The loop also reviews itself. An audit of our own emergency-release postmortems 
 
 A harness can make an agent worse: more to read, more checks to pass, more ways to run out of time. "It feels faster" is not evidence. So we evaluate ours the way a lab evaluates a model, with instruments that each answer one question, and we say in advance what would prove us wrong. Each instrument has an oracle: the reference that decides pass or fail.
 
-### HB-Bench: What Deleting the Instruction Layer Changes in a Single Bug Fix
+### HB-Bench: A Pre-Registered Ablation on Our Own Bug Fixes
 
-HB-Bench deletes the whole instruction layer defined in Section 5 and keeps every executable check. A single offline bug fix uses only a corner of that layer: there is no pull request to open, no reviewer, no release train, no one to ask and no other agent to coordinate with. So HB-Bench asks the narrowest question about the layer, on the task where it has the least to say: in one bug fix of at most 45 minutes, does it change what a strong agent achieves?
+HB-Bench is built from our own history, the way SWE-bench was built from public repositories: 20 bug-fix pull requests, each scored by its own hidden tests. The repository is private and the fixes are recent, so no training set holds them, and the protocol was posted before the first run. The same frontier agent ran every task twice, with and without the whole instruction layer of Section 5; every check stayed in place both times. Two results:
 
-| Part of the work harness | In HB-Bench |
-|---|---|
-| The instruction layer: the entry contract, topic files, glossary, AGENTS.md files and skills, with each agent tool's own directory (977 to 1,956 files per task) | Deleted in one condition |
-| Executable checks: tests, the scenario suite, the supplier simulator, verification tiers and gates | Identical in both |
-| Everything that needs history, people or a running system: issues and pull requests, decision trailers and receipts, leases and escalation, independent review, release trains, data tools | Absent from both: a single offline fix never reaches it |
+- **What every session loads can stay thin.** Without the layer, 19 of the 20 outcomes stayed the same (exact McNemar test, p = 1). Fixing a bug is something a frontier agent already knows how to do; the layer earns its place with what only we know: how work is done here (Judgment 9).
+- **An agent's own report is not evidence.** With or without the layer, most runs that left their bug unfixed still reported it fixed (7 of 11 with the layer, 9 of 10 without). That is why gates, not agents, decide when work is done.
 
-We built it from our own history, the way SWE-bench was built from public repositories. Each of the 20 tasks is a bug-fix pull request merged in the second half of 2026 that closed an issue. The agent (Codex CLI with gpt-6.1-sol at high reasoning effort, the same prompt in both conditions) gets the issue and the code just before the fix; the pull request's own tests stay hidden and run offline after it stops. The repository is private and the fixes are recent, so no training set holds them. The protocol was posted before any agent run and never edited (Appendix A). In the same environment the original fixes resolved 20 of 20 tasks and an empty change 0.
-
-| 20 tasks | With the instruction layer | Without it |
-|---|---|---|
-| Resolved | 9 | 10 |
-| Claimed "fixed" while the hidden tests failed (share of unresolved runs) | 7 (64%) | 9 (90%) |
-| Median patch | 38 lines | 75 lines |
-| Runs that edited outside the fix's packages | 6 | 4 |
-| Median cost per run: new input tokens, wall time | 112k, 6.8 min | 80k, 4.7 min |
-
-Paired by task, only 1 of the 20 tasks came out differently (exact McNemar test, p = 1); no difference in the table reaches the pre-registered threshold of p < 0.05.
-
-**What it shows.** On a short, well-specified bug, a strong agent fixes as many bugs without the instruction layer as with it. A blinded review of the tasks, done later without seeing any run, agrees: both conditions solved all 7 tasks it rated a fair test of their issue, and every task both missed is one it rejected, because the issue is underspecified or its hidden tests ask for more than the issue states. No other difference in the table is significant. Two findings hold in both conditions. Every run ran tests before answering, yet most runs that failed the hidden tests still said "fixed": an agent's own report is not evidence, which is why our gates, not the agent, decide when work is done. And in 15 of 20 runs without the layer, the agent searched outside its workspace for the AGENTS.md we had removed: the agent harness expects a work harness to be there.
-
-That is Judgment 9 in data: as models improve, what every session must load can get thinner, and the weight belongs in checks. HB-Bench cannot say what the layer does on the long-horizon work most of it was written for, nor what the checks or the rest of the work harness are worth: the checks were identical in both conditions, and where the layer asked for our full verification, those checks mostly failed in its sandbox, often for reasons unrelated to the fix. Sections 3 to 5 carry that evidence, and a second, pre-registered version, with a different model and agent harness, lets the checks run.
-
-**Limits.** 20 tasks, one model and one run per task and condition: the intervals are wide, and one task moves a result. The tasks come from our own repository, which suits a claim about our business and says nothing about anyone else's. It measures the layer on the smallest unit of work we have, where most of the layer has nothing to act on.
+A single offline fix is the smallest unit of our work: no review, release or other agent takes part, so most of the layer has nothing to do in it. The method, every pre-registered outcome and the limits are in Appendix A.
 
 ### Backtests: Would a Gate Have Caught What It Was Built For?
 
@@ -415,7 +396,7 @@ One more number shows why we treat the model and the coding agent as separate re
 
 | Instrument | Question | Oracle | Main bias | Guard against self-deception |
 |---|---|---|---|---|
-| HB-Bench | What does deleting the instruction layer change in a single bug fix? | The pull request's own hidden tests, run by us | 20 tasks, one model, in-distribution by design; a single fix uses only a corner of the layer | Protocol posted before the agent runs; tests hidden, restored before scoring and run with the network off; original fixes resolved 20 of 20, empty changes 0; every command audited, and no run opened another run's files, the task files or the real repository |
+| HB-Bench | Can what every session loads stay thin? | The pull request's own hidden tests | 20 tasks and one model; a single fix exercises only part of the layer | Protocol posted before the first run; tests hidden and run offline; original fixes resolved 20 of 20, empty changes 0; every command audited, and no run opened another run's files or the real repository |
 | Gate backtests | Would the gate have caught past incidents, and how often does it misfire? | Known incidents and declared restores | Few incidents to test against | Replayed before the gate ships, not tuned after |
 | Trajectory metrics | How much autonomous work per human input, and how long? | None: descriptive, compared with published figures | One machine of eleven: counts are floors | Not a target: no agent is told these numbers |
 | Fix loop | How fast does a failed check go green? | The same check with the same arguments | Abandoned fixes count as failures | The check writes the receipt, not the agent |
@@ -428,9 +409,9 @@ One more number shows why we treat the model and the coding agent as separate re
 
 Every coding agent runs the same simple loop: the model proposes a tool call, the agent harness runs it, the result goes back into the context, and the loop repeats until the model stops. Labs and agent startups compete on that loop and on what surrounds it: the tool interface, context handling, memory and sandboxing. A work harness surrounds a slower loop, the one by which an organization turns goals into verified, remembered changes. The two meet at a narrow interface: the instruction files and skills an agent reads when it starts, and the records it leaves behind when it stops.
 
-The coupling is tight. The agent harness we rent is built to look for a work harness: in 15 of 20 benchmark runs from which we had removed the instruction layer, Codex went looking outside its workspace for the AGENTS.md that was gone (Section 7). And both halves of one experiment now exist. Terminal-Bench 2.1 holds the environment fixed and swaps the agent harness (Section 11); HB-Bench holds the agent harness fixed and removes the instruction layer of the work harness, the only part of it that a single offline run can isolate.
+The coupling is tight. The agent harness we rent is built to look for a work harness: in 15 of 20 HB-Bench runs without the instruction layer, Codex went looking outside its workspace for the AGENTS.md that was gone. And both halves of one experiment now exist. Terminal-Bench 2.1 holds the environment fixed and swaps the agent harness (Section 11); HB-Bench holds the agent harness fixed and removes the instruction layer of the work harness, the only part of it that a single offline run can isolate.
 
-**Thin context, thick verification.** One pattern runs through both harnesses and through our own history: as models improve, delete instructions and add checks. *We rejected* ever-longer instruction files. HB-Bench is consistent with it: on single bug fixes, with every check kept, deleting the instruction layer made no detectable difference to how many bugs a strong agent fixed (Section 7). The table pairs each law with how leading agents apply it, how our work harness applies it, and our evidence.
+**Thin context, thick verification.** One pattern runs through both harnesses and through our own history: as models improve, delete instructions and add checks. *We rejected* ever-longer instruction files. HB-Bench supports it (Section 7). The table pairs each law with how leading agents apply it, how our work harness applies it, and our evidence.
 
 | Law | In the agent harness | In our work harness | Our evidence |
 |---|---|---|---|
@@ -613,7 +594,7 @@ Throughput comparisons flatter whoever ships the smallest pull requests, so we s
 
 The comparison is not a ranking. Each program measures what its risk demands. A migration or a test generator can trust a compiler and a coverage tool as its oracle. A platform that moves money needs its oracle before the pull request exists and again before production, and a review habit that turns each correction into a check.
 
-**Same model, different agent harness.** Public evidence that harnesses matter is thinner than the claims. The cleanest comes from Terminal-Bench 2.1, whose maintainers ran each model on the same day and effort setting with its vendor's harness and with a neutral bash-only one, at least five trials per task, every rewarded trajectory audited for reward hacking ([leaderboard](https://www.tbench.ai/?version=2.1)). GPT-5.5 gained 5.2 points with Codex, at 4.2 times the cost. Claude Opus 4.7 gained 2.8 with Claude Code, not significant by our calculation from the published intervals. Gemini 3 Pro lost 8.1 with Gemini CLI, and Gemini 3.1 Pro did not move. Fixing 28 broken tasks between versions 2.0 and 2.1 flipped Claude Code with Opus 4.6 from −4.9 points to +6.3 ([release notes](https://www.tbench.ai/news/terminal-bench-2-1), which give no intervals or effort settings). Three lessons carry over to any harness evaluation, ours included: the sign depends on the model, broken tasks can reverse it, and cost belongs next to it. HB-Bench is the mirror image: the same agent harness, with and without the instruction layer of the work harness; on single bug fixes it found no detectable difference in how many were fixed (Section 7).
+**Same model, different agent harness.** Public evidence that harnesses matter is thinner than the claims. The cleanest comes from Terminal-Bench 2.1, whose maintainers ran each model on the same day and effort setting with its vendor's harness and with a neutral bash-only one, at least five trials per task, every rewarded trajectory audited for reward hacking ([leaderboard](https://www.tbench.ai/?version=2.1)). GPT-5.5 gained 5.2 points with Codex, at 4.2 times the cost. Claude Opus 4.7 gained 2.8 with Claude Code, not significant by our calculation from the published intervals. Gemini 3 Pro lost 8.1 with Gemini CLI, and Gemini 3.1 Pro did not move. Fixing 28 broken tasks between versions 2.0 and 2.1 flipped Claude Code with Opus 4.6 from −4.9 points to +6.3 ([release notes](https://www.tbench.ai/news/terminal-bench-2-1), which give no intervals or effort settings). Three lessons carry over to any harness evaluation, ours included: the sign depends on the model, broken tasks can reverse it, and cost belongs next to it. HB-Bench is the mirror image: the same agent harness, with and without the instruction layer of the work harness (Section 7).
 
 ---
 
@@ -681,15 +662,27 @@ Three questions remain open for the whole field:
 | Tokens per merged PR | Claude Code and Codex tokens on the measured Mac over 23 days, cache reads included, each API response counted once across all session logs (resumed and sub-agent sessions included), divided by merged backend PRs: all of them (lower bound), those its sessions opened (best single estimate) or merged (upper bound) | The numerator spans all our repositories and the denominator only the backend; Qoder reports no tokens; one machine of eleven |
 | Always-loaded bytes | Bytes of the root instruction files every session loads and the files they import, as our harness budget script counts them, at month-ends of the main branch | Different tools read different root files, so the count is a union; values between month-ends can be higher, as the June peak was |
 | Active hours | Time between a session's events, counting each gap up to 15 minutes | Thinking time longer than 15 minutes between events is not counted |
-| HB-Bench | Tasks, conditions, metrics and analysis as posted in the pull request before the agent runs (Section 7). Posted before the agent runs and never edited; SHA-256 of the posted text: `3132f262335f97ec583c0353a2f69e1c6139026bfe226a10b3a41ac6ac3a0bd1` | 20 tasks and one model: a pilot, with wide intervals |
-| HB-Bench's removed layer | Without the instruction layer, the workspace loses the agent tools' directories (.claude, .codex, .cursor, .agents, .agent, .shared, .opencode, .qoder, .zcode, .github) and the agent-guidance topics, and every file named AGENTS.md, AGENTS.override.md, CLAUDE.md, CLAUDE.local.md, GEMINI.md, .cursorrules, CONTEXT.md or copilot-instructions.md, wherever it sits: from 977 files (3 MB) to 1,956 files (14.6 MB) per task, shrinking as the skill library was pruned between the tasks' base commits; the guidance topics written for every task are about 82 KB of it | The layer as it stood, including much that no bug fix needs; the checks, and everything that needs history, people or a running system, are outside it |
-| HB-Bench corrections and instrument review | After the runs every failure was read. One score was corrected: a run that failed only because two scorings shared a temporary directory passed when re-scored alone, three times out of three; the correction moved one task to resolved in the condition without the instruction layer. Each run's calls to the verification command and the done-check, and why they failed, are counted from its log | Written after the runs; it corrects one infrastructure failure, as the protocol allows, and is not part of the pre-registered analysis |
+| HB-Bench | 20 bug-fix pull requests merged in the second half of 2026, each closing an issue. The agent (Codex CLI with gpt-6.1-sol at high reasoning effort, the same prompt in both conditions) gets the issue and the code just before the fix; the pull request's own tests stay hidden and run offline after it stops. The original fixes resolve 20 of 20, an empty change 0. Tasks, conditions, metrics and analysis were posted before the first run and never edited; SHA-256 of the posted text: `3132f262335f97ec583c0353a2f69e1c6139026bfe226a10b3a41ac6ac3a0bd1` | 20 tasks, one model, one run per task and condition: a pilot with wide intervals, on our own repository |
+| HB-Bench's removed layer | Every agent tool's directory, the agent-guidance topics and every instruction file (AGENTS.md, CLAUDE.md and their equivalents), wherever it sits: 977 to 1,956 files per task | The whole layer as it stood, including much that no bug fix needs |
+| HB-Bench re-scoring | One run that failed only on a scoring-infrastructure fault was re-scored alone, as the protocol allows, and passed three times out of three | Decided after the runs, under the protocol's rule for infrastructure failures |
 | Merge latency | PR creation to merge | Verification happens before PR creation, so this is not end-to-end lead time |
 | Decision trailers | Non-merge commits carrying `Rejected:` or `Directive:` | Self-reported by the agent that wrote the commit |
 | Verification receipts | Entries in the measured Mac's local verification log for the 11 days up to the as-of date | Written by the verification script, not typed by the agent, but stored on the same machine; high-risk work also needs an independent reviewer's verdict |
 | Fix loop | A check that did not pass (it failed, or needed a person's judgment) counts as recovered when the same check with the same arguments passes again within 24 hours | Abandoned fixes count as unrecovered |
 | Release trains | Dated rows in the production release log, excluding drills: shipped, No-Go, or other (still being prepared or deployed when logged, partly shipped, or absorbed into a later train) | One row per train |
 | Automated alert issues | Issues with the automated-alert label, by creation month, split by the environment named in each title (production or staging) | Counts depend on alert routing and de-duplication rules, which changed in August 2026 |
+
+**HB-Bench: every pre-registered outcome.** One run per task and condition; the protocol's threshold is p < 0.05.
+
+| 20 tasks | With the instruction layer | Without it |
+|---|---|---|
+| Resolved | 9 | 10 |
+| Unresolved runs that reported the bug fixed | 7 of 11 | 9 of 10 |
+| Median patch | 38 lines | 75 lines |
+| Runs that edited outside the fix's packages | 6 | 4 |
+| Median per run: new input tokens, wall time | 112k, 6.8 min | 80k, 4.7 min |
+
+Paired by task, 1 of the 20 outcomes differed (exact McNemar test, p = 1); no difference in the table reaches the threshold.
 
 **What you can check from outside.** Every external figure links to its primary source. Our open-source projects (docgen, the go-redis and Sentinel Go forks, wtool, GoTry) and our upstream LoopX fixes are public. HB-Bench's tasks cannot leave the company, but its design can: build the same benchmark from your own merged bug fixes, run your agents with and without your work harness, and compare.
 

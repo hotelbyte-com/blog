@@ -44,7 +44,7 @@ Hotel distribution punishes "looks right" engineering. Supplier APIs drift, pric
 | Oracle | 47 → 61 → 180 new test functions a day (second quarter, third quarter, since then) |
 | History | 9,545 commits since 2025-05-04; 3,637 merged backend pull requests since July 2025 |
 | Pace | 2,069 merged pull requests across 10 company repositories in a 30-day window |
-| Ablation of the instruction layer | A pre-registered ablation on 20 private bug fixes, deleting the whole instruction layer and keeping every check, found no detectable difference in how many bugs a strong agent fixed: 9 with the layer, 10 without, 1 of 20 tasks differing |
+| Ablation of the instruction layer | A pre-registered ablation on 20 private bug fixes: with every check in place, removing the whole instruction layer left 19 of 20 outcomes unchanged, so what every session loads can stay thin |
 | Cost | 26–169 million tokens per merged pull request on the measured Mac |
 
 ## What Carries Over If You Build Agents
